@@ -4,9 +4,7 @@
 
 The vision of WinterSim project is to renew the services and products of smart and autonomous vehicles. The main goal is to produce research and data about the functionality of the most common sensors in vehicles in winter conditions by utilizing game engine technologies.
 
-Learn more:
-
-https://wintersim.fi/
+[Learn more about WinterSim project](https://wintersim.fi/)
 
 ## What is Carla Simulator?
 
@@ -14,9 +12,8 @@ https://wintersim.fi/
 
 CARLA is an open-source simulator for autonomous driving research. CARLA has been developed from the ground up to support development, training, and validation of autonomous driving systems. In addition to open-source code and protocols, CARLA provides open digital assets (urban layouts, buildings, vehicles) that were created for this purpose and can be used freely. The simulation platform supports flexible specification of sensor suites and environmental conditions.
 
-Learn more:
+[Learn more about CARLA Simulator](http://carla.org/)
 
-http://carla.org/
 
 ## WinterSim Releases
 
