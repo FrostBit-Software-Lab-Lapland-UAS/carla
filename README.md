@@ -2,7 +2,7 @@
 
 -------
 
-WinterSim Project information
+## WinterSim Project information
 
 The vision of WinterSim project is to renew the services and products of smart and autonomous vehicles. The main goal is to produce research and data about the functionality of the most common sensors in vehicles in winter conditions by utilizing game engine technologies.
 
@@ -19,6 +19,19 @@ CARLA is an open-source simulator for autonomous driving research. CARLA has bee
 To learn more about Carla:
 
 http://carla.org/
+
+
+### Recommended system
+
+-------
+
+Intel i7 gen 9th - 11th / Intel i9 gen 9th - 11th / AMD ryzen 7 / AMD ryzen 9
+
++16 GB RAM memory
+
+NVIDIA RTX 2070 / NVIDIA RTX 2080 / NVIDIA RTX 3070, NVIDIA RTX 3080
+
+Ubuntu 18.04
 
 
 License
