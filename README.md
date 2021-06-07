@@ -4,7 +4,7 @@
 
 The vision of WinterSim project is to renew the services and products of smart and autonomous vehicles. The main goal is to produce research and data about the functionality of the most common sensors in vehicles in winter conditions by utilizing game engine technologies.
 
-[Learn more about WinterSim project](https://wintersim.fi/)
+[Learn more about WinterSim Project](https://wintersim.fi/)
 
 ## What is Carla Simulator?
 
@@ -23,7 +23,7 @@ WinterSim Release 1.0.0 installation guide
 
 1. Download [wintersim_muonio_1.0.0.zip](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Releases/wintersim_muonio_1.0.0.zip)
 
-2. Install [Python 3.7](https://www.python.org/downloads/release/python-370/)
+2. Install [Python 3.7](https://www.python.org/downloads/release/python-370/) (tick “add Python 3.7 to PATH.” checkbox)
 
 3. Unzip wintersim_muonio_1.0.0.zip
 
