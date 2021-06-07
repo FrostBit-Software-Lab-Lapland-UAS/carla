@@ -27,7 +27,7 @@ WinterSim Release 1.0.0 installation guide
 
 3. Unzip wintersim_muonio_1.0.0.zip
 
-4. Open Terminal and locate to Muonio/WindowsNoEditor/PythonAPI/wintersim_examples and install all necessary packages with following command
+4. Open Terminal and locate to Muonio/WindowsNoEditor/PythonAPI/wintersim_examples folder and install all necessary packages with following command
 
   ```
     pip install -r requirements.txt
@@ -35,7 +35,7 @@ WinterSim Release 1.0.0 installation guide
 
 5. Inside Muonio/WindowsNoEditor folder double click CarlaUE4.exe to start simulation
 
-6. Inside Muonio/WindowsNoEditor/PythonAPI/wintersim_examples there are few example scripts. Run either script to join simulation. Each script should be run in one terminal window.
+6. Inside Muonio/WindowsNoEditor/PythonAPI/wintersim_examples there are few example scripts. Run either script to join simulation. Each script should be run in one Terminal window.
 
   ```
     python wintersim_control.py
