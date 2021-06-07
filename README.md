@@ -2,7 +2,7 @@
 
 -------
 
-## WinterSim Project information
+WinterSim Project information
 
 The vision of WinterSim project is to renew the services and products of smart and autonomous vehicles. The main goal is to produce research and data about the functionality of the most common sensors in vehicles in winter conditions by utilizing game engine technologies.
 
@@ -23,7 +23,6 @@ http://carla.org/
 
 ### Recommended system
 
--------
 
 Intel i7 gen 9th - 11th / Intel i9 gen 9th - 11th / AMD ryzen 7 / AMD ryzen 9
 
