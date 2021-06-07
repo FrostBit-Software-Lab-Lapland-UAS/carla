@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import glob
+import glob 
 import os
 import sys
 import re
