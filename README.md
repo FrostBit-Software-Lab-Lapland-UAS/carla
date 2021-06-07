@@ -23,7 +23,7 @@ WinterSim Release 1.0.0 installation guide
 
 1. Download [wintersim_muonio_1.0.0.zip](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Releases/wintersim_muonio_1.0.0.zip)
 
-2. Install [Python 3.7](https://www.python.org/downloads/release/python-370/) (tick “add Python 3.7 to PATH.” checkbox)
+2. Install [Python 3.7](https://www.python.org/downloads/release/python-370/) (tick checkbox “add Python 3.7 to PATH”)
 
 3. Unzip wintersim_muonio_1.0.0.zip
 
