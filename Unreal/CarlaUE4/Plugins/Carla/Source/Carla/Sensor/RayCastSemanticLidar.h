@@ -56,7 +56,7 @@ protected:
   bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FWeatherParameters w) const;
 
   /// Calculate new hitpoint for linetrace if it is snowing
-  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc, FVector distance_to_hit) const;
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
 
   /// Method that allow to preprocess if the rays will be traced.
   virtual void PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel);
