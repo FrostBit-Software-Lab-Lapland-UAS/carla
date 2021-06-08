@@ -21,7 +21,7 @@ CARLA is an open-source simulator for autonomous driving research. CARLA has bee
 
 WinterSim Release 1.0.0 installation guide
 
-1. Download [wintersim_muonio_1.0.0.zip](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Releases/wintersim_muonio_1.0.0.zip)
+1. Download [wintersim.zip](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Releases/wintersim.zip)
 
 2. Download and install [Python 3.7](https://www.python.org/downloads/release/python-370/) (tick checkbox “add Python 3.7 to PATH”)
 
@@ -32,7 +32,7 @@ WinterSim Release 1.0.0 installation guide
   ```
     pip install -r requirements.txt
   ```
-
+  
 5. Inside Muonio/WindowsNoEditor folder double click CarlaUE4.exe to start simulation
 
 6. Inside Muonio/WindowsNoEditor/PythonAPI/wintersim_examples folder there are few example scripts. Run either script to join simulation. Each script should be run in one Terminal window.
