@@ -47,3 +47,6 @@ _out*
 _site
 core
 profiler.csv
+Unreal/CarlaUE4/Plugins/RoadRunnerCarlaIntegration/
+Unreal/CarlaUE4/Plugins/RoadRunnerImporter/
+Unreal/CarlaUE4/Plugins/RoadRunnerMaterials/

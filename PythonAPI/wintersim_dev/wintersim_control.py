@@ -85,8 +85,8 @@ import math
 import random
 import re
 import weakref
-from WinterSim import wintersim_hud
-from WinterSim import wintersim_sensors
+from wintersim_dev import wintersim_hud
+from wintersim_dev import wintersim_sensors
 from wintersim_keyboard_control import KeyboardControl
 from wintersim_camera_manager import CameraManager
 

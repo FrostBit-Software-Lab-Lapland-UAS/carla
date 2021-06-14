@@ -107,7 +107,7 @@ class HUD_WINTERSIM(object):
 
     def make_sliders(self):
         self.snow_amount_slider = Slider("Snow", 0, 100, 0, 240)
-        self.ice_slider = Slider("Road Ice", 0, 100, 0, 370)
+        self.ice_slider = Slider("Road Ice", 0, 5, 0, 370)
         self.temp_slider = Slider("Temp", 0, 40, -40, 500)
         self.rain_slider =Slider("Rain", 0, 100, 0, 630)
         self.fog_slider = Slider("Fog", 0, 100, 0, 760)
@@ -144,7 +144,6 @@ class HUD_WINTERSIM(object):
             '',
             'Server:  % 16.0f FPS' % self.server_fps,
             'Client:  % 16.0f FPS' % clock.get_fps(),
-            #'Objdet:  % 16.0f FPS' % clock.get_fps(),
             '',
             'Amount of Snow:  {}'.format(int(hud_wintersim.snow_amount_slider.val)),
             'Iciness:  {}.00%'.format(int(hud_wintersim.ice_slider.val)),
