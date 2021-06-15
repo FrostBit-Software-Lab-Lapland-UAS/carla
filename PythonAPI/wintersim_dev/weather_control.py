@@ -116,23 +116,23 @@ class World(object):
         self.hud.update_sliders(weather.weather, month=month, clock=clock) #update sliders positions
         self.world.set_weather(weather.weather) #update weather in simulation
 
-    def update_friction(self, iciness):
-        actors = self.world.get_actors()
-        friction = 5
-        friction -= iciness / 100 * 4
-        for actor in actors:
-            if 'vehicle' in actor.type_id:
-                vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+    # def update_friction(self, iciness):
+    #     actors = self.world.get_actors()
+    #     friction = 5
+    #     friction -= iciness / 100 * 4
+    #     for actor in actors:
+    #         if 'vehicle' in actor.type_id:
+    #             vehicle = actor
+    #             front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+    #             front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+    #             rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+    #             rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
 
-                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
-                physics_control = vehicle.get_physics_control()
-                physics_control.wheels = wheels
+    #             wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
+    #             physics_control = vehicle.get_physics_control()
+    #             physics_control.wheels = wheels
 
-                vehicle.apply_physics_control(physics_control)
+    #             vehicle.apply_physics_control(physics_control)
 
     def tick(self, clock, hud): #here we update huds data
         self.hud.tick(self, clock, hud)
@@ -157,8 +157,8 @@ class KeyboardControl(object):
                     if slider.button_rect.collidepoint(pos): #get slider what mouse is touching
                         slider.hit = True #slider is being moved
             elif event.type == pygame.MOUSEBUTTONUP: #slider event
-                if hud.ice_slider.hit: #if road iciness slider is moved
-                    world.update_friction(hud.ice_slider.val)
+                #if hud.ice_slider.hit: #if road iciness slider is moved
+                    #world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
                     slider.hit = False #slider moving stopped
             elif event.type == pygame.KEYUP:
@@ -237,7 +237,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='470x523',
+        default='550x543',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',

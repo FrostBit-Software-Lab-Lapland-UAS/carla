@@ -64,14 +64,14 @@ class INFO_HUD(object):
 
     # Make sliders and add them in to list.
     def make_sliders(self): 
-        self.temp_slider = Slider("Temp", 0, 40, -40, 1)
-        self.snow_amount_slider = Slider("Snow", 0, 100, 0, 67)
-        self.ice_slider = Slider("Road Ice", 0, 5, 0, 134)
-        self.rain_slider =Slider("Rain", 0, 100, 0, 201)
-        self.fog_slider = Slider("Fog", 0, 100, 0, 268)
-        self.wind_slider = Slider("Wind", 0, 100, 0, 335)
-        self.time_slider = Slider("Time", 0, 24, 0, 402)
-        self.month_slider = Slider("Month", 0, 11, 0, 469)
+        self.temp_slider = Slider("Temp", 0, 40, -40, 10)
+        self.snow_amount_slider = Slider("Snow", 0, 100, 0, 77)
+        self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
+        self.rain_slider =Slider("Rain", 0, 100, 0, 211)
+        self.fog_slider = Slider("Fog", 0, 100, 0, 278)
+        self.wind_slider = Slider("Wind", 0, 100, 0, 345)
+        self.time_slider = Slider("Time", 0, 24, 0, 412)
+        self.month_slider = Slider("Month", 0, 11, 0, 479)
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
              self.ice_slider, self.rain_slider,
@@ -140,14 +140,14 @@ class INFO_HUD(object):
 
     # Render hud texts into pygame window.
     def render(self, display): 
-        info_surface = pygame.Surface((270, self.dim[1]))
+        info_surface = pygame.Surface((345, self.dim[1]))
         info_surface.set_alpha(100)
         info_surface.fill((75, 75, 75))
         display.blit(info_surface, (0, 0))
         v_offset = 4           
         for item in self._info_text:
             surface = self._font_mono.render(item, True, (255, 255, 255))
-            display.blit(surface, (8, v_offset))
+            display.blit(surface, (18, v_offset + 10))
             v_offset += 18
         self._notifications.render(display)
 
@@ -168,7 +168,7 @@ class Slider():
         self.val = val      # start value
         self.maxi = maxi    # maximum at slider position right
         self.mini = mini    # minimum at slider position left
-        self.xpos = 280     # x-location on screen
+        self.xpos = 358     # x-location on screen
         self.ypos = pos
         self.surf = pygame.surface.Surface((200, 100))
         # The hit attribute indicates slider movement due to mouse interaction.
