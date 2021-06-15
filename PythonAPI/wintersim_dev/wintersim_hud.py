@@ -60,14 +60,14 @@ import pygame
 import os
 import math
 import datetime
-from WinterSim import wintersim_control
+import wintersim_control
 import carla
+
 # ==============================================================================
-# -- HUD_WINTERSIM -------------------------------------------------------------
+# -- WinterSimHud -------------------------------------------------------------
 # ==============================================================================
 
-
-class HUD_WINTERSIM(object):
+class WinterSimHud(object):
     def __init__(self, width, height, display):
         self.dim = (width, height)
         self.screen = display
@@ -94,7 +94,7 @@ class HUD_WINTERSIM(object):
         self.is_hud = True
         self._info_text = []
         self._server_clock = pygame.time.Clock()
-
+        self.friction_array = ['Grip 0.45 - 1.0','Grip: 0.30 - 0.44','Winter 0.25 - 0.29','Winter 0.2 - 0.24','Slippery 0.15 - 0.19','Slippery 0.0 - 0.14']
         self.logo = pygame.image.load('WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
@@ -146,7 +146,8 @@ class HUD_WINTERSIM(object):
             'Client:  % 16.0f FPS' % clock.get_fps(),
             '',
             'Amount of Snow:  {}'.format(int(hud_wintersim.snow_amount_slider.val)),
-            'Iciness:  {}.00%'.format(int(hud_wintersim.ice_slider.val)),
+            'Iciness: {}'.format(self.friction_array[int(hud_wintersim.ice_slider.val)]),
+            #'Iciness:  {}.00%'.format(int(hud_wintersim.ice_slider.val)),
             'Temp:  {}°C'.format(int(hud_wintersim.temp_slider.val)),
             'Rain:  {}%'.format(int(hud_wintersim.rain_slider.val)),
             'Fog:  {}%'.format(int(hud_wintersim.fog_slider.val)),

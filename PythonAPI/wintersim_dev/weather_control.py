@@ -1,11 +1,11 @@
+#!/usr/bin/env python
+
+# Copyright (c) 2021 FrostBit Software Lab
+
+# This work is licensed under the terms of the MIT license.
+# For a copy, see <https://opensource.org/licenses/MIT>.
+
 from __future__ import print_function
-
-
-# ==============================================================================
-# -- find carla module ---------------------------------------------------------
-# ==============================================================================
-
-
 import glob
 import os
 import sys
@@ -21,12 +21,6 @@ try:
         'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
 except IndexError:
     pass
-
-
-# ==============================================================================
-# -- imports -------------------------------------------------------------------
-# ==============================================================================
-
 
 import carla
 from fmiopendata.wfs import download_stored_query #ilmatieteenlaitos library
@@ -49,7 +43,6 @@ except ImportError:
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
@@ -59,7 +52,6 @@ def find_weather_presets():
 # ==============================================================================
 # -- World ---------------------------------------------------------------------
 # ==============================================================================
-
 
 class World(object):
     def __init__(self, carla_world, hud, args):
@@ -94,7 +86,7 @@ class World(object):
         date = x[0].split("-")
         year = int(date[0])
         day = int(date[2])
-        month = int(date[1]) - 1 #1- because with this number we get month from array so it has to be 0-11
+        month = int(date[1]) - 1 #-1 because with this number we get month from array so it has to be 0-11
 
         clock = x[1].split(":")
         clock.pop(2)
@@ -102,10 +94,10 @@ class World(object):
 
         temp = obs.data[latest_tstep]["Muonio kirkonkylä"]["Air temperature"]['value']
 
-        precipitation = obs_daily.data[latest_daily]["Muonio kirkonkylä"]["Precipitation amount"]['value'] #use daily precipitation value
+        precipitation = obs_daily.data[latest_daily]["Muonio kirkonkylä"]["Precipitation amount"]['value'] #use daily precipitation value for rain amount
         precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation #this can be nan or -1 so that would give as error later so let make it 0 in this situation
-        precipitation = 10 if precipitation > 10 else precipitation
-        precipitation *= 10 #max precipitation 10mm multiply by 10 to get in range of 0-100
+        precipitation = 10 if precipitation > 10 else precipitation #max precipitation value is 10
+        precipitation *= 10 #max precipitation is 10mm multiply by it 10 to get in range of 0-100
         
         wind = obs.data[latest_tstep]["Muonio kirkonkylä"]["Wind speed"]['value']
         wind = 0 if math.isnan(wind) else wind
@@ -117,15 +109,11 @@ class World(object):
         snow = obs.data[latest_tstep]["Muonio kirkonkylä"]["Snow depth"]['value']
         snow = 100 if snow > 100 else snow #lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
-        
-        '''visibility = obs.data[latest_tstep]["Muonio kirkonkylä"]["Horizontal visibility"]['value'] #### this is commented because it was used as fog value, but its not usable for it
-        visibility = 50000 if visibility > 50000 else visibility #for visibility 50000 is max
-        visibility = 100 - visibility / 500 #divide by 500 to get the in range of 100-0 and then subtract that number from 100. If result is 0 visibility is 50000'''
 
         weather.muonio_update(self.hud, temp, precipitation, wind, cloudiness, 0, snow, clock, month) #update weather object with our new data
 
         self.hud.notification('Weather: Muonio Realtime') #this is notification about weather preset update
-        self.hud.update_sliders(weather.weather, month=month, clock=clock) #update sliders positions. this is not fully ready
+        self.hud.update_sliders(weather.weather, month=month, clock=clock) #update sliders positions
         self.world.set_weather(weather.weather) #update weather in simulation
 
     def update_friction(self, iciness):
@@ -157,7 +145,6 @@ class World(object):
 # -- KeyboardControl -----------------------------------------------------------
 # ==============================================================================
 
-
 class KeyboardControl(object):
     """Class that handles keyboard input."""
     def parse_events(self, client, world, clock, hud):
@@ -170,7 +157,7 @@ class KeyboardControl(object):
                     if slider.button_rect.collidepoint(pos): #get slider what mouse is touching
                         slider.hit = True #slider is being moved
             elif event.type == pygame.MOUSEBUTTONUP: #slider event
-                if hud.ice_slider.hit: #if road iciness is updated
+                if hud.ice_slider.hit: #if road iciness slider is moved
                     world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
                     slider.hit = False #slider moving stopped
@@ -199,33 +186,31 @@ def game_loop(args):
         client = carla.Client(args.host, args.port)
         client.set_timeout(2.0)        
 
-        display = pygame.display.set_mode(
-            (args.width, args.height),
-            pygame.HWSURFACE | pygame.DOUBLEBUF)
+        display = pygame.display.set_mode((args.width, args.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0,0,0))
         pygame.display.flip()
 
         hud = weather_hud.INFO_HUD(args.width, args.height, display) #hud where we show numbers and all that 
-        hud.make_sliders() # lets do sliders
+        hud.make_sliders() # create sliders
         world = World(client.get_world(), hud, args) #instantiate our world object
         controller = KeyboardControl() #controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather()) #weather object to update carla weather with sliders
-        hud.update_sliders(weather.weather) #lets update sliders according to preset parameters
+        hud.update_sliders(weather.weather) #update sliders according to preset parameters
         clock = pygame.time.Clock()
 
         while True:
-            clock.tick_busy_loop(20)
+            clock.tick_busy_loop(30)
             if controller.parse_events(client, world, clock, hud): 
                 return
-            world.tick(clock, hud) #update data
-            world.render(display) #show data
+            world.tick(clock, hud)                                  # update data
+            world.render(display)                                   # show data
             for slider in hud.sliders:
-                if slider.hit: #if slider is being touched
-                    slider.move() #move slider
-                    weather.tick(hud, world._weather_presets[0]) #update weather object
-                    client.get_world().set_weather(weather.weather) #send weather
+                if slider.hit:                                      # if slider is being touched
+                    slider.move()                                   # move slider
+                    weather.tick(hud, world._weather_presets[0])    # update weather object
+                    client.get_world().set_weather(weather.weather) # send weather to server
             for slider in hud.sliders:
-                slider.draw(display, slider)
+                slider.draw(display, slider)                        # move sliders
             pygame.display.flip()
 
     finally:
@@ -252,7 +237,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='500x1000',
+        default='470x523',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',
@@ -268,5 +253,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()

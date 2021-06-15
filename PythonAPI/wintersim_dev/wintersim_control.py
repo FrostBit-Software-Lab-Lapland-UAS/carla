@@ -85,8 +85,8 @@ import math
 import random
 import re
 import weakref
-from wintersim_dev import wintersim_hud
-from wintersim_dev import wintersim_sensors
+import wintersim_hud
+import wintersim_sensors
 from wintersim_keyboard_control import KeyboardControl
 from wintersim_camera_manager import CameraManager
 
@@ -408,7 +408,7 @@ def game_loop(args):
         display.fill((0,0,0))
         pygame.display.flip()
 
-        hud_wintersim = wintersim_hud.HUD_WINTERSIM(args.width, args.height, display)
+        hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         hud_wintersim.make_sliders()
         world = World(client.get_world(), hud_wintersim, args)
         world.preset = world._weather_presets[0]                            # start weather preset
