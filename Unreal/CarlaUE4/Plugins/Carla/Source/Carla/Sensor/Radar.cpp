@@ -1,6 +1,8 @@
 // Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -13,6 +15,11 @@
 #include "Runtime/Core/Public/Async/ParallelFor.h"
 
 #include "carla/geom/Math.h"
+
+//#include "carla/Game/
+
+//#include "carla/Game/CarlaGameInstance.h"
+
 
 FActorDefinition ARadar::GetSensorDefinition()
 {
@@ -101,6 +108,44 @@ void ARadar::SendLineTraces(float DeltaTime)
   const float MaxRy = FMath::Tan(FMath::DegreesToRadians(VerticalFOV * 0.5f)) * Range;
   const int NumPoints = (int)(PointsPerSecond * DeltaTime);
 
+
+  // WinterSim experimental stuff
+  // Some fun stuff to read about Radar performance in rain/snowy, foggy conditions
+  // https://www.researchgate.net/publication/331723697_The_Impact_of_Adverse_Weather_Conditions_on_Autonomous_Vehicles_Examining_how_rain_snow_fog_and_hail_affect_the_performance_of_a_self-driving_car
+  // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6068852/
+  // in the research, they found that Radar detection range dropped 
+  // ~26% on 50mm/hr rain (12.5 Precipitation value) and ~55% on 400 mm/hr rain (100.0 Precipitation value)
+  // this is *very* simplified radar distance drop off rate 
+  // based on current Weather Precipitation and FogDensity values
+
+  // Get weather parameters
+  auto *World = GetWorld();
+  UCarlaGameInstance *GameInstance = UCarlaStatics::GetGameInstance(World);
+  auto *Episode = GameInstance->GetCarlaEpisode();
+  auto *Weather = Episode->GetWeather();
+  FWeatherParameters w = Weather->GetCurrentWeather();
+  float precipitation = w.Precipitation;						// Precipitation range is from 0.0 to 100.0
+  float fog = w.FogDensity;										// FogDensity range is from 0.0 to 100.0
+ 
+  // calculate drop off rate
+  // multiply precipitation value by magic number 2.08 to get drop off percetange
+  // Example: for 12.0 precipitation value (50 mm/hr rain) drop off is ~26 %
+  float dropOffRate = (precipitation * 2.08) / 100;												
+  if (dropOffRate > 0.55) {
+	  dropOffRate = 0.55;										// cap drop off rate to 55%
+  }
+  dropOffRate = (100 - (precipitation * dropOffRate)) / 100;	// drop off rate, range: 0.45 to 1.00
+
+  // Calculate new Radar Range
+  float dropRatePerFogValue = 25;								// some random drop off value I just invented
+  float radarDistance = 10000 - (fog * dropRatePerFogValue);	// calculate new radar distance from base distance (100m)
+  float newRange = radarDistance * dropOffRate;					// multiply radar distance with dropOffRate
+  if (Range != newRange)
+  {
+   SetRange(newRange);
+   //UE_LOG(LogTemp, Warning, TEXT("Text, %f, %f"), Range, precipitation);
+  }
+
   // Generate the parameters of the rays in a deterministic way
   Rays.clear();
   Rays.resize(NumPoints);
@@ -142,7 +187,7 @@ void ARadar::SendLineTraces(float DeltaTime)
       Rays[idx].RelativeVelocity = CalculateRelativeVelocity(OutHit, RadarLocation);
 
       Rays[idx].AzimuthAndElevation = FMath::GetAzimuthAndElevation (
-        (EndLocation - RadarLocation).GetSafeNormal() * Range,
+        (EndLocation - RadarLocation).GetSafeNormal() * newRange,
         TransformXAxis,
         TransformYAxis,
         TransformZAxis
@@ -164,7 +209,6 @@ void ARadar::SendLineTraces(float DeltaTime)
       });
     }
   }
-
 }
 
 float ARadar::CalculateRelativeVelocity(const FHitResult& OutHit, const FVector& RadarLocation)
