@@ -282,7 +282,7 @@ public:
 
   /// Blocks until the render thread has finished all it's tasks.
   void WaitForRenderThreadToFinsih() {
-    FlushRenderingCommands();
+    //FlushRenderingCommands();
   }
 
 protected:

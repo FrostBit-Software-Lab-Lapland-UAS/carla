@@ -137,7 +137,7 @@ void ARadar::SendLineTraces(float DeltaTime)
   dropOffRate = (100 - (precipitation * dropOffRate)) / 100;	// drop off rate, range: 0.45 to 1.00
 
   // Calculate new Radar Range
-  float dropRatePerFogValue = 25;								// some random drop off value I just invented
+  float dropRatePerFogValue = 17.5;								// There's no easy or clear way to know how much fog affects Radar distance, so I decided that 17.5 is decent drop off value
   float radarDistance = 10000 - (fog * dropRatePerFogValue);	// calculate new radar distance from base distance (100m)
   float newRange = radarDistance * dropOffRate;					// multiply radar distance with dropOffRate
   if (Range != newRange)
