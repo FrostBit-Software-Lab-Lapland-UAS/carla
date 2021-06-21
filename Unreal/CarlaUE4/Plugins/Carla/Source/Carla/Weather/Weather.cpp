@@ -10,7 +10,7 @@
 AWeather::AWeather(const FObjectInitializer& ObjectInitializer)
   : Super(ObjectInitializer)
 {
-  PrimaryActorTick.bCanEverTick = false;
+  PrimaryActorTick.bCanEverTick = true;
   RootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("RootComponent"));
 }
 

@@ -238,6 +238,19 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
 	}
 }
 
+bool ARayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custom drop off rate for lidar hits according to rainamount(snow)
+{
+  float random = (float) rand()/RAND_MAX;
+  float dropoff = rain_amount * 0.003;
+  if (random < dropoff) //dropoff max value is 0.3 at rain_amount value 100
+  {
+    return false;
+  } else {
+    return true;
+  }
+  
+}
+
 bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FWeatherParameters w) const
 {
   FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("Laser_Trace")), true, this);
@@ -268,20 +281,22 @@ bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float Ho
 
   float temp = w.Temperature;
 	float rain_amount = w.Precipitation;
+  bool keepPoint = true;
   if (HitInfo.bBlockingHit) { 
 	  if (temp < 0 && rain_amount > 0) //If it is snowing
 	  {
 		  CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc);
+      keepPoint = CustomDropOff(rain_amount);
 	  }
     HitResult = HitInfo; //equal to new hitpoint or the old one
-    return true;
+    return keepPoint;
   } else { //If no hit is acquired
     if (temp < 0 && rain_amount > 0) //If it is snowing
 	  {
 		  if(CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc)) //if new hitpoint is made
       {
         HitResult = HitInfo;
-        return true;
+        return CustomDropOff(rain_amount);
       }
 	  }
     return false;

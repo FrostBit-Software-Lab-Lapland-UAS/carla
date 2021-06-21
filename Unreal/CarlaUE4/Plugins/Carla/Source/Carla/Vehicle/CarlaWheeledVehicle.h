@@ -173,6 +173,9 @@ public:
   /// @{
 public:
 
+  UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere, BlueprintReadWrite)
+  UBoxComponent *VehicleBounds;
+
   UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
   void SetThrottleInput(float Value);
 
@@ -240,8 +243,7 @@ private:
   UPROPERTY(Category = "AI Controller", VisibleAnywhere)
   ECarlaWheeledVehicleState State = ECarlaWheeledVehicleState::UNKNOWN;
 
-  UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere)
-  UBoxComponent *VehicleBounds;
+  /*VEHICLEBOUNDS WAS HERE */
 
   UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere)
   UVehicleVelocityControl* VelocityControl;

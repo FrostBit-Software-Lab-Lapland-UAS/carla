@@ -58,6 +58,8 @@ protected:
   /// Calculate new hitpoint for linetrace if it is snowing
   bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
 
+  bool CustomDropOff(float rain_amount) const;
+
   /// Method that allow to preprocess if the rays will be traced.
   virtual void PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel);
 

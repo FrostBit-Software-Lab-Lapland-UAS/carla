@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{907BC216-4445-B2F7-934F-D1A6A6E30FF5}",
+	"EngineAssociation": "{89A72E60-461A-C3D9-1C30-E4B4B582BCD0}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -105,5 +105,18 @@
 			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2d712649ca864c80812da7b5252f5608"
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"AllDesktop",
+		"HoloLens",
+		"IOS",
+		"LinuxNoEditor",
+		"LinuxAArch64NoEditor",
+		"Lumin",
+		"MacNoEditor",
+		"TVOS",
+		"WindowsNoEditor",
+		"WindowsNoEditorWin32"
 	]
 }
