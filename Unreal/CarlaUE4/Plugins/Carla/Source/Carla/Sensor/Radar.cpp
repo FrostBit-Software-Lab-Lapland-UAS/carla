@@ -113,8 +113,8 @@ void ARadar::SendLineTraces(float DeltaTime)
   // Some fun stuff to read about Radar performance in rain/snowy, foggy conditions
   // https://www.researchgate.net/publication/331723697_The_Impact_of_Adverse_Weather_Conditions_on_Autonomous_Vehicles_Examining_how_rain_snow_fog_and_hail_affect_the_performance_of_a_self-driving_car
   // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6068852/
-  // in the research, they found that Radar detection range dropped 
-  // ~26% on 50mm/hr rain (12.5 Precipitation value) and ~55% on 400 mm/hr rain (100.0 Precipitation value)
+
+
   // this is *very* simplified radar distance drop off rate 
   // based on current Weather Precipitation and FogDensity values
 
@@ -137,13 +137,13 @@ void ARadar::SendLineTraces(float DeltaTime)
   dropOffRate = (100 - (precipitation * dropOffRate)) / 100;	// drop off rate, range: 0.45 to 1.00
 
   // Calculate new Radar Range
-  float dropRatePerFogValue = 17.5;								// There's no easy or clear way to know how much fog affects Radar distance, so I decided that 17.5 is decent drop off value
-  float radarDistance = 10000 - (fog * dropRatePerFogValue);	// calculate new radar distance from base distance (100m)
+  // Obviously there's no clear value how much fog affects Radar distance (it's complicated) 
+  // so I decided that 17.5 is decent drop off value for now
+  float radarDistance = 10000 - (fog * 17.5);					// calculate new radar distance from base distance (100m)
   float newRange = radarDistance * dropOffRate;					// multiply radar distance with dropOffRate
   if (Range != newRange)
   {
    SetRange(newRange);
-   //UE_LOG(LogTemp, Warning, TEXT("Text, %f, %f"), Range, precipitation);
   }
 
   // Generate the parameters of the rays in a deterministic way

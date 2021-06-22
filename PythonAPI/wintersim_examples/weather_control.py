@@ -109,6 +109,8 @@ class World(object):
         snow = obs.data[latest_tstep]["Muonio kirkonkylä"]["Snow depth"]['value']
         snow = 100 if snow > 100 else snow #lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
+        if snow < 0:
+            snow = 0
 
         weather.muonio_update(self.hud, temp, precipitation, wind, cloudiness, 0, snow, clock, month) #update weather object with our new data
 
