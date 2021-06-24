@@ -22,7 +22,6 @@ Use ARROWS or WASD keys for control.
     P            : toggle autopilot
     M            : toggle manual transmission
     ,/.          : gear up/down
-    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -358,6 +357,8 @@ def game_loop(args):
         # luanch wintersim weather hud
         try:
             os.system("start /B start cmd.exe @cmd /k python weather_control.py")
+            # import subprocess
+            # subprocess.call("weather_control.py", shell=True)
         except:
             print("Couldn't launch weather_control.py")
 

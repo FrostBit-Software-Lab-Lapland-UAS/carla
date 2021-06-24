@@ -143,15 +143,6 @@ class KeyboardControl(object):
                 elif event.key == K_o:
                     world.toggle_lidar(world, client)
                     world.record_data = not world.record_data
-                elif event.key == K_w and (pygame.key.get_mods() & KMOD_CTRL):
-                    if world.constant_velocity_enabled:
-                        world.player.disable_constant_velocity()
-                        world.constant_velocity_enabled = False
-                        world.hud_wintersim.notification("Disabled Constant Velocity Mode")
-                    else:
-                        world.player.enable_constant_velocity(carla.Vector3D(17, 0, 0))
-                        world.constant_velocity_enabled = True
-                        world.hud_wintersim.notification("Enabled Constant Velocity Mode at 60 km/h")
                 elif event.key > K_0 and event.key <= K_9:
                     world.camera_manager.set_sensor(event.key - 1 - K_0)
                 elif event.key == K_r and not (pygame.key.get_mods() & KMOD_CTRL):
