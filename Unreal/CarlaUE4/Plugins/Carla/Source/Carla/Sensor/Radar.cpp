@@ -16,11 +16,6 @@
 
 #include "carla/geom/Math.h"
 
-//#include "carla/Game/
-
-//#include "carla/Game/CarlaGameInstance.h"
-
-
 FActorDefinition ARadar::GetSensorDefinition()
 {
   return UActorBlueprintFunctionLibrary::MakeRadarDefinition();
