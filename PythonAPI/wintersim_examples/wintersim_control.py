@@ -22,7 +22,6 @@ Use ARROWS or WASD keys for control.
     P            : toggle autopilot
     M            : toggle manual transmission
     ,/.          : gear up/down
-    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -46,9 +45,9 @@ Use ARROWS or WASD keys for control.
     CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
     CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
-
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
+    F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
 """
@@ -64,6 +63,7 @@ import os
 import re
 import sys
 import time
+import subprocess
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -81,11 +81,11 @@ import re
 import carla
 from carla import ColorConverter as cc
 
-import wintersim_hud
-import wintersim_sensors
-from wintersim_camera_manager import CameraManager
-from wintersim_camera_windows import CameraWindows
-from wintersim_keyboard_control import KeyboardControl
+from hud import wintersim_hud
+from sensors import wintersim_sensors
+from camera.wintersim_camera_manager import CameraManager
+from camera.wintersim_camera_windows import CameraWindows
+from keyboard.wintersim_keyboard_control import KeyboardControl
 
 try:
     import pygame
@@ -151,7 +151,7 @@ class World(object):
         self._actor_filter = args.filter
         self._gamma = args.gamma
         self.restart()
-        preset = self._weather_presets[0]
+        preset = self._weather_presets[0]  # set weather preset
         self.world.set_weather(preset[0])
         self.player.gud_frictiong_enabled = False
         self.recording_start = 0
@@ -355,6 +355,12 @@ def game_loop(args):
         weather = wintersim_hud.Weather(client.get_world().get_weather())   # weather object to update carla weather with sliders
         clock = pygame.time.Clock()
 
+        # open another terminal window and launch wintersim weather_hud.py script
+        try:
+            subprocess.call('start python weather_control.py', shell=True)
+        except:
+            print("Couldn't launch weather_control.py")
+
         while True:
             clock.tick_busy_loop(60)
             if controller.parse_events(client, world, clock, hud_wintersim):
@@ -365,7 +371,14 @@ def game_loop(args):
 
     finally:
         if world is not None:
-            world.destroy()
+
+            # turn server window rendering back on quit
+            game_world = client.get_world()                 
+            settings = game_world.get_settings()
+            settings.no_rendering_mode = False
+            game_world.apply_settings(settings)
+
+            world.destroy() # destroy world
 
         pygame.quit()
 

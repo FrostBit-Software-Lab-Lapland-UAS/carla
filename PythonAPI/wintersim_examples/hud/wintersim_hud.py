@@ -20,7 +20,6 @@ Use ARROWS or WASD keys for control.
     P            : toggle autopilot
     M            : toggle manual transmission
     ,/.          : gear up/down
-    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -44,9 +43,9 @@ Use ARROWS or WASD keys for control.
     CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
     CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
-
     F1           : toggle HUD
     F8           : spawn  separate front and back RGB camera windows
+    F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
 """
@@ -103,7 +102,7 @@ class WinterSimHud(object):
         self.is_hud = True
         self._info_text = []
         self._server_clock = pygame.time.Clock()
-        self.logo = pygame.image.load('WinterSim_White_Color.png')
+        self.logo = pygame.image.load('images/WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
         self.make_sliders()
