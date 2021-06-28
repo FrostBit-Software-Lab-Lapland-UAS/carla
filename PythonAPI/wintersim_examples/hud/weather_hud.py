@@ -26,7 +26,7 @@ import carla
 # ==============================================================================
 
 class INFO_HUD(object):
-    def __init__(self, width, height, display): #init hud
+    def __init__(self, width, height, display):
         self.dim = (width, height)
         self.screen = display
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
@@ -35,7 +35,7 @@ class INFO_HUD(object):
         default_font = 'ubuntumono'
         mono = default_font if default_font in fonts else fonts[0]
         mono = pygame.font.match_font(mono)
-        self.snow_amount_slider = Slider #sliders for updating weather parameters
+        self.snow_amount_slider = Slider
         self.ice_slider = Slider
         self.temp_slider = Slider
         self.rain_slider = Slider
@@ -43,13 +43,12 @@ class INFO_HUD(object):
         self.wind_slider = Slider
         self.time_slider = Slider
         self.month_slider = Slider
-        self.sliders = [] #slider list
+        self.sliders = []
         self._font_mono = pygame.font.Font(mono, 18 if os.name == 'nt' else 18)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
         self._info_text = []
         self.months = [
             'January','February','March','April','May','June',
-
             'July','August','September','October','November','December'
             ]
         self.sun_positions = [
@@ -73,14 +72,13 @@ class INFO_HUD(object):
         self.month_slider = Slider("Month", 0, 11, 0, 479)
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
-             self.ice_slider, self.rain_slider,
-              self.fog_slider, self.wind_slider,
-               self.time_slider, self.month_slider
-               ]
+            self.ice_slider, self.rain_slider,
+            self.fog_slider, self.wind_slider,
+            self.time_slider, self.month_slider
+            ]
 
     # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None): 
-        ##real values
         self.snow_amount_slider.val = preset.snow_amount
         self.ice_slider.val = preset.ice_amount
         self.temp_slider.val = preset.temperature
@@ -90,7 +88,7 @@ class INFO_HUD(object):
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
-            ##values that are used to draw sliders must be multiplied by 2
+            # values that are used to draw sliders must be multiplied by 2
             self.month_slider.val_draw = month*2
             self.time_slider.val_draw = clock*2
         self.snow_amount_slider.val_draw = preset.snow_amount*2
@@ -113,23 +111,26 @@ class INFO_HUD(object):
             'Weather Control',
             '',
             '',
-            'Temp:  {}°C'.format(round(hud.temp_slider.val,1)),
+            'Temperature:  {}°C'.format(round(hud.temp_slider.val,1)),
             '',
-            'Amount of Snow:  {}cm'.format(round(hud.snow_amount_slider.val)),
+            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
             '',
             'Iciness:  {}.00%'.format(int(hud.ice_slider.val)),
             '',
-            'Rain:  {}mm'.format(round((hud.rain_slider.val/10), 1)),
+            'Rain:  {} mm'.format(round((hud.rain_slider.val/10), 1)),
             '',
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
-            'Time: {}.00'.format(int(hud.time_slider.val)),
+            'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
             'Month: {}'.format(month),
             '',
-            'Press M to get',
+            'Press C to change',
+            'weather preset',
+            '',
+            'Press M to get real time',
             'weather from Muonio']
 
     # Notification about changing weather preset.
@@ -149,11 +150,9 @@ class INFO_HUD(object):
             v_offset += 18
         self._notifications.render(display)
 
-
 # ==============================================================================
 # -- SliderObject -------------------------------------------------------------
 # ==============================================================================
-
 
 class Slider():
     def __init__(self, name, val, maxi, mini, pos):
@@ -263,7 +262,6 @@ class Sun(object):
 # -- WeatherObject -------------------------------------------------------------
 # ==============================================================================
 
-
 class Weather(object):
     def __init__(self, weather):
         self.weather = weather
@@ -287,10 +285,10 @@ class Weather(object):
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
 
-    def muonio_update(self, hud, temp, precipitation, wind, cloudiness, visibility, snow, clock, m):
+    def muonio_update(self, hud, temp, precipitation, wind, visibility, snow, clock, m):
         month, sundata = hud.get_month(m)
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        self.weather.cloudiness = cloudiness
+        #self.weather.cloudiness = cloudiness
         self.weather.precipitation = precipitation
         self.weather.precipitation_deposits = precipitation
         self.weather.wind_intensity = wind / 100.0
@@ -305,11 +303,9 @@ class Weather(object):
     def __str__(self):
         return '%s %s' % (self._sun, self._storm)
 
-
 # ==============================================================================
 # -- FadingText ----------------------------------------------------------------
 # ==============================================================================
-
 
 class FadingText(object):
     def __init__(self, font, dim, pos):

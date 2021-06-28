@@ -63,6 +63,7 @@ import os
 import re
 import sys
 import time
+import subprocess
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -150,7 +151,7 @@ class World(object):
         self._actor_filter = args.filter
         self._gamma = args.gamma
         self.restart()
-        preset = self._weather_presets[0]
+        preset = self._weather_presets[0]  # set weather preset
         self.world.set_weather(preset[0])
         self.player.gud_frictiong_enabled = False
         self.recording_start = 0
@@ -354,11 +355,9 @@ def game_loop(args):
         weather = wintersim_hud.Weather(client.get_world().get_weather())   # weather object to update carla weather with sliders
         clock = pygame.time.Clock()
 
-        # luanch wintersim weather hud
+        # open another terminal window and launch wintersim weather_hud.py script
         try:
-            os.system("start /B start cmd.exe @cmd /k python weather_control.py")
-            # import subprocess
-            # subprocess.call("weather_control.py", shell=True)
+            subprocess.call('start python weather_control.py', shell=True)
         except:
             print("Couldn't launch weather_control.py")
 

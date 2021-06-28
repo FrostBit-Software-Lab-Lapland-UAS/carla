@@ -277,7 +277,6 @@ class Weather(object):
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val #update sun time variable
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        self.weather.cloudiness = hud.rain_slider.val
         self.weather.precipitation = hud.rain_slider.val
         self.weather.precipitation_deposits = hud.rain_slider.val
         self.weather.wind_intensity = hud.wind_slider.val /100.0
@@ -289,10 +288,9 @@ class Weather(object):
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
 
-    def muonio_update(self, hud, temp, precipitation, wind, cloudiness, visibility, snow, clock, m):
+    def muonio_update(self, hud, temp, precipitation, wind, visibility, snow, clock, m):
         month, sundata = hud.get_month(m)
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        self.weather.cloudiness = cloudiness
         self.weather.precipitation = precipitation
         self.weather.precipitation_deposits = precipitation
         self.weather.wind_intensity = wind / 100.0
@@ -307,11 +305,9 @@ class Weather(object):
     def __str__(self):
         return '%s %s' % (self._sun, self._storm)
 
-
 # ==============================================================================
 # -- FadingText ----------------------------------------------------------------
 # ==============================================================================
-
 
 class FadingText(object):
     def __init__(self, font, dim, pos):
