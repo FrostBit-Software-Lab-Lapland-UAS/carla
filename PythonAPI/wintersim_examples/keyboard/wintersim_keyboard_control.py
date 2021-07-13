@@ -80,18 +80,6 @@ class KeyboardControl(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
-            elif event.type == pygame.MOUSEBUTTONDOWN:              # slider event
-                if world.hud_wintersim.is_hud:
-                    pos = pygame.mouse.get_pos()
-                    for slider in hud_wintersim.sliders:
-                        if slider.button_rect.collidepoint(pos):    # get slider what mouse is touching
-                            slider.hit = True                       # slider is being moved
-            elif event.type == pygame.MOUSEBUTTONUP:                # slider event
-                if world.hud_wintersim.is_hud:
-                    if hud_wintersim.ice_slider.hit:                # if road iciness is updated
-                        world.update_friction(hud_wintersim.ice_slider.val)
-                    for slider in hud_wintersim.sliders:
-                        slider.hit = False                          # slider moving stopped
             elif event.type == pygame.KEYUP:
                 if self._is_quit_shortcut(event.key):
                     return True
