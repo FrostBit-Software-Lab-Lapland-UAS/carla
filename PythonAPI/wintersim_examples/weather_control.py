@@ -24,11 +24,13 @@ except IndexError:
 
 import carla
 import requests
-import json
 from fmiopendata.wfs import download_stored_query
 
 try:
     import pygame
+    from pygame.locals import KMOD_CTRL
+    from pygame.locals import K_ESCAPE
+    from pygame.locals import K_q
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
     from pygame.locals import K_m
@@ -85,12 +87,12 @@ class World(object):
 
         date = x[0].split("-")
 
-        year = int(date[0])
-        month = int(date[1]) - 1        #-1 because with this number we get month from array so it has to be 0-11
-        day = int(date[2])
+        #year = int(date[0])
+        month = int(date[1]) - 1        # -1 because with this number we get month from array so it has to be 0-11
+        #day = int(date[2])
 
         clock = x[1].split(":")
-        clock[0] = int(clock[0]) + 3    # add 3 hours, so we get finnish timezone
+        clock[0] = int(clock[0]) + 3    # add 3 hours to get correct timezone
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
@@ -98,29 +100,30 @@ class World(object):
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
         precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
-        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation #this can be nan or -1 so that would give as error later so let make it 0 in this situation
-        precipitation = 10 if precipitation > 10 else precipitation #max precipitation value is 10
-        precipitation *= 10 #max precipitation is 10mm multiply by it 10 to get in range of 0-100
+        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
+        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
+        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
                     
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
-        wind = 10 if wind > 10 else wind #Lets make 10m/s max wind value.
-        wind *= 10 #Multiply wind by 10 to get it into range of 0-100
+        wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
+        wind *= 10 # Multiply wind by 10 to get it into range of 0-100
 
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
-        snow = 100 if snow > 100 else snow #lets set max number of snow to 1meter
+        snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
                     
         #cloudiness = obs.data[latest_tstep]["Muonio kirkonkylä"]["Cloud amount"]['value']
         #cloudiness *= 12.5 #max value is 8 so we have to multiply it by 12.5 to get it into range of 0-100
 
-        weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) #update weather object with our new data
+        weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) # update weather object with our new data
         
         self.hud.notification('Weather: Muonio Realtime')
         self.hud.update_sliders(weather.weather, month=month, clock=clock)  # update sliders positions
         self.world.set_weather(weather.weather)                             # update weather
 
     def update_friction(self, iciness):
+        '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
         friction = 5
         friction -= iciness / 100 * 4
@@ -154,7 +157,6 @@ class World(object):
         for slider in hud.sliders:
             slider.draw(display, slider)                            # move sliders
 
-
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
 # ==============================================================================
@@ -176,6 +178,8 @@ class KeyboardControl(object):
                 for slider in hud.sliders:
                     slider.hit = False                                  #slider moving stopped
             elif event.type == pygame.KEYUP:
+                if self._is_quit_shortcut(event.key):
+                    return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(world, reverse=True)
                 elif event.key == K_c:
@@ -192,6 +196,10 @@ class KeyboardControl(object):
 # ==============================================================================
 
 def game_loop(args):
+    # position offset for pygame window
+    x = 1290
+    y = 100
+    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None

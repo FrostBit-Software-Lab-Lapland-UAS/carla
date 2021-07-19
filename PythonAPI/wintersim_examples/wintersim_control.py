@@ -45,9 +45,9 @@ Use ARROWS or WASD keys for control.
     CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
     CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
-
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
+    F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
 """
@@ -194,8 +194,15 @@ class World(object):
                 print('There are no spawn points available in your map/town.')
                 print('Please add some Vehicle Spawn Point to your UE4 scene.')
                 sys.exit(1)
+
+            # if --spawnpoint [number] argument given then try to spawn there
+            # else spawn in random spawn location
             spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            if self.args.spawnpoint == 0 or self.args.spawnpoint > len(spawn_points):
+                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            else:
+                spawn_point = spawn_points[self.args.spawnpoint]
+
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 
         # Set up the sensors
@@ -215,7 +222,6 @@ class World(object):
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
-        self.hud_wintersim.update_sliders(self.preset[0])
         self.player.get_world().set_weather(self.preset[0])
 
     def next_map_layer(self, reverse=False):
@@ -256,30 +262,17 @@ class World(object):
         if self.multiple_windows_enabled and self.cv2_windows is not None:
             self.cv2_windows.pause()
 
-    def render(self, world, client, hud_wintersim, display, weather):
+    def render(self, world, client, hud_wintersim, display):
         '''Render everything to screen'''
         self.render_camera_windows()
         self.camera_manager.render(display)
         self.hud_wintersim.render(display, world)
-        self.render_sliders(world, client, hud_wintersim, display, weather)
 
     def toggle_cv2_windows(self):
         self.multiple_windows_enabled = not self.multiple_windows_enabled
         if self.multiple_windows_enabled == False and self.cv2_windows is not None:
             self.cv2_windows.destroy()
             self.multiple_window_setup = False
-    
-    def render_sliders(self, world, client, hud_wintersim, display, weather):
-        if not hud_wintersim.is_hud or hud_wintersim.help_text.visible:
-            return
-
-        for s in hud_wintersim.sliders:
-            if s.hit:
-                s.move()
-                weather.tick(hud_wintersim, world.preset[0])
-                client.get_world().set_weather(weather.weather)
-        for s in hud_wintersim.sliders:
-            s.draw(display, s)
 
     def toggle_radar(self):
         if self.radar_sensor is None:
@@ -335,6 +328,10 @@ class World(object):
 # ==============================================================================
 
 def game_loop(args):
+    # position offset for pygame window
+    x = 10
+    y = 100
+    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None
@@ -350,14 +347,12 @@ def game_loop(args):
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
         world.preset = world._weather_presets[0]                            # start weather preset
-        hud_wintersim.update_sliders(world.preset[0])                       # update sliders to positions according to preset
         controller = KeyboardControl(world, args.autopilot)
-        weather = wintersim_hud.Weather(client.get_world().get_weather())   # weather object to update carla weather with sliders
         clock = pygame.time.Clock()
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
-            subprocess.call('start python weather_control.py', shell=True)
+            w_control = subprocess.Popen('python weather_control.py', shell=True)
         except:
             print("Couldn't launch weather_control.py")
 
@@ -366,12 +361,20 @@ def game_loop(args):
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
             world.tick(clock, hud_wintersim)
-            world.render(world, client, hud_wintersim, display, weather)
+            world.render(world, client, hud_wintersim, display)
             pygame.display.flip()
 
     finally:
         if world is not None:
-            world.destroy()
+            # stop weather control
+            w_control.kill()
+            # turn server window rendering back on quit
+            game_world = client.get_world()                 
+            settings = game_world.get_settings()
+            settings.no_rendering_mode = False
+            game_world.apply_settings(settings)
+
+            world.destroy() # destroy world
 
         pygame.quit()
 
@@ -427,6 +430,11 @@ def main():
         default=False,
         type=bool,
         help='Enable multiple camera view on startup')
+    argparser.add_argument(
+        '--spawnpoint',
+        default=0,
+        type=int,
+        help='Specify spawn point')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
