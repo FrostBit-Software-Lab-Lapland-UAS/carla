@@ -35,14 +35,10 @@ WinterSim Release Installation Guide:
   
 5. Inside wintersim/WindowsNoEditor folder double click CarlaUE4.exe to start simulation
 
-6. Inside wintersim/WindowsNoEditor/PythonAPI/wintersim_examples folder there are few example scripts. Run either script to join simulation. Each script should be run in one Terminal window.
+6. Inside wintersim/WindowsNoEditor/PythonAPI/wintersim_examples folder there are few example scripts. Run following script in Terminal to join simulation.
 
   ```
     python wintersim_control.py
-  ```
-  
-  ```
-    python weather_control.py
   ```
 
 ### Recommended system
@@ -60,7 +56,7 @@ WinterSim Release Installation Guide:
 License
 -------
 
-CARLA and WinterSim specific code is distributed under MIT License.
+CARLA and FrostBit Software Lab specific code is distributed under MIT License.
 
 CARLA specific assets are distributed under CC-BY License.
 
