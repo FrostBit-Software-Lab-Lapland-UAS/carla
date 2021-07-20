@@ -10,7 +10,7 @@
  * Snow particles are now visible when server rendering is disabled 
  * New tire mark system
 
-Download [WinterSim Release 1.0.1 here](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Builds/wintersim_1.01.zip)
+Download [WinterSim Release 1.0.1 here](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Builds/wintersim_1.0.1.zip)
 
 ## WinterSim Release 1.0.0
 
