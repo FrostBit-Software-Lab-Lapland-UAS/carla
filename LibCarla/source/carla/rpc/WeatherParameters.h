@@ -37,10 +37,10 @@ namespace rpc {
     static WeatherParameters HardRainSunset;
     static WeatherParameters SoftRainSunset;
 
-	static WeatherParameters WinterMorning;
-	static WeatherParameters WinterNoon;
-	static WeatherParameters WinterCloudyNoon;
-	static WeatherParameters WinterNight;
+    static WeatherParameters WinterMorning;
+    static WeatherParameters WinterNoon;
+    static WeatherParameters WinterCloudyNoon;
+    static WeatherParameters WinterNight;
     static WeatherParameters SoftSnowNoon;    
     static WeatherParameters MidSnowNoon;
     static WeatherParameters HardSnowNoon;
@@ -65,7 +65,8 @@ namespace rpc {
         float in_wetness,
         float in_snow_amount,
         float in_temperature,
-        float in_ice_amount)
+        float in_ice_amount,
+        float in_particle_size)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -78,7 +79,8 @@ namespace rpc {
         wetness(in_wetness), 
         snow_amount(in_snow_amount),
         temperature(in_temperature),
-        ice_amount(in_ice_amount) {}
+        ice_amount(in_ice_amount),
+        particle_size(in_particle_size) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -93,6 +95,7 @@ namespace rpc {
     float snow_amount = 0.0f;
     float temperature = 0.0f;
     float ice_amount = 0.0f;
+    float particle_size = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -109,7 +112,8 @@ namespace rpc {
         wetness(Weather.Wetness),
         snow_amount(Weather.SnowAmount),
         temperature(Weather.Temperature),
-        ice_amount(Weather.IceAmount) {}
+        ice_amount(Weather.IceAmount),
+        particle_size(Weather.ParticleSize) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -126,6 +130,7 @@ namespace rpc {
       Weather.SnowAmount = snow_amount;
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
+      Weather.ParticleSize = particle_size;
       return Weather;
     }
 
@@ -145,7 +150,8 @@ namespace rpc {
           wetness != rhs.wetness ||
           snow_amount != rhs.snow_amount ||
           temperature != rhs.temperature ||
-          ice_amount != rhs.ice_amount;
+          ice_amount != rhs.ice_amount ||
+          particle_size != rhs.particle_size;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -165,7 +171,8 @@ namespace rpc {
         wetness,
         snow_amount,
         temperature,
-        ice_amount);
+        ice_amount,
+        particle_size);
   };
 
 } // namespace rpc

@@ -52,4 +52,7 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float IceAmount = 0.0f;
 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.5", ClampMax = "7.0", UIMin = "0.0", UIMax = "7.0"))
+  float ParticleSize = 0.0f;
+
 };

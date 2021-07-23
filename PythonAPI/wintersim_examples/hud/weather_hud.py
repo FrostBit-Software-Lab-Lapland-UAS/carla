@@ -41,6 +41,7 @@ class INFO_HUD(object):
         self.rain_slider = Slider
         self.fog_slider = Slider
         self.wind_slider = Slider
+        self.particle_slider = Slider
         self.time_slider = Slider
         self.month_slider = Slider
         self.sliders = []
@@ -68,13 +69,15 @@ class INFO_HUD(object):
         self.rain_slider =Slider("Rain", 0, 100, 0, 211)
         self.fog_slider = Slider("Fog", 0, 100, 0, 278)
         self.wind_slider = Slider("Wind", 0, 100, 0, 345)
-        self.time_slider = Slider("Time", 0, 24, 0, 412)
-        self.month_slider = Slider("Month", 0, 11, 0, 479)
+        self.particle_slider = Slider("Particle size", 0.5, 7, 0.5, 412)
+        self.time_slider = Slider("Time", 0, 24, 0, 479)
+        self.month_slider = Slider("Month", 0, 11, 0, 546)
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
             self.ice_slider, self.rain_slider,
             self.fog_slider, self.wind_slider,
-            self.time_slider, self.month_slider
+            self.particle_slider, self.time_slider, 
+            self.month_slider
             ]
 
     # Update slider positions if weather is changed without moving sliders.
@@ -85,19 +88,10 @@ class INFO_HUD(object):
         self.rain_slider.val = preset.precipitation
         self.fog_slider.val = preset.fog_density
         self.wind_slider.val = preset.wind_intensity*100.0
+        self.particle_slider.val = preset.particle_size
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
-            # values that are used to draw sliders must be multiplied by 2
-            self.month_slider.val_draw = month*2
-            self.time_slider.val_draw = clock*2
-        self.snow_amount_slider.val_draw = preset.snow_amount*2
-        if preset.ice_amount > 0:
-            self.ice_slider.val_draw = preset.ice_amount*2
-        self.temp_slider.val_draw = preset.temperature*2
-        self.rain_slider.val_draw = preset.precipitation*2
-        self.fog_slider.val_draw = preset.fog_density*2
-        self.wind_slider.val_draw = preset.wind_intensity*100.0 *2
 
     # Get month name and sun position according to month number
     def get_month(self, val): 
@@ -122,6 +116,8 @@ class INFO_HUD(object):
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
+            '',
+            'Particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
@@ -284,6 +280,7 @@ class Weather(object):
         self.weather.snow_amount = hud.snow_amount_slider.val
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
+        self.weather.particle_size = hud.particle_slider.val
 
     def muonio_update(self, hud, temp, precipitation, wind, visibility, snow, clock, m):
         month, sundata = hud.get_month(m)
