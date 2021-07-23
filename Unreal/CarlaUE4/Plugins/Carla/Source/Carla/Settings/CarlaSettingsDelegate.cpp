@@ -380,7 +380,7 @@ void UCarlaSettingsDelegate::LaunchEpicQualityCommands(UWorld *world) const
   GEngine->Exec(world, TEXT("r.MinScreenRadiusForLights 0.03"));
   GEngine->Exec(world, TEXT("r.SeparateTranslucency 1"));
   GEngine->Exec(world, TEXT("r.PostProcessAAQuality 4"));
-  GEngine->Exec(world, TEXT("r.BloomQuality 5"));
+  GEngine->Exec(world, TEXT("r.BloomQuality 4"));
   GEngine->Exec(world, TEXT("r.SSR.Quality 3"));
   GEngine->Exec(world, TEXT("r.DepthOfFieldQuality 2"));
   GEngine->Exec(world, TEXT("r.SceneColorFormat 4"));
@@ -395,10 +395,10 @@ void UCarlaSettingsDelegate::LaunchEpicQualityCommands(UWorld *world) const
   GEngine->Exec(world, TEXT("r.EarlyZPass 3"));
   GEngine->Exec(world, TEXT("r.EarlyZPassMovable 1"));
   GEngine->Exec(world, TEXT("Foliage.DitheredLOD 1"));
-  GEngine->Exec(world, TEXT("sg.PostProcessQuality 3"));
+  GEngine->Exec(world, TEXT("sg.PostProcessQuality 2"));
   GEngine->Exec(world, TEXT("r.ViewDistanceScale 1")); // --> too extreme (far
                                                        // clip too short)
-  GEngine->Exec(world, TEXT("sg.ShadowQuality 3"));
+  GEngine->Exec(world, TEXT("sg.ShadowQuality 2"));
   GEngine->Exec(world, TEXT("sg.TextureQuality 3"));
   GEngine->Exec(world, TEXT("sg.EffectsQuality 3"));
   GEngine->Exec(world, TEXT("sg.FoliageQuality 3"));
