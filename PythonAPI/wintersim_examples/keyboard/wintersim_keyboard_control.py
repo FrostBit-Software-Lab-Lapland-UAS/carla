@@ -24,6 +24,7 @@ try:
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
     from pygame.locals import K_F8
+    from pygame.locals import K_F9
     from pygame.locals import K_F12
     from pygame.locals import K_LEFT
     from pygame.locals import K_PERIOD
@@ -87,6 +88,8 @@ class KeyboardControl(object):
                     world.hud_wintersim.toggle_info(world)
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
+                elif event.key == K_F9:
+                    world.toggle_open3d_lidar()
                 elif event.key == K_F12:
                     game_world = client.get_world()                 # toggle server rendering
                     settings = game_world.get_settings()

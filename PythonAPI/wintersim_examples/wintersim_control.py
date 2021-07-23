@@ -78,11 +78,13 @@ import logging
 import random
 import re
 
+
 import carla
 from carla import ColorConverter as cc
 
 from hud import wintersim_hud
 from sensors import wintersim_sensors
+from sensors import open3d_lidar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
@@ -96,6 +98,25 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
+
+import glob
+import os
+import sys
+import argparse
+import time
+from datetime import datetime
+import random
+import numpy as np
+from matplotlib import cm
+import open3d as o3d
+
+try:
+    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
+        sys.version_info.major,
+        sys.version_info.minor,
+        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
+except IndexError:
+    pass
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -132,6 +153,8 @@ class World(object):
         self.args = args
         self.multiple_windows_enabled = args.windows
         self.cv2_windows = None
+        self.open3d_lidar = None
+        self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
         self.ud_friction = True
         self.preset = None
@@ -250,7 +273,7 @@ class World(object):
 
         if self.multiple_windows_enabled and self.multiple_window_setup:
             self.cv2_windows.resume()
-
+            
         if not self.multiple_window_setup and self.multiple_windows_enabled:
             self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world)
             self.multiple_window_setup = True
@@ -268,11 +291,26 @@ class World(object):
         self.camera_manager.render(display)
         self.hud_wintersim.render(display, world)
 
+        if self.open3d_lidar_enabled:
+            self.open3d_lidar.render_open3d_lidar()
+
     def toggle_cv2_windows(self):
         self.multiple_windows_enabled = not self.multiple_windows_enabled
         if self.multiple_windows_enabled == False and self.cv2_windows is not None:
             self.cv2_windows.destroy()
             self.multiple_window_setup = False
+
+    def toggle_open3d_lidar(self):
+        '''toggle separate open3d lidar window'''
+        # self.open3d_lidar = open3d_lidar.Open3DLidar(self.world, None, self.player, False, True)
+        # self.open3d_lidar_enabled = True
+        if not self.open3d_lidar_enabled:
+            self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow(self.world, self.player, True, True)
+            self.open3d_lidar_enabled = True
+        else:
+            self.open3d_lidar.destroy()
+            self.open3d_lidar = None
+            self.open3d_lidar_enabled = False
 
     def toggle_radar(self):
         if self.radar_sensor is None:
@@ -346,7 +384,7 @@ def game_loop(args):
 
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
-        world.preset = world._weather_presets[0]                            # start weather preset
+        world.preset = world._weather_presets[0]
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
 
@@ -357,7 +395,11 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(60)
+            if world.open3d_lidar_enabled: 
+                clock.tick_busy_loop(20)    # if open3d lidar window open, cap fps to 20
+            else:
+                clock.tick_busy_loop(60)
+
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
             world.tick(clock, hud_wintersim)
