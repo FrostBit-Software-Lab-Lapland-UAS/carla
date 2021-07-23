@@ -146,6 +146,7 @@ class World(object):
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
+        self.client = None
         self.record_data = False
         self.original_settings = None
         self.settings = None
@@ -156,6 +157,7 @@ class World(object):
         self.open3d_lidar = None
         self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
+        self.sync_mode = False
         self.ud_friction = True
         self.preset = None
         self.player = None
@@ -291,10 +293,14 @@ class World(object):
         self.camera_manager.render(display)
         self.hud_wintersim.render(display, world)
 
-        if self.open3d_lidar_enabled:
+        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
             self.open3d_lidar.render_open3d_lidar()
 
+        if self.sync_mode:    
+            self.world.tick()
+
     def toggle_cv2_windows(self):
+        '''toggle separate camera windows'''
         self.multiple_windows_enabled = not self.multiple_windows_enabled
         if self.multiple_windows_enabled == False and self.cv2_windows is not None:
             self.cv2_windows.destroy()
@@ -302,16 +308,22 @@ class World(object):
 
     def toggle_open3d_lidar(self):
         '''toggle separate open3d lidar window'''
-        # self.open3d_lidar = open3d_lidar.Open3DLidar(self.world, None, self.player, False, True)
-        # self.open3d_lidar_enabled = True
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow(self.world, self.player, True, True)
             self.open3d_lidar_enabled = True
+            settings = self.world.get_settings()
+            self.sync_mode = True
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(True)
+            settings.fixed_delta_seconds = 0.05
+            settings.synchronous_mode = True
+            self.world.apply_settings(settings)
         else:
+            # TODO: figure why closing open3d lidar window causes crash
+            self.open3d_lidar_enabled = False
             self.open3d_lidar.destroy()
             self.open3d_lidar = None
-            self.open3d_lidar_enabled = False
-
+        
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
@@ -384,17 +396,21 @@ def game_loop(args):
 
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
+        world.client = client
         world.preset = world._weather_presets[0]
+        world.original_settings = world.world.get_settings()
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
-            w_control = subprocess.Popen('python weather_control.py', shell=True)
+            w_control = subprocess.Popen('python weather_control.py')
         except:
             print("Couldn't launch weather_control.py")
 
+        # loop that runs every frame
         while True:
+
             if world.open3d_lidar_enabled: 
                 clock.tick_busy_loop(20)    # if open3d lidar window open, cap fps to 20
             else:
@@ -408,16 +424,15 @@ def game_loop(args):
 
     finally:
         if world is not None:
-            # stop weather control
-            w_control.kill()
             # turn server window rendering back on quit
             game_world = client.get_world()                 
             settings = game_world.get_settings()
             settings.no_rendering_mode = False
             game_world.apply_settings(settings)
+            world.destroy()
 
-            world.destroy() # destroy world
-
+        # stop weather control
+        w_control.kill()
         pygame.quit()
 
 # ==============================================================================

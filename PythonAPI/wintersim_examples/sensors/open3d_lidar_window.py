@@ -176,21 +176,7 @@ class Open3DLidarWindow():
         self.lidar.destroy()
         self.vis.destroy_window()
 
-    def __init__(self, world, vehicle, show_axis, semantic):
-        super(Open3DLidarWindow, self).__init__()
-        self.original_settings = None
-        self.traffic_manager = None
-        self.point_list = o3d.geometry.PointCloud()
-        self.lidar = None
-        self.vis = None
-        self.frame = 0
-        self.points_per_second = 700000
-        self.upper_fov = 2.0
-        self.lower_fov = 24.9
-        self.channels = 32.0
-        self.range = 50.0
-
-        # setup
+    def setup(self, world, vehicle, show_axis, semantic):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
@@ -207,7 +193,7 @@ class Open3DLidarWindow():
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(
             window_name='Carla Lidar',
-            width=960, height=540,
+            width=860, height=540,
             left=480, top=270)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
         self.vis.get_render_option().point_size = 1
@@ -215,3 +201,19 @@ class Open3DLidarWindow():
 
         if show_axis:
             self.add_open3d_axis()
+
+    def __init__(self, world, vehicle, show_axis, semantic):
+        super(Open3DLidarWindow, self).__init__()
+
+        self.original_settings = None
+        self.traffic_manager = None
+        self.point_list = o3d.geometry.PointCloud()
+        self.lidar = None
+        self.vis = None
+        self.frame = 0
+        self.points_per_second = 700000
+        self.upper_fov = 2.0
+        self.lower_fov = 24.9
+        self.channels = 32.0
+        self.range = 50.0
+        self.setup(world, vehicle, show_axis, semantic)
