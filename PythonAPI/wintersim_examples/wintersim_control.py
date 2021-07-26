@@ -47,6 +47,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
+    F9           : spawn separate open3D lidar window
     F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
@@ -309,21 +310,30 @@ class World(object):
     def toggle_open3d_lidar(self):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
-            self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow(self.world, self.player, True, True)
+            self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
+            self.open3d_lidar.setup(self.world, self.player, True, True)
             self.open3d_lidar_enabled = True
-            settings = self.world.get_settings()
             self.sync_mode = True
+           
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=True,
+            fixed_delta_seconds=0.05))
+
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
-            settings.fixed_delta_seconds = 0.05
-            settings.synchronous_mode = True
-            self.world.apply_settings(settings)
+
         else:
-            # TODO: figure why closing open3d lidar window causes crash
-            self.open3d_lidar_enabled = False
             self.open3d_lidar.destroy()
-            self.open3d_lidar = None
-        
+            self.open3d_lidar_enabled = False
+            self.sync_mode = False
+
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(False)
+
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
@@ -412,7 +422,8 @@ def game_loop(args):
         while True:
 
             if world.open3d_lidar_enabled: 
-                clock.tick_busy_loop(20)    # if open3d lidar window open, cap fps to 20
+                clock.tick_busy_loop(30)    # if open3d lidar window open, cap frame rate
+                #world.world.tick()
             else:
                 clock.tick_busy_loop(60)
 

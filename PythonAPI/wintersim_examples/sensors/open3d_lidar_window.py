@@ -3,6 +3,7 @@
 # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
 # Barcelona (UAB).
 #
+
 # Copyright (c) 2021 FrostBit Software Lab
 
 # This work is licensed under the terms of the MIT license.
@@ -37,8 +38,8 @@ except ImportError:
 VIRIDIS = np.array(cm.get_cmap('plasma').colors)
 VID_RANGE = np.linspace(0.0, 1.0, VIRIDIS.shape[0])
 LABEL_COLORS = np.array([
-    #(255, 255, 255), # None
-    (145, 170, 100), # None
+    (255, 255, 255), # None
+    #(145, 170, 100), # None
     (70, 70, 70),    # Building
     (100, 40, 40),   # Fences
     (55, 90, 80),    # Other
@@ -202,7 +203,7 @@ class Open3DLidarWindow():
         if show_axis:
             self.add_open3d_axis()
 
-    def __init__(self, world, vehicle, show_axis, semantic):
+    def __init__(self):
         super(Open3DLidarWindow, self).__init__()
 
         self.original_settings = None
@@ -216,4 +217,3 @@ class Open3DLidarWindow():
         self.lower_fov = 24.9
         self.channels = 32.0
         self.range = 50.0
-        self.setup(world, vehicle, show_axis, semantic)

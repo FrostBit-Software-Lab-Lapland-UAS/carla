@@ -46,6 +46,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F8           : spawn  separate front and back RGB camera windows
+    F9           : spawn separate open3D lidar window
     H/?          : toggle help
     ESC          : quit;
 """
