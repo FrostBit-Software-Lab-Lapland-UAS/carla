@@ -25,7 +25,8 @@ namespace rpc {
         << ", wetness=" << std::to_string(weather.wetness)
         << ", snow_amount=" << std::to_string(weather.snow_amount)
         << ", temperature=" << std::to_string(weather.temperature)
-        << ", ice_amount=" << std::to_string(weather.ice_amount) << ')';
+        << ", ice_amount=" << std::to_string(weather.ice_amount)
+        << ", particle_size=" << std::to_string(weather.particle_size) << ')';
     return out;
   }
 
@@ -37,7 +38,7 @@ void export_weather() {
   namespace cr = carla::rpc;
 
   auto cls = class_<cr::WeatherParameters>("WeatherParameters")
-    .def(init<float, float, float, float, float, float, float, float, float, float, float, float, float>(
+    .def(init<float, float, float, float, float, float, float, float, float, float, float, float, float, float>(
         (arg("cloudiness")=0.0f,
          arg("precipitation")=0.0f,
          arg("precipitation_deposits")=0.0f,
@@ -50,7 +51,8 @@ void export_weather() {
          arg("wetness")=0.0f,
          arg("snow_amount")=0.0f,
          arg("temperature")=0.0f,
-         arg("ice_amount")=0.0f)))
+         arg("ice_amount")=0.0f,
+         arg("particle_size")=0.0f)))
     .def_readwrite("cloudiness", &cr::WeatherParameters::cloudiness)
     .def_readwrite("precipitation", &cr::WeatherParameters::precipitation)
     .def_readwrite("precipitation_deposits", &cr::WeatherParameters::precipitation_deposits)
@@ -64,6 +66,7 @@ void export_weather() {
     .def_readwrite("snow_amount", &cr::WeatherParameters::snow_amount)
     .def_readwrite("temperature", &cr::WeatherParameters::temperature)
     .def_readwrite("ice_amount", &cr::WeatherParameters::ice_amount)
+    .def_readwrite("particle_size", &cr::WeatherParameters::particle_size)
     .def("__eq__", &cr::WeatherParameters::operator==)
     .def("__ne__", &cr::WeatherParameters::operator!=)
     .def(self_ns::str(self_ns::self))

@@ -47,7 +47,8 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
-    F9           : spawn separate open3D lidar window
+    F9           : spawn separate Open3D lidar window
+    F10          : spawn separate radar window
     F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
@@ -334,9 +335,9 @@ class World(object):
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
-    def toggle_radar(self):
+    def toggle_radar(self, window):
         if self.radar_sensor is None:
-            self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
+            self.radar_sensor = wintersim_sensors.RadarSensor(self.player, window)
         elif self.radar_sensor.sensor is not None:
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
