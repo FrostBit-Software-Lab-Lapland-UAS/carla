@@ -88,7 +88,7 @@ class World(object):
         date = x[0].split("-")
 
         #year = int(date[0])
-        month = int(date[1]) - 1        # -1 because with this number we get month from array so it has to be 0-11
+        month = int(date[1]) - 1        
         #day = int(date[2])
 
         clock = x[1].split(":")
@@ -252,7 +252,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x543',
+        default='550x720',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',

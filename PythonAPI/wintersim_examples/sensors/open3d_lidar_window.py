@@ -162,11 +162,22 @@ class Open3DLidarWindow():
                 [0.0, 0.0, 1.0]]))
         self.vis.add_geometry(axis)
 
+    def load_default_open3d_position(self):
+        '''load default open3d position and rotation from json file and set zoom'''
+        ctrl = self.vis.get_view_control()
+        ctrl.set_zoom(0.3)
+        parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
+        ctrl.convert_from_pinhole_camera_parameters(parameters)
+
     def render_open3d_lidar(self):
         """Render lidar to open3d window"""
-        if self.frame == 2: # every second frame add new geometry
+        if self.frame == 2:                         # every second frame add new geometry
             self.vis.add_geometry(self.point_list)
-            
+
+            if not self.startup_done:               # initlize startup position, must be called after add_geometry()
+                self.startup_done = True
+                self.load_default_open3d_position()
+
         self.vis.update_geometry(self.point_list)
         self.vis.poll_events()
         self.vis.update_renderer()
@@ -208,6 +219,7 @@ class Open3DLidarWindow():
 
         self.original_settings = None
         self.traffic_manager = None
+        self.startup_done = False
         self.point_list = o3d.geometry.PointCloud()
         self.lidar = None
         self.vis = None

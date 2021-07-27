@@ -154,6 +154,7 @@ class World(object):
         self.ud_friction = True
         self.preset = None
         self.player = None
+        self.w_control = None
         self.collision_sensor = None
         self.lane_invasion_sensor = None
         self.gnss_sensor = None
@@ -358,11 +359,18 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        if self.open3d_lidar_enabled:
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+            self.open3d_lidar.destroy()
+
         if self.cv2_windows is not None:
             self.cv2_windows.destroy()
 
         if self.radar_sensor is not None:
             self.toggle_radar()
+
         sensors = [self.camera_manager.sensor,
             self.collision_sensor.sensor,
             self.lane_invasion_sensor.sensor,
@@ -406,16 +414,13 @@ def game_loop(args):
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
-            w_control = subprocess.Popen('python weather_control.py')
+            world.w_control = subprocess.Popen('python weather_control.py')
         except:
             print("Couldn't launch weather_control.py")
 
-        # loop that runs every frame
         while True:
-
             if world.open3d_lidar_enabled: 
-                clock.tick_busy_loop(30)    # if open3d lidar window open, cap frame rate
-                #world.world.tick()
+                clock.tick_busy_loop(30)            # if open3d lidar window open, cap frame rate
             else:
                 clock.tick_busy_loop(60)
 
@@ -427,15 +432,16 @@ def game_loop(args):
 
     finally:
         if world is not None:
-            # turn server window rendering back on quit
             game_world = client.get_world()                 
             settings = game_world.get_settings()
             settings.no_rendering_mode = False
-            game_world.apply_settings(settings)
-            world.destroy()
+            game_world.apply_settings(settings)     # turn server window rendering back on quit
+          
+            if world.w_control is not None:
+                world.w_control.kill()              # stop weather control
 
-        # stop weather control
-        w_control.kill()
+            world.destroy()
+                
         pygame.quit()
 
 # ==============================================================================

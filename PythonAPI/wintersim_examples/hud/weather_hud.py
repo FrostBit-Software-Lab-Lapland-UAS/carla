@@ -79,7 +79,6 @@ class INFO_HUD(object):
             self.particle_slider, self.time_slider, 
             self.month_slider
             ]
-        #self.update_sliders(self.)
 
     # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None): 
