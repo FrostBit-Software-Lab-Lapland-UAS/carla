@@ -35,18 +35,9 @@ import math
 import random
 import re
 import weakref
-from queue import Queue
-import threading
-import torch
-import cv2
-
 import carla
 from carla import ColorConverter as cc
 import wintersim_control
-
-BEV_WIDTH = 608 # across y axis -25m ~ 25m
-BEV_HEIGHT = 608 # across x axis 0m ~ 50m
-
 
 # ==============================================================================
 # -- CollisionSensor -----------------------------------------------------------
@@ -147,7 +138,8 @@ class IMUSensor(object):
         self.compass = 0.0
         world = self._parent.get_world()
         bp = world.get_blueprint_library().find('sensor.other.imu')
-        self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
+        self.sensor = world.spawn_actor(
+            bp, carla.Transform(), attach_to=self._parent)
         # We need to pass the lambda a weak reference to self to avoid circular reference.
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda sensor_data: IMUSensor._IMU_callback(weak_self, sensor_data))
@@ -173,20 +165,12 @@ class IMUSensor(object):
 # ==============================================================================
 
 class RadarSensor(object):
-    def __init__(self, parent_actor, window):
-        # if window:
-        #     q = Queue()
-        #     self.data_thread = RadarWindow(q, args=(False))
-        #     self.data_thread.start()
-        #     self.data_thread.resume()
-        
-        self.points = []
+    def __init__(self, parent_actor):
         self.sensor = None
         self._parent = parent_actor
         self.velocity_range = 7.5 # m/s
         world = self._parent.get_world()
         self.debug = world.debug
-        self.window = window
         bp = world.get_blueprint_library().find('sensor.other.radar')
         bp.set_attribute('horizontal_fov', str(35))
         bp.set_attribute('vertical_fov', str(20))
@@ -202,23 +186,10 @@ class RadarSensor(object):
         self = weak_self()
         if not self:
             return
-
         current_rot = radar_data.transform.rotation
         for detect in radar_data:
-
             azi = math.degrees(detect.azimuth)
             alt = math.degrees(detect.altitude)
-
-            theta = math.radians(90 - alt)
-            phi = detect.azimuth
-            radius = detect.depth
-            x = radius * math.sin(theta) * math.cos(phi)
-            y = radius * math.sin(theta) * math.sin(phi)
-            z = radius * math.cos(theta)
-            d = radius
-            point = [x, -y, z, 1.0, d] 
-            self.points = np.append(self.points, point)
-
             # The 0.25 adjusts a bit the distance so the dots can
             # be properly seen
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)
@@ -234,70 +205,6 @@ class RadarSensor(object):
             r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
             g = int(clamp(0.0, 1.0, 1.0 - abs(norm_velocity)) * 255.0)
             b = int(abs(clamp(- 1.0, 0.0, - 1.0 - norm_velocity)) * 255.0)
-
-            if not self.window:
-                self.debug.draw_point(radar_data.transform.location + fw_vec,
-                    size=0.075,life_time=0.06,
-                    persistent_lines=False, color=carla.Color(r, g, b))
-            else:
-                if len(self.points) > 250:
-                    self.points = np.array(self.points)
-                    #self.data_thread.update(self.points)
-                    self.points = []
-
-# class RadarWindow(threading.Thread):
-#     def __init__(self, queue, args=()):
-#         threading.Thread.__init__(self, args=(), kwargs=None)
-#         self.queue = queue
-#         self.daemon = True
-#         self.paused = args
-#         self.state = threading.Condition()
-#         self.data = None
-#         self.window = None
-
-#     def render(self, data):
-
-#         # dataset = KittiYOLODataset('test/', data, 'test', mode='TEST', folder=None, data_aug=False)
-#         # data_loader = torch_data.DataLoader(dataset, 1, shuffle=False)
-#         # img_paths, bev_maps = next(iter(data_loader))
-
-#         # bev_maps = torch.squeeze(bev_maps).numpy()
-
-#         RGB_Map = np.zeros((BEV_WIDTH, BEV_WIDTH, 3))
-#         print(RGB_Map)
-
-#         # RGB_Map[:, :, 2] = data[0, :, :]  # r_map
-#         # RGB_Map[:, :, 1] = data[1, :, :]  # g_map
-#         # RGB_Map[:, :, 0] = data[2, :, :]  # b_map
-            
-#         # RGB_Map *= 255
-#         # RGB_Map = RGB_Map.astype(np.uint8)
-
-#         # vis = cv2.rotate(RGB_Map, cv2.ROTATE_180)
-#         # cv2.imshow("Radar", vis)
-#         print("rendering")
-
-#     def run(self):
-#         while True:
-#             with self.state:
-#                 if self.paused:
-#                     self.state.wait()
-#             if self.data is not None:
-#                 self.render(self.data)
-
-#     def pause(self):
-#         with self.state:
-#             self.paused = True
-
-#     def resume(self):
-#         with self.state:
-#             self.paused = False
-#             self.state.notify()
-
-#     def update(self, data):
-#         with self.state:
-#             self.data = data
-#             self.render(self.data)
-
-#     def destroy_window(self):
-#         cv2.destroyAllWindows()
+            self.debug.draw_point(radar_data.transform.location + fw_vec,
+                size=0.075,life_time=0.06,
+                persistent_lines=False, color=carla.Color(r, g, b))

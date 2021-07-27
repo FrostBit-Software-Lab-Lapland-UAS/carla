@@ -160,10 +160,8 @@ class KittiYOLO2WayDataset(KittiDataset):
 
         #self.sample_id_list = [int(sample_id) for sample_id in self.image_idx_list]
         self.sample_id_list = [0] #[int(self.image_idx_list[-1])]  ##this fixes some problems :)
-        #print("huh")
 
     def __getitem__(self, index):
-        #print("huh2")
         sample_id = int(self.sample_id_list[index])
         lidarData = self.pointcloud
         front_lidar = bev_utils.removePoints(lidarData, cnf.boundary)

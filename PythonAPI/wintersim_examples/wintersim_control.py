@@ -33,17 +33,8 @@ Use ARROWS or WASD keys for control.
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
-    Backspace    : change vehicle
-
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
 
     R            : toggle recording images to disk
-
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
@@ -335,9 +326,9 @@ class World(object):
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
-    def toggle_radar(self, window):
+    def toggle_radar(self):
         if self.radar_sensor is None:
-            self.radar_sensor = wintersim_sensors.RadarSensor(self.player, window)
+            self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
         elif self.radar_sensor.sensor is not None:
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
