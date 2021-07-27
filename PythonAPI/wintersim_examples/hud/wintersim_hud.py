@@ -31,20 +31,12 @@ Use ARROWS or WASD keys for control.
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
-    Backspace    : change vehicle
-
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
 
     R            : toggle recording images to disk
 
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
-
     F1           : toggle HUD
     F8           : spawn  separate front and back RGB camera windows
+    F9           : spawn separate Open3D lidar window
     F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;

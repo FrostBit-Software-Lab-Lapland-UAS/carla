@@ -33,20 +33,13 @@ Use ARROWS or WASD keys for control.
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
-    Backspace    : change vehicle
-
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
 
     R            : toggle recording images to disk
 
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
-
     F1           : toggle HUD
     F8           : spawn separate front and back camera windows
+    F9           : spawn separate Open3D lidar window
+    F10          : spawn separate radar window
     F12          : toggle server window rendering
     H/?          : toggle help
     ESC          : quit;
@@ -78,11 +71,13 @@ import logging
 import random
 import re
 
+
 import carla
 from carla import ColorConverter as cc
 
 from hud import wintersim_hud
 from sensors import wintersim_sensors
+from sensors import open3d_lidar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
@@ -96,6 +91,25 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
+
+import glob
+import os
+import sys
+import argparse
+import time
+from datetime import datetime
+import random
+import numpy as np
+from matplotlib import cm
+import open3d as o3d
+
+try:
+    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
+        sys.version_info.major,
+        sys.version_info.minor,
+        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
+except IndexError:
+    pass
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -125,6 +139,7 @@ class World(object):
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
+        self.client = None
         self.record_data = False
         self.original_settings = None
         self.settings = None
@@ -132,10 +147,14 @@ class World(object):
         self.args = args
         self.multiple_windows_enabled = args.windows
         self.cv2_windows = None
+        self.open3d_lidar = None
+        self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
+        self.sync_mode = False
         self.ud_friction = True
         self.preset = None
         self.player = None
+        self.w_control = None
         self.collision_sensor = None
         self.lane_invasion_sensor = None
         self.gnss_sensor = None
@@ -194,8 +213,15 @@ class World(object):
                 print('There are no spawn points available in your map/town.')
                 print('Please add some Vehicle Spawn Point to your UE4 scene.')
                 sys.exit(1)
+
+            # if --spawnpoint [number] argument given then try to spawn there
+            # else spawn in random spawn location
             spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            if self.args.spawnpoint == 0 or self.args.spawnpoint > len(spawn_points):
+                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            else:
+                spawn_point = spawn_points[self.args.spawnpoint]
+
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 
         # Set up the sensors
@@ -243,7 +269,7 @@ class World(object):
 
         if self.multiple_windows_enabled and self.multiple_window_setup:
             self.cv2_windows.resume()
-
+            
         if not self.multiple_window_setup and self.multiple_windows_enabled:
             self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world)
             self.multiple_window_setup = True
@@ -261,11 +287,45 @@ class World(object):
         self.camera_manager.render(display)
         self.hud_wintersim.render(display, world)
 
+        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
+            self.open3d_lidar.render_open3d_lidar()
+
+        if self.sync_mode:    
+            self.world.tick()
+
     def toggle_cv2_windows(self):
+        '''toggle separate camera windows'''
         self.multiple_windows_enabled = not self.multiple_windows_enabled
         if self.multiple_windows_enabled == False and self.cv2_windows is not None:
             self.cv2_windows.destroy()
             self.multiple_window_setup = False
+
+    def toggle_open3d_lidar(self):
+        '''toggle separate open3d lidar window'''
+        if not self.open3d_lidar_enabled:
+            self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
+            self.open3d_lidar.setup(self.world, self.player, True, True)
+            self.open3d_lidar_enabled = True
+            self.sync_mode = True
+           
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=True,
+            fixed_delta_seconds=0.05))
+
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(True)
+
+        else:
+            self.open3d_lidar.destroy()
+            self.open3d_lidar_enabled = False
+            self.sync_mode = False
+
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(False)
 
     def toggle_radar(self):
         if self.radar_sensor is None:
@@ -299,11 +359,18 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        if self.open3d_lidar_enabled:
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+            self.open3d_lidar.destroy()
+
         if self.cv2_windows is not None:
             self.cv2_windows.destroy()
 
         if self.radar_sensor is not None:
             self.toggle_radar()
+
         sensors = [self.camera_manager.sensor,
             self.collision_sensor.sensor,
             self.lane_invasion_sensor.sensor,
@@ -339,18 +406,24 @@ def game_loop(args):
 
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
-        world.preset = world._weather_presets[0]                            # start weather preset
+        world.client = client
+        world.preset = world._weather_presets[0]
+        world.original_settings = world.world.get_settings()
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
-            w_control = subprocess.Popen('python weather_control.py', shell=True)
+            world.w_control = subprocess.Popen('python weather_control.py')
         except:
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(60)
+            if world.open3d_lidar_enabled: 
+                clock.tick_busy_loop(30)            # if open3d lidar window open, cap frame rate
+            else:
+                clock.tick_busy_loop(60)
+
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
             world.tick(clock, hud_wintersim)
@@ -359,16 +432,16 @@ def game_loop(args):
 
     finally:
         if world is not None:
-            # stop weather control
-            w_control.kill()
-            # turn server window rendering back on quit
             game_world = client.get_world()                 
             settings = game_world.get_settings()
             settings.no_rendering_mode = False
-            game_world.apply_settings(settings)
+            game_world.apply_settings(settings)     # turn server window rendering back on quit
+          
+            if world.w_control is not None:
+                world.w_control.kill()              # stop weather control
 
-            world.destroy() # destroy world
-
+            world.destroy()
+                
         pygame.quit()
 
 # ==============================================================================
@@ -423,6 +496,11 @@ def main():
         default=False,
         type=bool,
         help='Enable multiple camera view on startup')
+    argparser.add_argument(
+        '--spawnpoint',
+        default=0,
+        type=int,
+        help='Specify spawn point')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
