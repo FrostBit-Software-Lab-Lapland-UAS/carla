@@ -35,10 +35,10 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
-    F8           : spawn  separate front and back RGB camera windows
-    F9           : spawn separate Open3D lidar window
+    F8           : toggle  separate front and back RGB camera windows
+    F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering
-    H/?          : toggle help
+    H            : toggle help
     ESC          : quit;
 """
 
@@ -162,15 +162,6 @@ class WinterSimHud(object):
                 if d > 200.0:
                     break
                 vehicle_type = wintersim_control.get_actor_display_name(vehicle, truncate=22)
-                self._info_text.append('% 4dm %s' % (d, vehicle_type))
-                
-    def toggle_info(self, world):
-        if self.is_hud:
-            if self.help_text.visible:
-                self.help_text.toggle()
-            self.is_hud = not self.is_hud
-        else:
-            self.is_hud = not self.is_hud
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)

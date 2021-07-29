@@ -37,11 +37,11 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
-    F8           : spawn separate front and back camera windows
-    F9           : spawn separate Open3D lidar window
-    F10          : spawn separate radar window
+    F8           : toggle separate front and back camera windows
+    F9           : toggle separate Open3D lidar window
+    F10          : toggle separate radar window
     F12          : toggle server window rendering
-    H/?          : toggle help
+    H            : toggle help
     ESC          : quit;
 """
 
@@ -55,7 +55,6 @@ import glob
 import os
 import re
 import sys
-import time
 import subprocess
 
 try:
@@ -71,13 +70,14 @@ import logging
 import random
 import re
 
-
 import carla
 from carla import ColorConverter as cc
 
+# WinterSim imports
 from hud import wintersim_hud
 from sensors import wintersim_sensors
 from sensors import open3d_lidar_window
+from sensors import open3d_radar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
@@ -92,24 +92,16 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
+try:
+    import open3d as o3d
+except ImportError:
+    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
+
 import glob
 import os
 import sys
 import argparse
-import time
-from datetime import datetime
 import random
-import numpy as np
-from matplotlib import cm
-import open3d as o3d
-
-try:
-    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
-except IndexError:
-    pass
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -139,13 +131,14 @@ class World(object):
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
+        self.fps = 60
         self.client = None
         self.record_data = False
         self.original_settings = None
         self.settings = None
         self.isResumed = False
         self.args = args
-        self.multiple_windows_enabled = args.windows
+        self.multiple_windows_enabled = args.camerawindows
         self.cv2_windows = None
         self.open3d_lidar = None
         self.open3d_lidar_enabled = False
@@ -217,7 +210,7 @@ class World(object):
             # if --spawnpoint [number] argument given then try to spawn there
             # else spawn in random spawn location
             spawn_points = self.map.get_spawn_points()
-            if self.args.spawnpoint == 0 or self.args.spawnpoint > len(spawn_points):
+            if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
                 spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             else:
                 spawn_point = spawn_points[self.args.spawnpoint]
@@ -243,21 +236,6 @@ class World(object):
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
         self.player.get_world().set_weather(self.preset[0])
 
-    def next_map_layer(self, reverse=False):
-        self.current_map_layer += -1 if reverse else 1
-        self.current_map_layer %= len(self.map_layer_names)
-        selected = self.map_layer_names[self.current_map_layer]
-        self.hud_wintersim.notification('LayerMap selected: %s' % selected)
-
-    def load_map_layer(self, unload=False):
-        selected = self.map_layer_names[self.current_map_layer]
-        if unload:
-            self.hud_wintersim.notification('Unloading map layer: %s' % selected)
-            self.world.unload_map_layer(selected)
-        else:
-            self.hud_wintersim.notification('Loading map layer: %s' % selected)
-            self.world.load_map_layer(selected)
-
     def tick(self, clock, hud_wintersim):
         '''Tick WinterSim hud'''
         self.hud_wintersim.tick(self, clock, hud_wintersim)
@@ -281,7 +259,7 @@ class World(object):
         if self.multiple_windows_enabled and self.cv2_windows is not None:
             self.cv2_windows.pause()
 
-    def render(self, world, client, hud_wintersim, display):
+    def render(self, world, display):
         '''Render everything to screen'''
         self.render_camera_windows()
         self.camera_manager.render(display)
@@ -305,7 +283,9 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
+
             self.open3d_lidar_enabled = True
+            self.fps = 20
             self.sync_mode = True
            
             self.world.apply_settings(carla.WorldSettings(
@@ -317,6 +297,7 @@ class World(object):
 
         else:
             self.open3d_lidar.destroy()
+            self.fps = 60
             self.open3d_lidar_enabled = False
             self.sync_mode = False
 
@@ -412,6 +393,9 @@ def game_loop(args):
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
 
+        if world.args.open3dlidar:
+            world.toggle_open3d_lidar()
+
         # open another terminal window and launch wintersim weather_hud.py script
         try:
             world.w_control = subprocess.Popen('python weather_control.py')
@@ -419,15 +403,12 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            if world.open3d_lidar_enabled: 
-                clock.tick_busy_loop(30)            # if open3d lidar window open, cap frame rate
-            else:
-                clock.tick_busy_loop(60)
+            clock.tick_busy_loop(world.fps)
 
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
             world.tick(clock, hud_wintersim)
-            world.render(world, client, hud_wintersim, display)
+            world.render(world, display)
             pygame.display.flip()
 
     finally:
@@ -492,13 +473,18 @@ def main():
         type=float,
         help='Gamma correction of the camera (default: 2.2)')
     argparser.add_argument(
-        '--windows',
+        '--camerawindows',
         default=False,
         type=bool,
         help='Enable multiple camera view on startup')
     argparser.add_argument(
+        '--open3dlidar',
+        default=False,
+        type=bool,
+        help='Enable open3d lidar window on startup')
+    argparser.add_argument(
         '--spawnpoint',
-        default=0,
+        default=-1,
         type=int,
         help='Specify spawn point')
     args = argparser.parse_args()
