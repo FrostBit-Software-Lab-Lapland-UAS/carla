@@ -12,7 +12,7 @@ import sys
 import re
 import argparse
 import math
-import weather_hud
+from hud import weather_hud
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -24,10 +24,13 @@ except IndexError:
 
 import carla
 import requests
-import json
+from fmiopendata.wfs import download_stored_query
 
 try:
     import pygame
+    from pygame.locals import KMOD_CTRL
+    from pygame.locals import K_ESCAPE
+    from pygame.locals import K_q
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
     from pygame.locals import K_m
@@ -38,7 +41,6 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -60,7 +62,11 @@ class World(object):
         self.ud_friction = True
         self.hud = hud
         self.preset = None
-        self._weather_presets = find_weather_presets()
+        self._weather_presets = []
+        self._weather_presets_all = find_weather_presets()
+        for preset in self._weather_presets_all:
+            if preset[0].temperature <= 0: # get only presets what are for wintersim
+                self._weather_presets.append(preset)
         self._weather_index = 0
         self._gamma = args.gamma
 
@@ -81,12 +87,12 @@ class World(object):
 
         date = x[0].split("-")
 
-        year = int(date[0])
-        month = int(date[1]) - 1        #-1 because with this number we get month from array so it has to be 0-11
-        day = int(date[2])
+        #year = int(date[0])
+        month = int(date[1]) - 1        
+        #day = int(date[2])
 
         clock = x[1].split(":")
-        clock[0] = int(clock[0]) + 3    # add 3 hours, so we get finnish timezone
+        clock[0] = int(clock[0]) + 3    # add 3 hours to get correct timezone
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
@@ -94,29 +100,30 @@ class World(object):
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
         precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
-        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation #this can be nan or -1 so that would give as error later so let make it 0 in this situation
-        precipitation = 10 if precipitation > 10 else precipitation #max precipitation value is 10
-        precipitation *= 10 #max precipitation is 10mm multiply by it 10 to get in range of 0-100
+        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
+        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
+        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
                     
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
-        wind = 10 if wind > 10 else wind #Lets make 10m/s max wind value.
-        wind *= 10 #Multiply wind by 10 to get it into range of 0-100
+        wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
+        wind *= 10 # Multiply wind by 10 to get it into range of 0-100
 
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
-        snow = 100 if snow > 100 else snow #lets set max number of snow to 1meter
+        snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
                     
         #cloudiness = obs.data[latest_tstep]["Muonio kirkonkylä"]["Cloud amount"]['value']
         #cloudiness *= 12.5 #max value is 8 so we have to multiply it by 12.5 to get it into range of 0-100
 
-        weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) #update weather object with our new data
-
+        weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) # update weather object with our new data
+        
         self.hud.notification('Weather: Muonio Realtime')
         self.hud.update_sliders(weather.weather, month=month, clock=clock)  # update sliders positions
         self.world.set_weather(weather.weather)                             # update weather
 
     def update_friction(self, iciness):
+        '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
         friction = 5
         friction -= iciness / 100 * 4
@@ -134,12 +141,21 @@ class World(object):
 
                 vehicle.apply_physics_control(physics_control)
 
-    def tick(self, clock, hud): #here we update huds data
+    def tick(self, clock, hud):
         self.hud.tick(self, clock, hud)
 
-    def render(self, display): #and here we render the hud
+    def render(self, world, client, hud, display, weather):
         self.hud.render(display)
+        self.render_sliders(world, client, hud, display, weather)
 
+    def render_sliders(self, world, client, hud, display, weather):
+        for slider in hud.sliders:
+                if slider.hit:                                      # if slider is being touched
+                    slider.move()                                   # move slider
+                    weather.tick(hud, world._weather_presets[0])    # update weather object
+                    client.get_world().set_weather(weather.weather) # send weather to server
+        for slider in hud.sliders:
+            slider.draw(display, slider)                            # move sliders
 
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
@@ -151,23 +167,25 @@ class KeyboardControl(object):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
-            elif event.type == pygame.MOUSEBUTTONDOWN: #slider event
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 for slider in hud.sliders:
-                    if slider.button_rect.collidepoint(pos): #get slider what mouse is touching
-                        slider.hit = True #slider is being moved
-            elif event.type == pygame.MOUSEBUTTONUP: #slider event
-                if hud.ice_slider.hit: #if road iciness slider is moved
+                    if slider.button_rect.collidepoint(pos):            # get slider what mouse is touching
+                        slider.hit = True                               # slider is being moved
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if hud.ice_slider.hit:                                  # if road iciness slider is moved
                     world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
-                    slider.hit = False #slider moving stopped
+                    slider.hit = False                                  #slider moving stopped
             elif event.type == pygame.KEYUP:
-                if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT: #previous weather preset
+                if self._is_quit_shortcut(event.key):
+                    return True
+                if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(world, reverse=True)
                 elif event.key == K_c:
-                    world.next_weather(world, reverse=False) #next weather preset
+                    world.next_weather(world, reverse=False)
                 elif event.key == K_m:
-                    world.muonio_weather(world) #get muonios latest weather
+                    world.muonio_weather(world)
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -178,6 +196,10 @@ class KeyboardControl(object):
 # ==============================================================================
 
 def game_loop(args):
+    # position offset for pygame window
+    x = 1290
+    y = 100
+    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None
@@ -190,27 +212,20 @@ def game_loop(args):
         display.fill((0,0,0))
         pygame.display.flip()
 
-        hud = weather_hud.INFO_HUD(args.width, args.height, display) #hud where we show numbers and all that 
-        hud.make_sliders() # create sliders
-        world = World(client.get_world(), hud, args) #instantiate our world object
-        controller = KeyboardControl() #controller for changing weather presets
-        weather = weather_hud.Weather(client.get_world().get_weather()) #weather object to update carla weather with sliders
-        hud.update_sliders(weather.weather) #update sliders according to preset parameters
+        hud = weather_hud.INFO_HUD(args.width, args.height, display)
+        hud.make_sliders()                                                  # create sliders
+        world = World(client.get_world(), hud, args)                        # instantiate our world object
+        controller = KeyboardControl()                                      # controller for changing weather presets
+        weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
+        hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
         clock = pygame.time.Clock()
 
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(client, world, clock, hud): 
                 return
-            world.tick(clock, hud)                                  # update data
-            world.render(display)                                   # show data
-            for slider in hud.sliders:
-                if slider.hit:                                      # if slider is being touched
-                    slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0])    # update weather object
-                    client.get_world().set_weather(weather.weather) # send weather to server
-            for slider in hud.sliders:
-                slider.draw(display, slider)                        # move sliders
+            world.tick(clock, hud)
+            world.render(world, client, hud, display, weather)
             pygame.display.flip()
 
     finally:
@@ -237,7 +252,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x543',
+        default='550x720',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',

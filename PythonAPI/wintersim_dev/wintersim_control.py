@@ -3,11 +3,11 @@
 # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
 # Barcelona (UAB).
 #
+
+# Copyright (c) 2021 FrostBit Software Lab
+
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
-
-# Allows controlling a vehicle with a keyboard. For a simpler and more
-# documented example, please take a look at tutorial.py.
 
 """
 Welcome to CARLA WinterSim control.
@@ -22,7 +22,6 @@ Use ARROWS or WASD keys for control.
     P            : toggle autopilot
     M            : toggle manual transmission
     ,/.          : gear up/down
-    CTRL + W     : toggle constant velocity mode at 60 km/h
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -34,33 +33,29 @@ Use ARROWS or WASD keys for control.
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
-    Backspace    : change vehicle
-
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
 
     R            : toggle recording images to disk
 
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
-
-
     F1           : toggle HUD
-    F8           : Open CV2 windows with object detection (Requires NVIDIA GPU + CUDA!)
-    F9           : Open CV2 Windows without object detection
-    H/?          : toggle help
+    F8           : toggle separate front and back camera windows
+    F9           : toggle separate Open3D lidar window
+    F10          : toggle separate radar window
+    F12          : toggle server window rendering
+    H            : toggle help
     ESC          : quit;
 """
 
+# ==============================================================================
+# -- imports -------------------------------------------------------------------
+# ==============================================================================
+
 from __future__ import print_function
+
 import glob
 import os
-import sys
 import re
-import threading
-import time
+import sys
+import subprocess
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -70,74 +65,25 @@ try:
 except IndexError:
     pass
 
-
-# ==============================================================================
-# -- imports -------------------------------------------------------------------
-# ==============================================================================
+import argparse
+import logging
+import random
+import re
 
 import carla
 from carla import ColorConverter as cc
-import argparse
-import collections
-import datetime
-import logging
-import math
-import random
-import re
-import weakref
-import wintersim_hud
-import wintersim_sensors
-from wintersim_keyboard_control import KeyboardControl
-from wintersim_camera_manager import CameraManager
 
-try:
-    from wintersim_camera_windows import CameraWindows
-except:
-    print("no wintersim_camera_windows.py found")
-
+# WinterSim imports
+from hud import wintersim_hud
+from sensors import wintersim_sensors
+from sensors import open3d_lidar_window
+from sensors import open3d_radar_window
+from camera.wintersim_camera_manager import CameraManager
+from camera.wintersim_camera_windows import CameraWindows
+from keyboard.wintersim_keyboard_control import KeyboardControl
 
 try:
     import pygame
-    from pygame.locals import KMOD_CTRL
-    from pygame.locals import KMOD_SHIFT
-    from pygame.locals import K_0
-    from pygame.locals import K_9
-    from pygame.locals import K_BACKQUOTE
-    from pygame.locals import K_BACKSPACE
-    from pygame.locals import K_COMMA
-    from pygame.locals import K_DOWN
-    from pygame.locals import K_ESCAPE
-    from pygame.locals import K_F1
-    from pygame.locals import K_F2
-    from pygame.locals import K_F8
-    from pygame.locals import K_F9
-    from pygame.locals import K_LEFT
-    from pygame.locals import K_PERIOD
-    from pygame.locals import K_RIGHT
-    from pygame.locals import K_SLASH
-    from pygame.locals import K_SPACE
-    from pygame.locals import K_TAB
-    from pygame.locals import K_UP
-    from pygame.locals import K_a
-    from pygame.locals import K_b
-    from pygame.locals import K_c
-    from pygame.locals import K_d
-    from pygame.locals import K_g
-    from pygame.locals import K_h
-    from pygame.locals import K_i
-    from pygame.locals import K_l
-    from pygame.locals import K_m
-    from pygame.locals import K_n
-    from pygame.locals import K_p
-    from pygame.locals import K_q
-    from pygame.locals import K_r
-    from pygame.locals import K_s
-    from pygame.locals import K_v
-    from pygame.locals import K_w
-    from pygame.locals import K_x
-    from pygame.locals import K_z
-    from pygame.locals import K_MINUS
-    from pygame.locals import K_EQUALS
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
@@ -145,6 +91,17 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
+
+try:
+    import open3d as o3d
+except ImportError:
+    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
+
+import glob
+import os
+import sys
+import argparse
+import random
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -155,7 +112,6 @@ def find_weather_presets():
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
     return [(getattr(carla.WeatherParameters, x), name(x)) for x in presets]
-
 
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
@@ -175,20 +131,23 @@ class World(object):
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
+        self.fps = 60
+        self.client = None
         self.record_data = False
-        self.wintersim_autopilot = False
         self.original_settings = None
         self.settings = None
-        self.data_thread = None
         self.isResumed = False
-        self.dataLidar = None
         self.args = args
-        self.multiple_windows_enabled = args.windows
+        self.multiple_windows_enabled = args.camerawindows
         self.cv2_windows = None
+        self.open3d_lidar = None
+        self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
+        self.sync_mode = False
         self.ud_friction = True
         self.preset = None
         self.player = None
+        self.w_control = None
         self.collision_sensor = None
         self.lane_invasion_sensor = None
         self.gnss_sensor = None
@@ -204,7 +163,7 @@ class World(object):
         self._actor_filter = args.filter
         self._gamma = args.gamma
         self.restart()
-        preset = self._weather_presets[0]
+        preset = self._weather_presets[0]  # set weather preset
         self.world.set_weather(preset[0])
         self.player.gud_frictiong_enabled = False
         self.recording_start = 0
@@ -234,37 +193,29 @@ class World(object):
         # Get a vehicle according to arg parameter.
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
 
-        # Get the ego vehicle
-        if self.args.scenario:
-            while self.player is None:
-                print("Waiting for the ego vehicle...")
-                time.sleep(1)
-                possible_vehicles = self.world.get_actors().filter('vehicle.*')
-                for vehicle in possible_vehicles:
-                    if vehicle.attributes['role_name'] == "hero":
-                        print("Ego vehicle found")
-                        self.player = vehicle
-                        break
+        # Spawn player
+        if self.player is not None:
+            spawn_point = self.player.get_transform()
+            spawn_point.location.z += 2.0
+            spawn_point.rotation.roll = 0.0
+            spawn_point.rotation.pitch = 0.0
+            self.destroy()
+            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+        while self.player is None:
+            if not self.map.get_spawn_points():
+                print('There are no spawn points available in your map/town.')
+                print('Please add some Vehicle Spawn Point to your UE4 scene.')
+                sys.exit(1)
 
-        # Spawn the player
-        if not self.args.scenario:
-            if self.player is not None:
-                spawn_point = self.player.get_transform()
-                spawn_point.location.z += 2.0
-                spawn_point.rotation.roll = 0.0
-                spawn_point.rotation.pitch = 0.0
-                self.destroy()
-                self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-            while self.player is None:
-                if not self.map.get_spawn_points():
-                    print('There are no spawn points available in your map/town.')
-                    print('Please add some Vehicle Spawn Point to your UE4 scene.')
-                    sys.exit(1)
-                spawn_points = self.map.get_spawn_points()
-                spawn_point = spawn_points[5] # for testing
-                #spawn_point = spawn_points[275] # for testing
-                #spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
-                self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            # if --spawnpoint [number] argument given then try to spawn there
+            # else spawn in random spawn location
+            spawn_points = self.map.get_spawn_points()
+            if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
+                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            else:
+                spawn_point = spawn_points[self.args.spawnpoint]
+
+            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 
         # Set up the sensors
         self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
@@ -277,30 +228,89 @@ class World(object):
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
         self.multiple_window_setup = False
-        self.detection = True
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
-        self.hud_wintersim.update_sliders(self.preset[0])
         self.player.get_world().set_weather(self.preset[0])
 
-    def next_map_layer(self, reverse=False):
-        self.current_map_layer += -1 if reverse else 1
-        self.current_map_layer %= len(self.map_layer_names)
-        selected = self.map_layer_names[self.current_map_layer]
-        self.hud_wintersim.notification('LayerMap selected: %s' % selected)
+    def tick(self, clock, hud_wintersim):
+        '''Tick WinterSim hud'''
+        self.hud_wintersim.tick(self, clock, hud_wintersim)
 
-    def load_map_layer(self, unload=False):
-        selected = self.map_layer_names[self.current_map_layer]
-        if unload:
-            self.hud_wintersim.notification('Unloading map layer: %s' % selected)
-            self.world.unload_map_layer(selected)
+    def render_camera_windows(self):
+        '''Render camera windows if enabled'''
+        if not self.multiple_windows_enabled:
+            return
+
+        if self.multiple_windows_enabled and self.multiple_window_setup:
+            self.cv2_windows.resume()
+            
+        if not self.multiple_window_setup and self.multiple_windows_enabled:
+            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world)
+            self.multiple_window_setup = True
+            self.cv2_windows.start()
+            self.cv2_windows.pause()
+
+    def block_camera_windows_thread(self):
+        '''if camera windows enabled, you can block CameraWindows thread flag'''
+        if self.multiple_windows_enabled and self.cv2_windows is not None:
+            self.cv2_windows.pause()
+
+    def render(self, world, display):
+        '''Render everything to screen'''
+        self.render_camera_windows()
+        self.camera_manager.render(display)
+        self.hud_wintersim.render(display, world)
+
+        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
+            self.open3d_lidar.render_open3d_lidar()
+
+        if self.sync_mode:    
+            self.world.tick()
+
+    def toggle_cv2_windows(self):
+        '''toggle separate camera windows'''
+        self.multiple_windows_enabled = not self.multiple_windows_enabled
+        if self.multiple_windows_enabled == False and self.cv2_windows is not None:
+            self.cv2_windows.destroy()
+            self.multiple_window_setup = False
+
+    def toggle_open3d_lidar(self):
+        '''toggle separate open3d lidar window'''
+        if not self.open3d_lidar_enabled:
+            self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
+            self.open3d_lidar.setup(self.world, self.player, True, True)
+
+            # test
+            # self.open3d_lidar = open3d_radar_window.Open3DRadarWindow()
+            # self.open3d_lidar.setup(self.world, self.player, True, True)
+            
+            self.open3d_lidar_enabled = True
+            self.fps = 20
+            self.sync_mode = True
+           
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=True,
+            fixed_delta_seconds=0.05))
+
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(True)
+
         else:
-            self.hud_wintersim.notification('Loading map layer: %s' % selected)
-            self.world.load_map_layer(selected)
+            self.open3d_lidar.destroy()
+            self.fps = 60
+            self.open3d_lidar_enabled = False
+            self.sync_mode = False
+
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+
+            traffic_manager = self.client.get_trafficmanager(8000)
+            traffic_manager.set_synchronous_mode(False)
 
     def toggle_radar(self):
         if self.radar_sensor is None:
@@ -309,49 +319,9 @@ class World(object):
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
 
-    def tick(self, clock, hud_wintersim):
-        self.hud_wintersim.tick(self, clock, hud_wintersim)
-
-    def render_object_detection(self):
-        if self.multiple_windows_enabled and self.multiple_window_setup:
-            # if multiplewindows enabled and setup done, enable MultipleWindows thread flag
-            self.cv2_windows.resume()
-
-        if self.multiple_window_setup == False and self.multiple_windows_enabled:
-            # setup wintersim_camera_windows.py
-            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world, self.args.record, self.detection)
-            self.multiple_window_setup = True
-            self.cv2_windows.start()
-            self.cv2_windows.pause()
-
-    def block_object_detection(self):
-        '''if multiplewindows enabled, disable MultipleWindows thread flag'''
-        if self.multiple_windows_enabled and self.cv2_windows is not None:
-            self.cv2_windows.pause()
-
-    def render(self, display):
-        self.camera_manager.render(display)
-        self.hud_wintersim.render(display, self.world)
-
-    def toggle_cv2_windows(self):
-        self.multiple_windows_enabled = not self.multiple_windows_enabled
-        if self.multiple_windows_enabled == False and self.cv2_windows is not None:
-            self.cv2_windows.destroy()
-            self.multiple_window_setup = False
-    
-    def render_UI_sliders(self, world, client, hud_wintersim, display, weather):
-        if not hud_wintersim.is_hud or hud_wintersim.help_text.visible:
-            return
-
-        for s in hud_wintersim.sliders:
-            if s.hit:
-                s.move()
-                weather.tick(hud_wintersim, world.preset[0])
-                client.get_world().set_weather(weather.weather)
-        for s in hud_wintersim.sliders:
-            s.draw(display, s)
-
     def update_friction(self, iciness):
+        '''Update all vehicle wheel frictions.
+        This will stop vehicles if they are moving while changing the value.'''
         actors = self.world.get_actors()
         friction = 5
         friction -= iciness / 100 * 4
@@ -362,11 +332,10 @@ class World(object):
                 front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
                 rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
                 rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-
                 wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
+
                 physics_control = vehicle.get_physics_control()
                 physics_control.wheels = wheels
-
                 vehicle.apply_physics_control(physics_control)
 
     def destroy_sensors(self):
@@ -375,13 +344,19 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        if self.open3d_lidar_enabled:
+            self.world.apply_settings(carla.WorldSettings(
+            no_rendering_mode=False, synchronous_mode=False,
+            fixed_delta_seconds=0.00))
+            self.open3d_lidar.destroy()
+
         if self.cv2_windows is not None:
             self.cv2_windows.destroy()
 
         if self.radar_sensor is not None:
             self.toggle_radar()
-        sensors = [
-            self.camera_manager.sensor,
+
+        sensors = [self.camera_manager.sensor,
             self.collision_sensor.sensor,
             self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,
@@ -398,6 +373,10 @@ class World(object):
 # ==============================================================================
 
 def game_loop(args):
+    # position offset for pygame window
+    x = 10
+    y = 100
+    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None
@@ -411,29 +390,43 @@ def game_loop(args):
         pygame.display.flip()
 
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
-        hud_wintersim.make_sliders()
         world = World(client.get_world(), hud_wintersim, args)
-        world.preset = world._weather_presets[0]                            # start weather preset
-        hud_wintersim.update_sliders(world.preset[0])                       # update sliders to positions according to preset
+        world.client = client
+        world.preset = world._weather_presets[0]
+        world.original_settings = world.world.get_settings()
         controller = KeyboardControl(world, args.autopilot)
-        weather = wintersim_hud.Weather(client.get_world().get_weather())   # weather object to update carla weather with sliders
         clock = pygame.time.Clock()
 
+        if world.args.open3dlidar:
+            world.toggle_open3d_lidar()
+
+        # open another terminal window and launch wintersim weather_hud.py script
+        try:
+            world.w_control = subprocess.Popen('python weather_control.py')
+        except:
+            print("Couldn't launch weather_control.py")
+
         while True:
-            clock.tick_busy_loop(60)
-            world.render_object_detection()                                 # start detecting and rendering cv2 windows as early in the frame, uses another thread
+            clock.tick_busy_loop(world.fps)         # fps changes if open3d lidar is on
+
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
             world.tick(clock, hud_wintersim)
-            world.render(display)
-            world.render_UI_sliders(world, client, hud_wintersim, display, weather)
-            #world.block_object_detection()                                  # block object detection till next frame (pauses thread)
+            world.render(world, display)
             pygame.display.flip()
 
     finally:
         if world is not None:
-            world.destroy()
+            game_world = client.get_world()                 
+            settings = game_world.get_settings()
+            settings.no_rendering_mode = False
+            game_world.apply_settings(settings)     # turn server window rendering back on quit
+          
+            if world.w_control is not None:
+                world.w_control.kill()              # stop weather control
 
+            world.destroy()
+                
         pygame.quit()
 
 # ==============================================================================
@@ -484,20 +477,20 @@ def main():
         type=float,
         help='Gamma correction of the camera (default: 2.2)')
     argparser.add_argument(
-        '--windows',
+        '--camerawindows',
         default=False,
         type=bool,
-        help='multiplewindows')
+        help='Enable multiple camera view on startup')
     argparser.add_argument(
-        '--record',
+        '--open3dlidar',
         default=False,
         type=bool,
-        help='record cv2 windows')
+        help='Enable open3d lidar window on startup')
     argparser.add_argument(
-        '--scenario',
-        default=False,
-        type=bool,
-        help='is scenario')
+        '--spawnpoint',
+        default=-1,
+        type=int,
+        help='Specify spawn point')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
@@ -509,7 +502,6 @@ def main():
         game_loop(args)
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
-
 
 if __name__ == '__main__':
     main()

@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
+# Copyright (c) 2021 FrostBit Software Lab
+
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
-
-# Allows controlling a vehicle with a keyboard. For a simpler and more
-# documented example, please take a look at tutorial.py.
 
 """
 Welcome to CARLA WinterSim control.
@@ -36,21 +32,13 @@ Use ARROWS or WASD keys for control.
     C            : change weather (Shift+C reverse)
     Backspace    : change vehicle
 
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
-
     R            : toggle recording images to disk
-
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
 
     F1           : toggle HUD
     F8           : toggle camera sensors with object detection
     F9           : toggle camera sensors without object detection
     F10          : toggle all sensors with object detection
-    H/?          : toggle help
+    H            : toggle help
     ESC          : quit;
 """
 
@@ -86,8 +74,7 @@ import math
 import random
 import re
 import weakref
-import wintersim_hud
-import wintersim_sensors
+
 
 from data_collector import collector_dev as collector
 from data_collector.bounding_box import create_kitti_datapoint
@@ -98,11 +85,17 @@ from data_collector.dataexport import *
 from matplotlib import cm
 import open3d as o3d
 
-from wintersim_lidar_object_detection import LidarObjectDetection as LidarObjectDetection
+from wintersim_lidar_object_detection import LidarObjectDetection
 from object_detection import test_both_side_detection_dev as object_detection
-from wintersim_keyboard_control import KeyboardControl
+
+# WinterSim imports
+import wintersim_hud
+from sensors import wintersim_sensors
+from sensors import open3d_lidar_window
+from sensors import open3d_radar_window
+from camera.wintersim_camera_manager import CameraManager
 from wintersim_camera_windows import CameraWindows
-from wintersim_camera_manager import CameraManager
+from wintersim_keyboard_control import KeyboardControl
 
 try:
     import pygame
@@ -114,11 +107,9 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
-
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
-
 
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
@@ -165,9 +156,11 @@ class World(object):
         self.camera_manager = None
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
+
         for preset in self._weather_presets_all:
-            if preset[0].temperature <= 0: #get only presets what are for wintersim
+            if preset[0].temperature <= 0:          # get only presets what are for wintersim
                 self._weather_presets.append(preset)
+                
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
@@ -197,11 +190,14 @@ class World(object):
     def restart(self):
         self.player_max_speed = 1.589
         self.player_max_speed_fast = 3.713
+
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
+
         # Get a vehicle according to arg parameter.
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
+
         # Spawn the player.
         if self.player is not None:
             spawn_point = self.player.get_transform()
@@ -216,8 +212,9 @@ class World(object):
                 print('Please add some Vehicle Spawn Point to your UE4 scene.')
                 sys.exit(1)
             spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()#spawn_points[727]#random.choice(spawn_points) if spawn_points else carla.Transform()
+            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+
         # Set up the sensors.
         self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
         self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
@@ -226,6 +223,7 @@ class World(object):
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
+
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
         self.multiple_window_setup = False
@@ -238,21 +236,6 @@ class World(object):
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
         self.hud_wintersim.update_sliders(self.preset[0])
         self.player.get_world().set_weather(self.preset[0])
-
-    def next_map_layer(self, reverse=False):
-        self.current_map_layer += -1 if reverse else 1
-        self.current_map_layer %= len(self.map_layer_names)
-        selected = self.map_layer_names[self.current_map_layer]
-        self.hud_wintersim.notification('LayerMap selected: %s' % selected)
-
-    def load_map_layer(self, unload=False):
-        selected = self.map_layer_names[self.current_map_layer]
-        if unload:
-            self.hud_wintersim.notification('Unloading map layer: %s' % selected)
-            self.world.unload_map_layer(selected)
-        else:
-            self.hud_wintersim.notification('Loading map layer: %s' % selected)
-            self.world.load_map_layer(selected)
 
     def toggle_radar(self):
         if self.radar_sensor is None:
@@ -386,7 +369,7 @@ def game_loop(args):
         display.fill((0,0,0))
         pygame.display.flip()
 
-        hud_wintersim = wintersim_hud.HUD_WINTERSIM(args.width, args.height, display)
+        hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         hud_wintersim.make_sliders()
         world = World(client.get_world(), hud_wintersim, args)
         world.preset = world._weather_presets[0]                            # start weather preset
@@ -395,11 +378,11 @@ def game_loop(args):
         weather = wintersim_hud.Weather(client.get_world().get_weather())   # weather object to update carla weather with sliders
         clock = pygame.time.Clock()
 
-        q = Queue()
-        world.data_thread = LidarObjectDetection(q, args=(False))
-        world.data_thread.start()
-        world.render_lidar_detection = False
-        world.dataLidar = None
+        # q = Queue()
+        # world.data_thread = LidarObjectDetection(q, args=(False))
+        # world.data_thread.start()
+        # world.render_lidar_detection = False
+        # world.dataLidar = None
 
         world.original_settings = client.get_world().get_settings()
         world.settings = client.get_world().get_settings()

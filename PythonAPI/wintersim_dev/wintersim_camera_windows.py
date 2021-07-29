@@ -14,11 +14,13 @@ import logging
 import math
 import re
 
-try:
-    from wintersim_yolo_gpu_detection import ImageDetection as detectionAPI
-except ImportError:
-    print("couldn't load wintersim_yolo_gpu_detection")
-    pass
+from wintersim_yolo_gpu_detection import ImageDetection as detectionAPI
+
+# try:
+#     from wintersim_yolo_gpu_detection import ImageDetection as detectionAPI
+# except ImportError:
+#     print("couldn't load wintersim_yolo_gpu_detection")
+#     pass
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
