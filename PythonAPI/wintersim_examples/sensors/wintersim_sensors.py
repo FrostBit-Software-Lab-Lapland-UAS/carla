@@ -190,8 +190,7 @@ class RadarSensor(object):
         for detect in radar_data:
             azi = math.degrees(detect.azimuth)
             alt = math.degrees(detect.altitude)
-            # The 0.25 adjusts a bit the distance so the dots can
-            # be properly seen
+            # The 0.25 adjusts a bit the distance so the dots can be properly seen
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)
             carla.Transform(carla.Location(), carla.Rotation(
                     pitch=current_rot.pitch + alt,

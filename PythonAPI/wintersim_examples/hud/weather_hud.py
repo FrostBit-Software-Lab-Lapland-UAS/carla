@@ -66,11 +66,11 @@ class INFO_HUD(object):
         self.temp_slider = Slider("Temp", 0, 40, -40, 10)
         self.snow_amount_slider = Slider("Snow", 0, 100, 0, 77)
         self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
-        self.rain_slider =Slider("Rain", 0, 100, 0, 211)
+        self.rain_slider =Slider("Precipitation", 0, 100, 0, 211)
         self.fog_slider = Slider("Fog", 0, 100, 0, 278)
         self.wind_slider = Slider("Wind", 0, 100, 0, 345)
         self.particle_slider = Slider("Particle size", 0.5, 7, 0.5, 412)
-        self.time_slider = Slider("Time", 0, 24, 0, 479)
+        self.time_slider = Slider("Time", 10, 24, 0, 479)
         self.month_slider = Slider("Month", 0, 11, 0, 546)
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
@@ -153,7 +153,6 @@ class INFO_HUD(object):
 class Slider():
     def __init__(self, name, val, maxi, mini, pos):
         BLACK = (0, 0, 0)
-        GREY = (200, 200, 200)
         ORANGE = (255, 183, 0)
         WHITE = (255, 255, 255)
         self.font = pygame.font.SysFont("ubuntumono", 16)
@@ -236,18 +235,18 @@ class Sun(object):
             self.altitude = sun_highest
         elif clock < highest_time:
             D = highest_time - (highest_time - clock)
-            X= float(D/highest_time)
-            Y = math.sin(X*87*math.pi/180)
+            X = float(D/highest_time)
+            Y = math.sin(X * 87 * math.pi / 180)
             A = sun_highest
             B = sun_lowest
             self.altitude = (Y * A) + ((1-Y) * B)
         else:
             D = highest_time - (clock - highest_time)
-            X= float(D/highest_time)
-            Y = math.sin(X*87*math.pi/180)
+            X = float(D / highest_time)
+            Y = math.sin(X * 87 * math.pi / 180)
             A = sun_highest
             B = sun_lowest
-            self.altitude = (Y * A) + ((1-Y) * B)
+            self.altitude = (Y * A) + ((1 - Y) * B)
         self.azimuth = 348.98 + clock * 15
         if self.azimuth > 360: 
             self.azimuth -= 360    
