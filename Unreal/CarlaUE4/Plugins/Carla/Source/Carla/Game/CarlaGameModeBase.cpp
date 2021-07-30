@@ -519,5 +519,5 @@ void ACarlaGameModeBase::OnUnloadStreamLevel()
 
 void ACarlaGameModeBase::OnEpisodeSettingsChanged(const FEpisodeSettings &Settings)
 {
-  CarlaSettingsDelegate->SetAllActorsDrawDistance(GetWorld(), Settings.MaxCullingDistance);
+  //CarlaSettingsDelegate->SetAllActorsDrawDistance(GetWorld(), Settings.MaxCullingDistance);
 }

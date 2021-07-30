@@ -1,3 +1,11 @@
+// Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
+// de Barcelona (UAB).
+//
+// Copyright (c) 2021 FrostBit Software Lab
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 #include "Carla.h"
 #include "Carla/Settings/CarlaSettingsDelegate.h"
 
@@ -107,7 +115,9 @@ void UCarlaSettingsDelegate::ApplyQualityLevelPostRestart()
       LaunchEpicQualityCommands(InWorld);
       SetAllLights(InWorld, 0.0f, true, false);
       SetAllRoads(InWorld, 0, CarlaSettings->EpicRoadMaterials);
-      SetAllActorsDrawDistance(InWorld, 0);
+
+	  // disabled so we can set max draw distances in editor
+      //SetAllActorsDrawDistance(InWorld, 0); 
       SetPostProcessEffectsEnabled(InWorld, true);
       break;
     }
@@ -380,7 +390,7 @@ void UCarlaSettingsDelegate::LaunchEpicQualityCommands(UWorld *world) const
   GEngine->Exec(world, TEXT("r.MinScreenRadiusForLights 0.03"));
   GEngine->Exec(world, TEXT("r.SeparateTranslucency 1"));
   GEngine->Exec(world, TEXT("r.PostProcessAAQuality 4"));
-  GEngine->Exec(world, TEXT("r.BloomQuality 5"));
+  GEngine->Exec(world, TEXT("r.BloomQuality 4"));
   GEngine->Exec(world, TEXT("r.SSR.Quality 3"));
   GEngine->Exec(world, TEXT("r.DepthOfFieldQuality 2"));
   GEngine->Exec(world, TEXT("r.SceneColorFormat 4"));
@@ -395,10 +405,10 @@ void UCarlaSettingsDelegate::LaunchEpicQualityCommands(UWorld *world) const
   GEngine->Exec(world, TEXT("r.EarlyZPass 3"));
   GEngine->Exec(world, TEXT("r.EarlyZPassMovable 1"));
   GEngine->Exec(world, TEXT("Foliage.DitheredLOD 1"));
-  GEngine->Exec(world, TEXT("sg.PostProcessQuality 3"));
+  GEngine->Exec(world, TEXT("sg.PostProcessQuality 2"));
   GEngine->Exec(world, TEXT("r.ViewDistanceScale 1")); // --> too extreme (far
                                                        // clip too short)
-  GEngine->Exec(world, TEXT("sg.ShadowQuality 3"));
+  GEngine->Exec(world, TEXT("sg.ShadowQuality 2"));
   GEngine->Exec(world, TEXT("sg.TextureQuality 3"));
   GEngine->Exec(world, TEXT("sg.EffectsQuality 3"));
   GEngine->Exec(world, TEXT("sg.FoliageQuality 3"));
