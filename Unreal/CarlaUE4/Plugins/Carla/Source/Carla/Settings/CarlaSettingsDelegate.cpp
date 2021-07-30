@@ -1,3 +1,11 @@
+// Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
+// de Barcelona (UAB).
+//
+// Copyright (c) 2021 FrostBit Software Lab
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
 #include "Carla.h"
 #include "Carla/Settings/CarlaSettingsDelegate.h"
 
@@ -107,7 +115,9 @@ void UCarlaSettingsDelegate::ApplyQualityLevelPostRestart()
       LaunchEpicQualityCommands(InWorld);
       SetAllLights(InWorld, 0.0f, true, false);
       SetAllRoads(InWorld, 0, CarlaSettings->EpicRoadMaterials);
-      SetAllActorsDrawDistance(InWorld, 0);
+
+	  // disabled so we can set max draw distances in editor
+      //SetAllActorsDrawDistance(InWorld, 0); 
       SetPostProcessEffectsEnabled(InWorld, true);
       break;
     }
