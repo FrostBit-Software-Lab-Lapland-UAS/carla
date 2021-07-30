@@ -3,11 +3,11 @@
 # Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma de
 # Barcelona (UAB).
 #
+
+# Copyright (c) 2021 FrostBit Software Lab
+
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
-
-# Allows controlling a vehicle with a keyboard. For a simpler and more
-# documented example, please take a look at tutorial.py.
 
 """
 Welcome to CARLA manual control.
@@ -36,17 +36,9 @@ Use ARROWS or WASD keys for control.
     C            : change weather (Shift+C reverse)
     Backspace    : change vehicle
 
-    V            : Select next map layer (Shift+V reverse)
-    B            : Load current selected map layer (Shift+B to unload)
-
     R            : toggle recording images to disk
 
-    CTRL + R     : toggle recording of simulation (replacing any previous)
-    CTRL + P     : start replaying last recorded simulation
-    CTRL + +     : increments the start time of the replay by 1 second (+SHIFT = 10 seconds)
-    CTRL + -     : decrements the start time of the replay by 1 second (+SHIFT = 10 seconds)
-
-    H/?          : toggle help
+    H            : toggle help
     ESC          : quit
 """
 
@@ -56,7 +48,6 @@ from __future__ import print_function
 # ==============================================================================
 # -- find carla module ---------------------------------------------------------
 # ==============================================================================
-
 
 import glob
 import os
@@ -69,7 +60,6 @@ try:
         'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
 except IndexError:
     pass
-
 
 # ==============================================================================
 # -- imports -------------------------------------------------------------------
@@ -138,7 +128,6 @@ except ImportError:
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
@@ -150,11 +139,9 @@ def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
-
 # ==============================================================================
 # -- World ---------------------------------------------------------------------
 # ==============================================================================
-
 
 class World(object):
     def __init__(self, carla_world, hud, args):
@@ -296,7 +283,6 @@ class World(object):
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
 # ==============================================================================
-
 
 class KeyboardControl(object):
     """Class that handles keyboard input."""
@@ -499,11 +485,9 @@ class KeyboardControl(object):
     def _is_quit_shortcut(key):
         return (key == K_ESCAPE) or (key == K_q and pygame.key.get_mods() & KMOD_CTRL)
 
-
 # ==============================================================================
 # -- HUD -----------------------------------------------------------------------
 # ==============================================================================
-
 
 class HUD(object):
     def __init__(self, width, height):
@@ -523,7 +507,6 @@ class HUD(object):
 # ==============================================================================
 # -- HelpText ------------------------------------------------------------------
 # ==============================================================================
-
 
 class HelpText(object):
     """Helper class to handle text output using pygame"""
@@ -549,11 +532,9 @@ class HelpText(object):
         if self._render:
             display.blit(self.surface, self.pos)
 
-
 # ==============================================================================
 # -- RadarSensor ---------------------------------------------------------------
 # ==============================================================================
-
 
 class RadarSensor(object):
     def __init__(self, parent_actor):
@@ -617,7 +598,6 @@ class RadarSensor(object):
 # ==============================================================================
 # -- CameraManager -------------------------------------------------------------
 # ==============================================================================
-
 
 class CameraManager(object):
     def __init__(self, parent_actor, hud, gamma_correction):
@@ -744,11 +724,9 @@ class CameraManager(object):
         if self.recording:
             image.save_to_disk('_out/%08d' % image.frame)
 
-
 # ==============================================================================
 # -- game_loop() ---------------------------------------------------------------
 # ==============================================================================
-
 
 def game_loop(args):
     pygame.init()
@@ -789,7 +767,6 @@ def game_loop(args):
 # ==============================================================================
 # -- main() --------------------------------------------------------------------
 # ==============================================================================
-
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -840,19 +817,13 @@ def main():
 
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
-
     logging.info('listening to server %s:%s', args.host, args.port)
-
     print(__doc__)
 
     try:
-
         game_loop(args)
-
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
 
-
 if __name__ == '__main__':
-
     main()

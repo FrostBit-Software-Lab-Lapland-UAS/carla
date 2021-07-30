@@ -77,7 +77,6 @@ from carla import ColorConverter as cc
 from hud import wintersim_hud
 from sensors import wintersim_sensors
 from sensors import open3d_lidar_window
-from sensors import open3d_radar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl

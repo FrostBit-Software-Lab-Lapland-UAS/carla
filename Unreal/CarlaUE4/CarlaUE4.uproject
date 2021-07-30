@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{907BC216-4445-B2F7-934F-D1A6A6E30FF5}",
+	"EngineAssociation": "{01616FF6-4B08-9C4A-157E-9B89B9CB5A10}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -104,6 +104,14 @@
 			"Name": "CarSim",
 			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2d712649ca864c80812da7b5252f5608"
+		},
+		{
+			"Name": "RoadRunnerImporter",
+			"Enabled": true
+		},
+		{
+			"Name": "RoadRunnerCarlaIntegration",
+			"Enabled": true
 		}
 	]
 }
