@@ -37,6 +37,7 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
+    F2           : toggle NPC's
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
     F10          : toggle separate radar window
@@ -80,6 +81,7 @@ from sensors import open3d_lidar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
+from utils.spawn_npc import SpawnNPC
 
 try:
     import pygame
@@ -152,6 +154,7 @@ class World(object):
         self.gnss_sensor = None
         self.imu_sensor = None
         self.radar_sensor = None
+        self.spawn_npc = None
         self.camera_manager = None
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
@@ -277,6 +280,9 @@ class World(object):
             self.cv2_windows.destroy()
             self.multiple_window_setup = False
 
+        text = "Multiple cameras enabled" if self.multiple_windows_enabled else "Multiple cameras disabled"
+        self.hud_wintersim.notification(text)
+
     def toggle_open3d_lidar(self):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
@@ -293,7 +299,6 @@ class World(object):
 
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
-
         else:
             self.open3d_lidar.destroy()
             self.fps = 60
@@ -307,13 +312,29 @@ class World(object):
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
+        text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
+        self.hud_wintersim.notification(text, 6)
+
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
-        elif self.radar_sensor.sensor is not None:
+        else:
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
 
+        text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
+        self.hud_wintersim.notification(text)
+
+    def toggle_npcs(self):
+        if self.spawn_npc is None:
+            self.spawn_npc = SpawnNPC()
+            self.spawn_npc.spawn_npc(self.world, self.client, self.player, 10, 10)
+            self.hud_wintersim.notification('Spawned NPCs, Press F2 to destroy all NPCs', 6)
+        else:
+            self.spawn_npc.destroy_all_npcs()
+            self.spawn_npc = None
+            self.hud_wintersim.notification('Destroyed all NPCs')
+       
     def update_friction(self, iciness):
         '''Update all vehicle wheel frictions.
         This will stop vehicles if they are moving while changing the value.'''
@@ -339,6 +360,9 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        if self.spawn_npc is not None:
+            self.toggle_npcs()
+
         if self.open3d_lidar_enabled:
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,
@@ -402,7 +426,7 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(world.fps)
+            clock.tick_busy_loop(world.fps)         # fps changes if open3d lidar is on
 
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
