@@ -35,6 +35,7 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
+    F2           : toggle NPC's
     F8           : toggle  separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering
@@ -61,8 +62,16 @@ import pygame
 import os
 import math
 import datetime
-import wintersim_control
 import carla
+
+
+# ==============================================================================
+# -- Global functions ----------------------------------------------------------
+# ==============================================================================
+
+def get_actor_display_name(actor, truncate=250):
+    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
+    return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 # ==============================================================================
 # -- WinterSimHud -------------------------------------------------------------
@@ -90,6 +99,9 @@ class WinterSimHud(object):
         self.logo = pygame.image.load('images/WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
+        self.frames = 0
+        self.vehicles = [1]
+        self.walkers = []
 
     def on_world_tick(self, timestamp):
         self._server_clock.tick()
@@ -116,14 +128,20 @@ class WinterSimHud(object):
         collision = [colhist[x + self.frame - 200] for x in range(0, 200)]
         max_col = max(1.0, max(collision))
         collision = [x / max_col for x in collision]
-        vehicles = world.world.get_actors().filter('vehicle.*')
+    
+        self.frames += 1
+        if self.frames % 5: # get actors every 5th frame
+            self.vehicles = world.world.get_actors().filter('vehicle.*')
+            self.walkers = world.world.get_actors().filter('walker.pedestrian.*')
+            self.frames = 0
+        
         self._info_text = [
             'WinterSim Control',
             '',
             'Server:  % 16.0f FPS' % self.server_fps,
             'Client:  % 16.0f FPS' % clock.get_fps(),
             '',
-            'Vehicle: % 20s' % wintersim_control.get_actor_display_name(world.player, truncate=20),
+            'Vehicle: % 20s' % get_actor_display_name(world.player, truncate=20),
             'Map:     % 20s' % world.map.name,
             'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)),
             '',
@@ -153,15 +171,25 @@ class WinterSimHud(object):
             'Collision:',
             collision,
             '',
-            'Number of vehicles: % 8d' % len(vehicles)]
-        if len(vehicles) > 1:
+            'Number of vehicles: % 8d' % len(self.vehicles),
+            'Number of walkers:  % 8d' % len(self.walkers)]
+        if len(self.vehicles) > 1:
             self._info_text += ['Nearby vehicles:']
             distance = lambda l: math.sqrt((l.x - t.location.x)**2 + (l.y - t.location.y)**2 + (l.z - t.location.z)**2)
-            vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.player.id]
+            vehicles = [(distance(x.get_location()), x) for x in self.vehicles if x.id != world.player.id]
             for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
                 if d > 200.0:
                     break
-                vehicle_type = wintersim_control.get_actor_display_name(vehicle, truncate=22)
+                vehicle_type = get_actor_display_name(vehicle, truncate=22)
+                self._info_text.append('% 4dm %s' % (d, vehicle_type))
+        # if len(vehicles) > 1:
+        #     self._info_text += ['Nearby vehicles:']
+        #     distance = lambda l: math.sqrt((l.x - t.location.x)**2 + (l.y - t.location.y)**2 + (l.z - t.location.z)**2)
+        #     vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.player.id]
+        #     for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
+        #         if d > 200.0:
+        #             break
+        #         vehicle_type = get_actor_display_name(vehicle, truncate=22)
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
