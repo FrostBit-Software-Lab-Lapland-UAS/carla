@@ -280,6 +280,9 @@ class World(object):
             self.cv2_windows.destroy()
             self.multiple_window_setup = False
 
+        text = "Multiple cameras enabled" if self.multiple_windows_enabled else "Multiple cameras disabled"
+        self.hud_wintersim.notification(text)
+
     def toggle_open3d_lidar(self):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
@@ -296,7 +299,6 @@ class World(object):
 
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
-
         else:
             self.open3d_lidar.destroy()
             self.fps = 60
@@ -310,12 +312,18 @@ class World(object):
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
+        text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
+        self.hud_wintersim.notification(text, 6)
+
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
-        elif self.radar_sensor.sensor is not None:
+        else:
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
+
+        text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
+        self.hud_wintersim.notification(text)
 
     def toggle_npcs(self):
         if self.spawn_npc is None:

@@ -93,6 +93,8 @@ class KeyboardControl(object):
                     settings = game_world.get_settings()
                     settings.no_rendering_mode = not settings.no_rendering_mode
                     game_world.apply_settings(settings)
+                    text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
+                    hud_wintersim.notification(text)
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:
