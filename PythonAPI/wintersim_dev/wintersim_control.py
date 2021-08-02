@@ -77,10 +77,10 @@ from carla import ColorConverter as cc
 from hud import wintersim_hud
 from sensors import wintersim_sensors
 from sensors import open3d_lidar_window
-from sensors import open3d_radar_window
 from camera.wintersim_camera_manager import CameraManager
 from camera.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
+from utils.spawn_npc import SpawnNPC
 
 try:
     import pygame
@@ -153,6 +153,8 @@ class World(object):
         self.gnss_sensor = None
         self.imu_sensor = None
         self.radar_sensor = None
+        self.sensors = []
+        self.spawn_npc = None
         self.camera_manager = None
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
@@ -284,10 +286,6 @@ class World(object):
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
 
-            # test
-            # self.open3d_lidar = open3d_radar_window.Open3DRadarWindow()
-            # self.open3d_lidar.setup(self.world, self.player, True, True)
-            
             self.open3d_lidar_enabled = True
             self.fps = 20
             self.sync_mode = True
@@ -319,6 +317,16 @@ class World(object):
             self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
 
+    def toggle_npcs(self):
+        if self.spawn_npc is None:
+            self.spawn_npc = SpawnNPC()
+            self.spawn_npc.spawn_npc(self.world, self.client, self.player, 10, 10)
+            self.hud_wintersim.notification('Spawned NPCs, Press F2 to destroy all NPCs', 6)
+        else:
+            self.spawn_npc.destroy_all_npcs()
+            self.spawn_npc = None
+            self.hud_wintersim.notification('Destroyed all NPCs')
+       
     def update_friction(self, iciness):
         '''Update all vehicle wheel frictions.
         This will stop vehicles if they are moving while changing the value.'''
@@ -344,6 +352,9 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        if self.spawn_npc is not None:
+            self.toggle_npcs()
+
         if self.open3d_lidar_enabled:
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,

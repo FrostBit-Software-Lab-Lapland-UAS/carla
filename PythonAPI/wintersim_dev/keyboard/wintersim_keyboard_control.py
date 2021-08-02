@@ -23,9 +23,9 @@ try:
     from pygame.locals import K_DOWN
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
+    from pygame.locals import K_F2
     from pygame.locals import K_F8
     from pygame.locals import K_F9
-    from pygame.locals import K_F10
     from pygame.locals import K_F12
     from pygame.locals import K_LEFT
     from pygame.locals import K_PERIOD
@@ -65,12 +65,11 @@ class KeyboardControl(object):
         if isinstance(world.player, carla.Vehicle):
             self._control = carla.VehicleControl()
             self._lights = carla.VehicleLightState.NONE
-            #world.player.set_autopilot(self._autopilot_enabled)
             world.player.set_light_state(self._lights)
         else:
             raise NotImplementedError("Actor type not supported")
         self._steer_cache = 0.0
-        world.hud_wintersim.notification("Press 'H' or '?' for help.", seconds=4.0)
+        world.hud_wintersim.notification("Press 'H' for help.", seconds=4.0)
 
     def parse_events(self, client, world, clock, hud_wintersim):
         if isinstance(self._control, carla.VehicleControl):
@@ -83,12 +82,14 @@ class KeyboardControl(object):
                     return True
                 elif event.key == K_F1:
                     world.hud_wintersim.toggle_info(world)
+                elif event.key == K_F2:
+                    world.toggle_npcs()
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
                     world.toggle_open3d_lidar()
                 elif event.key == K_F12:
-                    game_world = client.get_world()                 # toggle server rendering
+                    game_world = client.get_world()  # toggle server rendering
                     settings = game_world.get_settings()
                     settings.no_rendering_mode = not settings.no_rendering_mode
                     game_world.apply_settings(settings)
