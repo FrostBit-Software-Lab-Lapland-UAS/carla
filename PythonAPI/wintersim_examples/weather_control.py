@@ -59,7 +59,6 @@ def find_weather_presets():
 class World(object):
     def __init__(self, carla_world, hud, args):
         self.world = carla_world
-        self.ud_friction = True
         self.hud = hud
         self.preset = None
         self._weather_presets = []
@@ -112,10 +111,7 @@ class World(object):
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
-                    
-        #cloudiness = obs.data[latest_tstep]["Muonio kirkonkylä"]["Cloud amount"]['value']
-        #cloudiness *= 12.5 #max value is 8 so we have to multiply it by 12.5 to get it into range of 0-100
-
+        
         weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) # update weather object with our new data
         
         self.hud.notification('Weather: Muonio Realtime')
@@ -176,7 +172,7 @@ class KeyboardControl(object):
                 if hud.ice_slider.hit:                                  # if road iciness slider is moved
                     world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
-                    slider.hit = False                                  #slider moving stopped
+                    slider.hit = False                                  # slider moving stopped
             elif event.type == pygame.KEYUP:
                 if self._is_quit_shortcut(event.key):
                     return True
