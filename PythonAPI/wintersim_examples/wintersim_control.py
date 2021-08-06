@@ -134,10 +134,8 @@ class World(object):
             sys.exit(1)
         self.fps = 60
         self.client = None
-        self.record_data = False
         self.original_settings = None
         self.settings = None
-        self.isResumed = False
         self.args = args
         self.multiple_windows_enabled = args.camerawindows
         self.cv2_windows = None
@@ -145,7 +143,6 @@ class World(object):
         self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
         self.sync_mode = False
-        self.ud_friction = True
         self.preset = None
         self.player = None
         self.w_control = None
@@ -167,7 +164,6 @@ class World(object):
         self.restart()
         preset = self._weather_presets[0]  # set weather preset
         self.world.set_weather(preset[0])
-        self.player.gud_frictiong_enabled = False
         self.recording_start = 0
         self.constant_velocity_enabled = False
         self.current_map_layer = 0
@@ -335,25 +331,6 @@ class World(object):
             self.spawn_npc = None
             self.hud_wintersim.notification('Destroyed all NPCs')
        
-    def update_friction(self, iciness):
-        '''Update all vehicle wheel frictions.
-        This will stop vehicles if they are moving while changing the value.'''
-        actors = self.world.get_actors()
-        friction = 5
-        friction -= iciness / 100 * 4
-        for actor in actors:
-            if 'vehicle' in actor.type_id:
-                vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
-
-                physics_control = vehicle.get_physics_control()
-                physics_control.wheels = wheels
-                vehicle.apply_physics_control(physics_control)
-
     def destroy_sensors(self):
         self.camera_manager.sensor.destroy()
         self.camera_manager.sensor = None
