@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -259,6 +261,7 @@ void export_world() {
   class_<cc::World>("World", no_init)
     .add_property("id", &cc::World::GetId)
     .add_property("debug", &cc::World::MakeDebugHelper)
+	.def("set_static_tiretracks", CONST_CALL_WITHOUT_GIL_1(cc::World, SetStaticTiretracks, bool), arg("enabled"))
     .def("load_map_layer", CONST_CALL_WITHOUT_GIL_1(cc::World, LoadLevelLayer, cr::MapLayer), arg("map_layers"))
     .def("unload_map_layer", CONST_CALL_WITHOUT_GIL_1(cc::World, UnloadLevelLayer, cr::MapLayer), arg("map_layers"))
     .def("get_blueprint_library", CONST_CALL_WITHOUT_GIL(cc::World, GetBlueprintLibrary))

@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -34,6 +36,11 @@ void AWeather::ApplyWeather(const FWeatherParameters &InWeather)
 
   // Call the blueprint that actually changes the weather.
   RefreshWeather(Weather);
+}
+
+void AWeather::UpdateRoad(bool enabled)
+{
+	this->SetStaticTiretracks(enabled);
 }
 
 void AWeather::NotifyWeather()
