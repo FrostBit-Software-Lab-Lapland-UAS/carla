@@ -24,6 +24,7 @@ try:
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
     from pygame.locals import K_F2
+    from pygame.locals import K_F5
     from pygame.locals import K_F8
     from pygame.locals import K_F9
     from pygame.locals import K_F12
@@ -84,6 +85,8 @@ class KeyboardControl(object):
                     world.hud_wintersim.toggle_info(world)
                 elif event.key == K_F2:
                     world.toggle_npcs()
+                elif event.key == K_F5:
+                    world.toggle_static_tiretracks()
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:

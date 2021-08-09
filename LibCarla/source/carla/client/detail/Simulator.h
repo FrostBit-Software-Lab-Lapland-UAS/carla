@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -69,6 +71,10 @@ namespace detail {
     }
 
     EpisodeProxy LoadEpisode(std::string map_name, bool reset_settings = true, rpc::MapLayer map_layers = rpc::MapLayer::All);
+
+	void SetStaticTiretracks(bool enabled) const {
+		_client.SetStaticTiretracks(enabled);
+	}
 
     void LoadLevelLayer(rpc::MapLayer map_layers) const {
       _client.LoadLevelLayer(map_layers);

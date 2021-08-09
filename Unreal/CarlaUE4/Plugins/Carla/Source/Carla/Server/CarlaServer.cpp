@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -272,6 +274,20 @@ void FCarlaServer::FPimpl::BindActions()
     GameMode->LoadMapLayer(static_cast<int32>(MapLayers));
 
     return R<void>::Success();
+  };
+
+  // enable/disable static tiretracks
+  BIND_SYNC(set_static_tiretracks) << [this](bool enabled) -> R<void>
+  {
+	  REQUIRE_CARLA_EPISODE();
+
+	  auto *Weather = Episode->GetWeather();
+	  if (Weather == nullptr)
+	  {
+		  RESPOND_ERROR("internal error: unable to find weather");
+	  }
+	  Weather->UpdateRoad(enabled);
+	  return R<void>::Success();
   };
 
   BIND_SYNC(unload_map_layer) << [this](cr::MapLayer MapLayers) -> R<void>

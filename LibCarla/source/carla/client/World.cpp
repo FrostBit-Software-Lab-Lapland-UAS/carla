@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -20,6 +22,10 @@ namespace client {
 
   SharedPtr<Map> World::GetMap() const {
     return _episode.Lock()->GetCurrentMap();
+  }
+
+  void World::SetStaticTiretracks(bool enabled) const {
+	  _episode.Lock()->SetStaticTiretracks(enabled);
   }
 
   void World::LoadLevelLayer(rpc::MapLayer map_layers) const {

@@ -36,6 +36,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F2           : toggle NPC's
+    F5           : toggle winter road static tiretracks
     F8           : toggle  separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering

@@ -38,6 +38,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F2           : toggle NPC's
+    F5           : toggle winter road static tiretracks
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
     F10          : toggle separate radar window
@@ -143,6 +144,7 @@ class World(object):
         self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
         self.sync_mode = False
+        self.static_tiretracks_enabled = True
         self.preset = None
         self.player = None
         self.w_control = None
@@ -269,6 +271,20 @@ class World(object):
         if self.sync_mode:    
             self.world.tick()
 
+    def toggle_static_tiretracks(self):
+        self.static_tiretracks_enabled ^= True
+
+        # This is wrapped around try - expect block
+        # just in case someone runs this script elsewhere
+        # world.set_static_tiretracks() is WinterSim project specific Python API command 
+        # and does not work on default Carla simulator
+        try:
+            self.world.set_static_tiretracks(self.static_tiretracks_enabled)
+            text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
+            self.hud_wintersim.notification(text)
+        except AttributeError:
+            print("'set_static_tiretracks' method has not been implemented. This is WinterSim specific Python API command.")
+
     def toggle_cv2_windows(self):
         '''toggle separate camera windows'''
         self.multiple_windows_enabled = not self.multiple_windows_enabled
@@ -337,6 +353,10 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+
+        if not self.static_tiretracks_enabled:
+            self.toggle_static_tiretracks() # enable static road tiretracks on quit
+
         if self.spawn_npc is not None:
             self.toggle_npcs()
 

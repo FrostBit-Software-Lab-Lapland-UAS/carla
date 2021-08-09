@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -58,6 +60,8 @@ namespace client {
 
     /// Return the map that describes this world.
     SharedPtr<Map> GetMap() const;
+
+	void SetStaticTiretracks(bool enabled) const;
 
     void LoadLevelLayer(rpc::MapLayer map_layers) const;
 
