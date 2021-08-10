@@ -85,8 +85,6 @@ class KeyboardControl(object):
                     world.hud_wintersim.toggle_info(world)
                 elif event.key == K_F2:
                     world.toggle_npcs()
-                elif event.key == K_F5:
-                    world.toggle_static_tiretracks()
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
@@ -102,10 +100,10 @@ class KeyboardControl(object):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:
                     world.camera_manager.toggle_camera()
-                elif event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
-                    world.next_weather(reverse=True)
-                elif event.key == K_c:
-                    world.next_weather()
+                # elif event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
+                #     world.next_weather(reverse=True)
+                # elif event.key == K_c:
+                #     world.next_weather()
                 elif event.key == K_g:
                     world.toggle_radar()
                 elif event.key == K_BACKQUOTE:
