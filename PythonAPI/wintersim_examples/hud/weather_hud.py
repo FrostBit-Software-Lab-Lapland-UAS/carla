@@ -39,6 +39,7 @@ class InfoHud(object):
         self.ice_slider = Slider
         self.temp_slider = Slider
         self.rain_slider = Slider
+        self.humidity_slider = Slider
         self.fog_slider = Slider
         self.wind_slider = Slider
         self.particle_slider = Slider
@@ -63,30 +64,32 @@ class InfoHud(object):
 
         # create checkboxes
         self.boxes = []
-        self.button = Checkbox(self.screen, 20, 535, 0, caption='Static Tiretracks (F5)')
+        self.button = Checkbox(self.screen, 20, 570, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
 
-    # Make sliders and add them in to list.
-    def make_sliders(self): 
+    # Make sliders and add them in to list
+    def make_sliders(self):
         self.temp_slider = Slider("Temp", 0, 40, -40, 10)
-        self.snow_amount_slider = Slider("Snow", 0, 100, 0, 77)
+        self.snow_amount_slider = Slider("Snow amount", 0, 100, 0, 77)
         self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
-        self.rain_slider =Slider("Precipitation", 0, 100, 0, 211)
-        self.fog_slider = Slider("Fog", 0, 100, 0, 278)
-        self.wind_slider = Slider("Wind", 0, 100, 0, 345)
-        self.particle_slider = Slider("Snow oarticle size", 0.5, 7, 0.5, 412)
-        self.time_slider = Slider("Time", 10, 24, 0, 479)
-        self.month_slider = Slider("Month", 0, 11, 0, 546)
+        self.rain_slider = Slider("Precipitation", 0, 100, 0, 211)
+        self.humidity_slider = Slider("Humidity", 0, 100, 0, 278)
+        self.fog_slider = Slider("Fog", 0, 100, 0, 345)
+        self.wind_slider = Slider("Wind", 0, 100, 0, 412)
+        self.particle_slider = Slider("Snow particle size", 0.5, 7, 0.5, 479)
+        self.time_slider = Slider("Time", 10, 24, 0, 546)
+        self.month_slider = Slider("Month", 0, 11, 0, 613)
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
-            self.ice_slider, self.rain_slider,
-            self.fog_slider, self.wind_slider,
-            self.particle_slider, self.time_slider, 
-            self.month_slider
+            self.ice_slider, self.rain_slider, 
+            self.humidity_slider,self.fog_slider, 
+            self.wind_slider, self.particle_slider, 
+            self.time_slider, self.month_slider
             ]
 
     # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None): 
+        print(preset)
         self.snow_amount_slider.val = preset.snow_amount
         self.ice_slider.val = preset.ice_amount
         self.temp_slider.val = preset.temperature
@@ -94,6 +97,7 @@ class InfoHud(object):
         self.fog_slider.val = preset.fog_density
         self.wind_slider.val = preset.wind_intensity * 100.0
         self.particle_slider.val = preset.particle_size
+        self.humidity_slider.val = preset.humidity
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
@@ -123,6 +127,8 @@ class InfoHud(object):
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
             'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
+            '',
+            'Humidity: {}%'.format(round((hud.humidity_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
@@ -330,7 +336,7 @@ class Weather(object):
     def tick(self, hud, preset): 
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
-        clock = hud.time_slider.val #update sun time variable
+        clock = hud.time_slider.val
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
         self.weather.cloudiness = hud.rain_slider.val
         self.weather.precipitation = hud.rain_slider.val
@@ -344,6 +350,7 @@ class Weather(object):
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
         self.weather.particle_size = hud.particle_slider.val
+        self.weather.humidity = hud.humidity_slider.val
 
     def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, clock, m):
         month, sundata = hud.get_month(m)

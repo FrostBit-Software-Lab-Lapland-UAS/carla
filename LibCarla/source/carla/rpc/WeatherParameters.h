@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -66,7 +68,8 @@ namespace rpc {
         float in_snow_amount,
         float in_temperature,
         float in_ice_amount,
-        float in_particle_size)
+        float in_particle_size,
+		float in_humidity)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -80,7 +83,8 @@ namespace rpc {
         snow_amount(in_snow_amount),
         temperature(in_temperature),
         ice_amount(in_ice_amount),
-        particle_size(in_particle_size) {}
+        particle_size(in_particle_size),
+		humidity(in_humidity) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -96,6 +100,7 @@ namespace rpc {
     float temperature = 0.0f;
     float ice_amount = 0.0f;
     float particle_size = 0.0f;
+	float humidity = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -113,7 +118,8 @@ namespace rpc {
         snow_amount(Weather.SnowAmount),
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
-        particle_size(Weather.ParticleSize) {}
+        particle_size(Weather.ParticleSize),
+		humidity(Weather.Humidity) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -131,27 +137,29 @@ namespace rpc {
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
       Weather.ParticleSize = particle_size;
+	  Weather.Humidity = humidity;
       return Weather;
     }
 
 #endif // LIBCARLA_INCLUDED_FROM_UE4
 
     bool operator!=(const WeatherParameters &rhs) const {
-      return
-          cloudiness != rhs.cloudiness ||
-          precipitation != rhs.precipitation ||
-          precipitation_deposits != rhs.precipitation_deposits ||
-          wind_intensity != rhs.wind_intensity ||
-          sun_azimuth_angle != rhs.sun_azimuth_angle ||
-          sun_altitude_angle != rhs.sun_altitude_angle ||
-          fog_density != rhs.fog_density ||
-          fog_distance != rhs.fog_distance ||
-          fog_falloff != rhs.fog_falloff ||
-          wetness != rhs.wetness ||
-          snow_amount != rhs.snow_amount ||
-          temperature != rhs.temperature ||
-          ice_amount != rhs.ice_amount ||
-          particle_size != rhs.particle_size;
+		return
+			cloudiness != rhs.cloudiness ||
+			precipitation != rhs.precipitation ||
+			precipitation_deposits != rhs.precipitation_deposits ||
+			wind_intensity != rhs.wind_intensity ||
+			sun_azimuth_angle != rhs.sun_azimuth_angle ||
+			sun_altitude_angle != rhs.sun_altitude_angle ||
+			fog_density != rhs.fog_density ||
+			fog_distance != rhs.fog_distance ||
+			fog_falloff != rhs.fog_falloff ||
+			wetness != rhs.wetness ||
+			snow_amount != rhs.snow_amount ||
+			temperature != rhs.temperature ||
+			ice_amount != rhs.ice_amount ||
+			particle_size != rhs.particle_size ||
+			humidity != rhs.humidity;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -172,7 +180,8 @@ namespace rpc {
         snow_amount,
         temperature,
         ice_amount,
-        particle_size);
+        particle_size,
+		humidity);
   };
 
 } // namespace rpc

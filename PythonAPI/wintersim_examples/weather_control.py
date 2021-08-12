@@ -174,16 +174,19 @@ class World(object):
 
     def on_press(self, key):
         # pygame inputs are not registered if window is out of focus
-        # so we use pynput to detect few keys that need to get called
-        # even when the windows has no focus
-        if key == keyboard.Key.f5:
-            self.toggle_static_tiretracks()
-            for box in self.hud.boxes:
-                box.checked ^= True
-        elif key.char == "c":
-            self.next_weather(self.world, reverse=False)
-        elif key.char == "r":
-            self.muonio_weather()
+        # so we use pynput to detect few keys that need to get registered
+        # even when the window has no focus
+        try:
+            if key == keyboard.Key.f5:
+                self.toggle_static_tiretracks()
+                for box in self.hud.boxes:
+                    box.checked ^= True
+            elif key.char == "c":
+                self.next_weather(self.world, reverse=False)
+            elif key.char == "r":
+                self.muonio_weather()
+        except:
+            pass
 
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
@@ -301,7 +304,6 @@ def main():
         game_loop(args)
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
-
 
 if __name__ == '__main__':
     main()
