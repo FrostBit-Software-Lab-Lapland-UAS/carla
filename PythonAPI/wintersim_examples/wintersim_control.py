@@ -272,18 +272,18 @@ class World(object):
             self.world.tick()
 
     def toggle_static_tiretracks(self):
+        '''Toggle static tiretracks on snowy roads on/off
+        This is wrapped around try - expect block
+        just in case someone runs this script elsewhere
+        world.set_static_tiretracks() is WinterSim project specific Python API command 
+        and does not work on default Carla simulator'''
         self.static_tiretracks_enabled ^= True
-
-        # This is wrapped around try - expect block
-        # just in case someone runs this script elsewhere
-        # world.set_static_tiretracks() is WinterSim project specific Python API command 
-        # and does not work on default Carla simulator
         try:
             self.world.set_static_tiretracks(self.static_tiretracks_enabled)
             text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
             self.hud_wintersim.notification(text)
         except AttributeError:
-            print("'set_static_tiretracks' method has not been implemented. This is WinterSim specific Python API command.")
+            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
     def toggle_cv2_windows(self):
         '''toggle separate camera windows'''

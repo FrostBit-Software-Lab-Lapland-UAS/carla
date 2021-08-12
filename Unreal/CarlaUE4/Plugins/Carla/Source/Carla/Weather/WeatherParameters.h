@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -55,4 +57,6 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.5", ClampMax = "7.0", UIMin = "0.0", UIMax = "7.0"))
   float ParticleSize = 0.0f;
 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float Humidity = 0.0f;
 };

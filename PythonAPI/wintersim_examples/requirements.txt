@@ -5,3 +5,4 @@ matplotlib
 requests
 fmiopendata
 open3d
+pynput
