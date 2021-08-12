@@ -83,11 +83,12 @@ class World(object):
         self.world.set_weather(self.preset[0])
 
     def muonio_weather(self):
+        '''Get Muonio real time weather data from digitraffic API'''
         weather = weather_hud.Weather(self.world.get_weather())
         r = requests.get('https://tie.digitraffic.fi/api/v1/data/weather-data/14047')
-        data = r.json() # weather data
+        data = r.json()
 
-        x = str(data['dataUpdatedTime']).split('T') #split date and time
+        x = str(data['dataUpdatedTime']).split('T') # split date and time
 
         date = x[0].split("-")
 
@@ -96,31 +97,35 @@ class World(object):
         #day = int(date[2])
 
         clock = x[1].split(":")
-        clock[0] = int(clock[0]) + 3    # add 3 hours to get correct timezone
+        clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
         
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
-        precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
-        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
-        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
-        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
-                    
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
         wind *= 10 # Multiply wind by 10 to get it into range of 0-100
 
+        humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
+        humidity = 100 if humidity > 100 else humidity
+        humidity = 0 if math.isnan(humidity) else humidity
+        
+        precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
+        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
+        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
+        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
+           
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, clock, month)   # update weather object with our new data
+        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)                              # update sliders positions
-        self.world.set_weather(weather.weather)                                                         # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
+        self.world.set_weather(weather.weather)                                                                     # update weather
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
@@ -157,7 +162,6 @@ class World(object):
         for slider in hud.sliders:
             slider.draw(display, slider)                            # move sliders
 
-
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
         This is wrapped around try - expect block
@@ -173,9 +177,10 @@ class World(object):
             print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
     def on_press(self, key):
-        # pygame inputs are not registered if window is out of focus
-        # so we use pynput to detect few keys that need to get registered
-        # even when the window has no focus
+        '''pynput on button pressed callback
+        pygame inputs are not registered if window is out of focus
+        so we use pynput to detect few keys that need to get registered
+        even when the window has no focus'''
         try:
             if key == keyboard.Key.f5:
                 self.toggle_static_tiretracks()

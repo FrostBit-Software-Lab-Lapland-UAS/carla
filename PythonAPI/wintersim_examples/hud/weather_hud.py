@@ -89,7 +89,7 @@ class InfoHud(object):
 
     # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None): 
-        print(preset)
+        #print(preset)
         self.snow_amount_slider.val = preset.snow_amount
         self.ice_slider.val = preset.ice_amount
         self.temp_slider.val = preset.temperature
@@ -143,7 +143,7 @@ class InfoHud(object):
             'weather from Muonio']
 
     # Notification about changing weather preset.
-    def notification(self, text, seconds=2.0): 
+    def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
     # Render hud texts into pygame window.
@@ -352,7 +352,7 @@ class Weather(object):
         self.weather.particle_size = hud.particle_slider.val
         self.weather.humidity = hud.humidity_slider.val
 
-    def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, clock, m):
+    def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, humidity, clock, m):
         month, sundata = hud.get_month(m)
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
         #self.weather.cloudiness = cloudiness
@@ -367,6 +367,7 @@ class Weather(object):
         self.weather.snow_amount = snow
         self.weather.temperature = temp
         self.weather.ice_amount = 0
+        self.weather.humidity = humidity
        
 
     def __str__(self):
