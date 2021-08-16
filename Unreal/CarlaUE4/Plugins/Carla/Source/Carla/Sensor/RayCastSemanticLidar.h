@@ -50,10 +50,10 @@ protected:
   void CreateLasers();
 
   /// Updates LidarMeasurement with the points read in DeltaTime.
-  void SimulateLidar(float DeltaTime);
+  void SimulateLidar(const float DeltaTime);
 
   /// Shoot a laser ray-trace, return whether the laser hit something.
-  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FWeatherParameters w) const;
+  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
 
   /// Calculate new hitpoint for linetrace if it is snowing
   bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;

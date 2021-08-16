@@ -38,6 +38,13 @@ namespace rpc {
     static WeatherParameters MidRainSunset;
     static WeatherParameters HardRainSunset;
     static WeatherParameters SoftRainSunset;
+    static WeatherParameters ClearNight;
+    static WeatherParameters CloudyNight;
+    static WeatherParameters WetNight;
+    static WeatherParameters WetCloudyNight;
+    static WeatherParameters SoftRainNight;
+    static WeatherParameters MidRainyNight;
+    static WeatherParameters HardRainNight;
 
     static WeatherParameters WinterMorning;
     static WeatherParameters WinterNoon;
@@ -65,6 +72,9 @@ namespace rpc {
         float in_fog_distance,
         float in_fog_falloff,
         float in_wetness,
+        float in_scattering_intensity,
+        float in_mie_scattering_scale,
+        float in_rayleigh_scattering_scale,
         float in_snow_amount,
         float in_temperature,
         float in_ice_amount,
@@ -79,7 +89,10 @@ namespace rpc {
         fog_density(in_fog_density),
         fog_distance(in_fog_distance),
         fog_falloff(in_fog_falloff),
-        wetness(in_wetness), 
+        wetness(in_wetness),
+        scattering_intensity(in_scattering_intensity),
+        mie_scattering_scale(in_mie_scattering_scale),
+        rayleigh_scattering_scale(in_rayleigh_scattering_scale), 
         snow_amount(in_snow_amount),
         temperature(in_temperature),
         ice_amount(in_ice_amount),
@@ -96,6 +109,9 @@ namespace rpc {
     float fog_distance = 0.0f;
     float fog_falloff = 0.0f;
     float wetness = 0.0f;
+    float scattering_intensity = 0.0f;
+    float mie_scattering_scale = 0.0f;
+    float rayleigh_scattering_scale = 0.0331f;
     float snow_amount = 0.0f;
     float temperature = 0.0f;
     float ice_amount = 0.0f;
@@ -115,6 +131,9 @@ namespace rpc {
         fog_distance(Weather.FogDistance),
         fog_falloff(Weather.FogFalloff),
         wetness(Weather.Wetness),
+        scattering_intensity(Weather.ScatteringIntensity),
+        mie_scattering_scale(Weather.MieScatteringScale),
+        rayleigh_scattering_scale(Weather.RayleighScatteringScale),
         snow_amount(Weather.SnowAmount),
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
@@ -133,6 +152,9 @@ namespace rpc {
       Weather.FogDistance = fog_distance;
       Weather.FogFalloff = fog_falloff;
       Weather.Wetness = wetness;
+      Weather.ScatteringIntensity = scattering_intensity;
+      Weather.MieScatteringScale = mie_scattering_scale;
+      Weather.RayleighScatteringScale = rayleigh_scattering_scale;
       Weather.SnowAmount = snow_amount;
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
@@ -155,6 +177,9 @@ namespace rpc {
 			fog_distance != rhs.fog_distance ||
 			fog_falloff != rhs.fog_falloff ||
 			wetness != rhs.wetness ||
+      scattering_intensity != rhs.scattering_intensity ||
+      mie_scattering_scale != rhs.mie_scattering_scale ||
+      rayleigh_scattering_scale != rhs.rayleigh_scattering_scale ||
 			snow_amount != rhs.snow_amount ||
 			temperature != rhs.temperature ||
 			ice_amount != rhs.ice_amount ||
@@ -177,6 +202,9 @@ namespace rpc {
         fog_distance,
         fog_falloff,
         wetness,
+        scattering_intensity,
+        mie_scattering_scale,
+        rayleigh_scattering_scale,
         snow_amount,
         temperature,
         ice_amount,
