@@ -79,7 +79,8 @@ namespace rpc {
         float in_temperature,
         float in_ice_amount,
         float in_particle_size,
-		float in_humidity)
+		float in_relative_humidity,
+		float in_dewpoint)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -97,7 +98,8 @@ namespace rpc {
         temperature(in_temperature),
         ice_amount(in_ice_amount),
         particle_size(in_particle_size),
-		humidity(in_humidity) {}
+		relative_humidity(in_relative_humidity),
+		dewpoint(in_dewpoint) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -116,7 +118,8 @@ namespace rpc {
     float temperature = 0.0f;
     float ice_amount = 0.0f;
     float particle_size = 0.0f;
-	float humidity = 0.0f;
+	float relative_humidity = 0.0f;
+	float dewpoint = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -138,7 +141,8 @@ namespace rpc {
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
         particle_size(Weather.ParticleSize),
-		humidity(Weather.Humidity) {}
+		relative_humidity(Weather.RelativeHumidity),
+		dewpoint(Weather.Dewpoint) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -159,7 +163,8 @@ namespace rpc {
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
       Weather.ParticleSize = particle_size;
-	  Weather.Humidity = humidity;
+	  Weather.RelativeHumidity = relative_humidity;
+	  Weather.Dewpoint = dewpoint;
       return Weather;
     }
 
@@ -184,7 +189,8 @@ namespace rpc {
 			temperature != rhs.temperature ||
 			ice_amount != rhs.ice_amount ||
 			particle_size != rhs.particle_size ||
-			humidity != rhs.humidity;
+			relative_humidity != rhs.relative_humidity ||
+			dewpoint != rhs.dewpoint;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -209,7 +215,8 @@ namespace rpc {
         temperature,
         ice_amount,
         particle_size,
-		humidity);
+		relative_humidity,
+		dewpoint);
   };
 
 } // namespace rpc

@@ -29,7 +29,7 @@ Use ARROWS or WASD keys for control.
     I            : toggle interior light
 
     TAB          : change sensor position
-    ` or N       : next sensor
+    N            : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
@@ -155,34 +155,21 @@ class World(object):
         self.radar_sensor = None
         self.spawn_npc = None
         self.camera_manager = None
+        self.sensors = []
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
-            if preset[0].temperature <= 0: # get only presets what are for wintersim
+            if preset[0].temperature <= 0: # only get winter presets
                 self._weather_presets.append(preset)
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
         self.restart()
-        preset = self._weather_presets[0]  # set weather preset
-        self.world.set_weather(preset[0])
+        preset = self._weather_presets[0]
+        self.world.set_weather(preset[0])  # set weather preset
         self.recording_start = 0
-        self.constant_velocity_enabled = False
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
-        self.map_layer_names = [
-            carla.MapLayer.NONE,
-            carla.MapLayer.Buildings,
-            carla.MapLayer.Decals,
-            carla.MapLayer.Foliage,
-            carla.MapLayer.Ground,
-            carla.MapLayer.ParkedVehicles,
-            carla.MapLayer.Particles,
-            carla.MapLayer.Props,
-            carla.MapLayer.StreetLights,
-            carla.MapLayer.Walls,
-            carla.MapLayer.All
-        ]
 
     def restart(self):
         self.player_max_speed = 1.589
@@ -228,6 +215,10 @@ class World(object):
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
         self.multiple_window_setup = False
+
+        self.sensors.extend((self.camera_manager.sensor,
+            self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
+            self.gnss_sensor.sensor,self.imu_sensor.sensor))
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
@@ -300,15 +291,12 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
-
             self.open3d_lidar_enabled = True
             self.fps = 20
             self.sync_mode = True
-           
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
-
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
         else:
@@ -316,11 +304,9 @@ class World(object):
             self.fps = 60
             self.open3d_lidar_enabled = False
             self.sync_mode = False
-
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,
             fixed_delta_seconds=0.00))
-
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
@@ -353,7 +339,6 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
-
         if not self.static_tiretracks_enabled:
             self.toggle_static_tiretracks() # enable static road tiretracks on quit
 
@@ -372,12 +357,7 @@ class World(object):
         if self.radar_sensor is not None:
             self.toggle_radar()
 
-        sensors = [self.camera_manager.sensor,
-            self.collision_sensor.sensor,
-            self.lane_invasion_sensor.sensor,
-            self.gnss_sensor.sensor,
-            self.imu_sensor.sensor]
-        for sensor in sensors:
+        for sensor in self.sensors:
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
@@ -401,7 +381,7 @@ def game_loop(args):
         client = carla.Client(args.host, args.port)
         client.set_timeout(2.0)
 
-        display = pygame.display.set_mode((args.width, args.height),pygame.HWSURFACE | pygame.DOUBLEBUF)
+        display = pygame.display.set_mode((args.width, args.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0,0,0))
         pygame.display.flip()
 
@@ -423,10 +403,11 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(world.fps)         # fps changes if open3d lidar is on
+            clock.tick_busy_loop(world.fps)
 
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
+
             world.tick(clock, hud_wintersim)
             world.render(world, display)
             pygame.display.flip()
