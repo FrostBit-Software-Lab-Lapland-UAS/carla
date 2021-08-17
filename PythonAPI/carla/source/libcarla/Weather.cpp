@@ -29,7 +29,8 @@ namespace rpc {
         << ", temperature=" << std::to_string(weather.temperature)
         << ", ice_amount=" << std::to_string(weather.ice_amount)
 		<< ", particle_size=" << std::to_string(weather.particle_size)
-		<< ", humidity=" << std::to_string(weather.humidity) << ')';
+		<< ", relative_humidity=" << std::to_string(weather.relative_humidity)
+		<< ", dewpoint=" << std::to_string(weather.dewpoint) << ')';
     return out;
   }
 
@@ -72,7 +73,8 @@ void export_weather() {
     .def_readwrite("temperature", &cr::WeatherParameters::temperature)
     .def_readwrite("ice_amount", &cr::WeatherParameters::ice_amount)
     .def_readwrite("particle_size", &cr::WeatherParameters::particle_size)
-	.def_readwrite("humidity", &cr::WeatherParameters::humidity)
+	.def_readwrite("relative_humidity", &cr::WeatherParameters::relative_humidity)
+	.def_readwrite("dewpoint", &cr::WeatherParameters::dewpoint)
     .def("__eq__", &cr::WeatherParameters::operator==)
     .def("__ne__", &cr::WeatherParameters::operator!=)
     .def(self_ns::str(self_ns::self));

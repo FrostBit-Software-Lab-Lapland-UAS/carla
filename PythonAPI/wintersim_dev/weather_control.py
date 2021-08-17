@@ -33,7 +33,6 @@ try:
     from pygame.locals import K_q
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
-    from pygame.locals import K_m
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
@@ -41,6 +40,11 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
+
+try:
+   from pynput import keyboard
+except ImportError:
+    raise RuntimeError('cannot import pynput, make sure pynput package is installed')
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -59,7 +63,6 @@ def find_weather_presets():
 class World(object):
     def __init__(self, carla_world, hud, args):
         self.world = carla_world
-        self.ud_friction = True
         self.hud = hud
         self.preset = None
         self._weather_presets = []
@@ -69,6 +72,7 @@ class World(object):
                 self._weather_presets.append(preset)
         self._weather_index = 0
         self._gamma = args.gamma
+        self.static_tiretracks_enabled = True
 
     def next_weather(self, world, reverse=False):
         self._weather_index += -1 if reverse else 1
@@ -78,12 +82,13 @@ class World(object):
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
-    def muonio_weather(self, world):
-        weather = weather_hud.Weather(world.world.get_weather())
+    def muonio_weather(self):
+        '''Get Muonio real time weather data from digitraffic API'''
+        weather = weather_hud.Weather(self.world.get_weather())
         r = requests.get('https://tie.digitraffic.fi/api/v1/data/weather-data/14047')
-        data = r.json() # weather data
+        data = r.json()
 
-        x = str(data['dataUpdatedTime']).split('T') #split date and time
+        x = str(data['dataUpdatedTime']).split('T') # split date and time
 
         date = x[0].split("-")
 
@@ -92,35 +97,35 @@ class World(object):
         #day = int(date[2])
 
         clock = x[1].split(":")
-        clock[0] = int(clock[0]) + 3    # add 3 hours to get correct timezone
+        clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
         
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
-        precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
-        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
-        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
-        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
-                    
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
         wind *= 10 # Multiply wind by 10 to get it into range of 0-100
 
+        humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
+        humidity = 100 if humidity > 100 else humidity
+        humidity = 0 if math.isnan(humidity) else humidity
+        
+        precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
+        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
+        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
+        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
+           
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
-                    
-        #cloudiness = obs.data[latest_tstep]["Muonio kirkonkylä"]["Cloud amount"]['value']
-        #cloudiness *= 12.5 #max value is 8 so we have to multiply it by 12.5 to get it into range of 0-100
-
-        weather.muonio_update(self.hud, temp, precipitation, wind, 0, snow, clock, month) # update weather object with our new data
         
+        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)  # update sliders positions
-        self.world.set_weather(weather.weather)                             # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
+        self.world.set_weather(weather.weather)                                                                     # update weather
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
@@ -157,35 +162,70 @@ class World(object):
         for slider in hud.sliders:
             slider.draw(display, slider)                            # move sliders
 
+    def toggle_static_tiretracks(self):
+        '''Toggle static tiretracks on snowy roads on/off
+        This is wrapped around try - expect block
+        just in case someone runs this script elsewhere
+        world.set_static_tiretracks() is WinterSim project specific Python API command 
+        and does not work on default Carla simulator'''
+        self.static_tiretracks_enabled ^= True
+        try:
+            self.world.set_static_tiretracks(self.static_tiretracks_enabled)
+            text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
+            self.hud.notification(text)
+        except AttributeError:
+            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
+
+    def on_press(self, key):
+        '''pynput on button pressed callback
+        pygame inputs are not registered if window is out of focus
+        so we use pynput to detect few keys that need to get registered
+        even when the window has no focus'''
+        try:
+            if key == keyboard.Key.f5:
+                self.toggle_static_tiretracks()
+                for box in self.hud.boxes:
+                    box.checked ^= True
+            elif key.char == "c":
+                self.next_weather(self.world, reverse=False)
+            elif key.char == "r":
+                self.muonio_weather()
+        except:
+            pass
+
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
 # ==============================================================================
 
 class KeyboardControl(object):
     """Class that handles keyboard input."""
-    def parse_events(self, client, world, clock, hud):
+    def parse_events(self, world, hud):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
+
+                # check if sliders hit
                 for slider in hud.sliders:
-                    if slider.button_rect.collidepoint(pos):            # get slider what mouse is touching
-                        slider.hit = True                               # slider is being moved
+                    if slider.button_rect.collidepoint(pos):
+                        slider.hit = True
+
+                # check if checkboxes hit
+                for box in hud.boxes:
+                    if box.update_checkbox(pos):
+                        world.toggle_static_tiretracks()
+
             elif event.type == pygame.MOUSEBUTTONUP:
                 if hud.ice_slider.hit:                                  # if road iciness slider is moved
                     world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
-                    slider.hit = False                                  #slider moving stopped
+                    slider.hit = False                                  # slider moving stopped
             elif event.type == pygame.KEYUP:
                 if self._is_quit_shortcut(event.key):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(world, reverse=True)
-                elif event.key == K_c:
-                    world.next_weather(world, reverse=False)
-                elif event.key == K_m:
-                    world.muonio_weather(world)
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -206,13 +246,13 @@ def game_loop(args):
 
     try:
         client = carla.Client(args.host, args.port)
-        client.set_timeout(2.0)        
+        client.set_timeout(2.0)
 
         display = pygame.display.set_mode((args.width, args.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0,0,0))
         pygame.display.flip()
 
-        hud = weather_hud.INFO_HUD(args.width, args.height, display)
+        hud = weather_hud.InfoHud(args.width, args.height, display)
         hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
@@ -220,15 +260,19 @@ def game_loop(args):
         hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
         clock = pygame.time.Clock()
 
+        listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
+        listener.start()                                                        
+
         while True:
             clock.tick_busy_loop(30)
-            if controller.parse_events(client, world, clock, hud): 
+            if controller.parse_events(world, hud):
                 return
             world.tick(clock, hud)
             world.render(world, client, hud, display, weather)
             pygame.display.flip()
 
     finally:
+        listener.stop()
         pygame.quit()
 
 # ==============================================================================
@@ -265,7 +309,6 @@ def main():
         game_loop(args)
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
-
 
 if __name__ == '__main__':
     main()

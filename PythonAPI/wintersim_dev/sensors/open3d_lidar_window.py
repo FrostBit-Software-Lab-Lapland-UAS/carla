@@ -224,8 +224,10 @@ class Open3DLidarWindow():
         self.lidar = None
         self.vis = None
         self.frame = 0
+
+        # lidar parameters
         self.points_per_second = 700000
-        self.upper_fov = 2.0
-        self.lower_fov = 24.9
+        self.upper_fov = 15.0
+        self.lower_fov = -24.9
         self.channels = 32.0
         self.range = 50.0
