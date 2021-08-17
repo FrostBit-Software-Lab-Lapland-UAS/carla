@@ -58,5 +58,8 @@ struct CARLA_API FWeatherParameters
   float ParticleSize = 0.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
-  float Humidity = 0.0f;
+  float RelativeHumidity = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float Dewpoint = 0.0f;
 };

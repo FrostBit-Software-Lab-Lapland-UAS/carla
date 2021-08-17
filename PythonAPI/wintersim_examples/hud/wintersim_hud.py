@@ -27,7 +27,7 @@ Use ARROWS or WASD keys for control.
     I            : toggle interior light
 
     TAB          : change sensor position
-    ` or N       : next sensor
+    N            : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
@@ -37,7 +37,7 @@ Use ARROWS or WASD keys for control.
     F1           : toggle HUD
     F2           : toggle NPC's
     F5           : toggle winter road static tiretracks
-    F8           : toggle  separate front and back RGB camera windows
+    F8           : toggle separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering
     H            : toggle help
@@ -65,7 +65,6 @@ import math
 import datetime
 import carla
 
-
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
@@ -90,7 +89,7 @@ class WinterSimHud(object):
         mono = pygame.font.match_font(mono)
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height, self)
+        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height)
         self.server_fps = 0
         self.frame = 0
         self.simulation_time = 0
@@ -183,14 +182,6 @@ class WinterSimHud(object):
                     break
                 vehicle_type = get_actor_display_name(vehicle, truncate=22)
                 self._info_text.append('% 4dm %s' % (d, vehicle_type))
-        # if len(vehicles) > 1:
-        #     self._info_text += ['Nearby vehicles:']
-        #     distance = lambda l: math.sqrt((l.x - t.location.x)**2 + (l.y - t.location.y)**2 + (l.z - t.location.z)**2)
-        #     vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.player.id]
-        #     for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
-        #         if d > 200.0:
-        #             break
-        #         vehicle_type = get_actor_display_name(vehicle, truncate=22)
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
@@ -239,7 +230,6 @@ class WinterSimHud(object):
         self._notifications.render(display)
         self.help_text.render(display)
 
-
 # ==============================================================================
 # -- FadingText ----------------------------------------------------------------
 # ==============================================================================
@@ -273,7 +263,7 @@ class FadingText(object):
 
 class HelpText(object):
     """Helper class to handle text output using pygame"""
-    def __init__(self, font, width, height, hud):
+    def __init__(self, font, width, height):
         lines = __doc__.split('\n')
         self.font = font
         self.line_space = 18
