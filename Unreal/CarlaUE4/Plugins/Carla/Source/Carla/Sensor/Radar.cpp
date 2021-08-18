@@ -212,7 +212,6 @@ void ARadar::SendLineTraces(float DeltaTime)
 		}
 	}
 }
-}
 
 float ARadar::CalculateRelativeVelocity(const FHitResult& OutHit, const FVector& RadarLocation)
 {
