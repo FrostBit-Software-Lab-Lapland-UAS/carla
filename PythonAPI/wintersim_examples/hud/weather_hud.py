@@ -31,17 +31,17 @@ import carla
 
 # https://stackoverflow.com/questions/27288021/formula-to-calculate-dew-point-from-temperature-and-humidity
 def get_approx_dew_point(T, RH):
-    td =  (T-(14.55 + 0.114 * T)*(1-(0.01*RH))-pow(((2.5+0.007*T)*(1-(0.01*RH))),3)-(15.9+0.117*T)*pow((1-(0.01*RH)), 14))
+    td =  (T- (14.55 + 0.114 * T) * (1 - (0.01 * RH)) - pow(((2.5 + 0.007 * T) * (1- (0.01 * RH))),3)-(15.9 + 0.117 *T ) * pow((1 - (0.01 * RH)), 14))
     return td
 
 # https://earthscience.stackexchange.com/questions/20577/relative-humidity-approximation-from-dew-point-and-temperature
 def get_approx_relative_humidity(T, TD):
-    rh = int(100*(math.exp((17.625*TD)/(243.04+TD))/math.exp((17.625*T)/(243.04+T))))
+    rh = int(100 * (math.exp((17.625 * TD) / (243.04 + TD)) / math.exp((17.625 * T)/(243.04 + T))))
     return rh
 
 # https://bmcnoldy.rsmas.miami.edu/Humidity.html
 def get_approx_temp(TD, RH):
-    t = 243.04*(((17.625*TD)/(243.04+TD))-math.log(RH/100))/(17.625+math.log(RH/100)-((17.625*TD)/(243.04+TD)))
+    t = 243.04 * (((17.625 * TD) / (243.04 + TD)) - math.log(RH / 100)) / (17.625 + math.log(RH / 100) - ((17.625 * TD) / (243.04 + TD)))
     return t
 
 # ==============================================================================

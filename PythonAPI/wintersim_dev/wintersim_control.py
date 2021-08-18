@@ -81,11 +81,12 @@ from carla import ColorConverter as cc
 from hud import wintersim_hud
 from sensors import wintersim_sensors
 from sensors import open3d_lidar_window
-from camera.wintersim_camera_manager import CameraManager
-from camera.wintersim_camera_windows import CameraWindows
+from sensors.wintersim_camera_manager import CameraManager
+from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
-from utils.spawn_npc import SpawnNPC
 from sensors import multi_sensor_view
+from utils.spawn_npc import SpawnNPC
+
 
 try:
     import pygame
@@ -254,15 +255,16 @@ class World(object):
 
     def render(self, world, display):
         '''Render everything to screen'''
-        if self.multi_sensor_view is None:
+        if not self.multi_sensor_view_enabled:
             self.render_camera_windows()
             self.camera_manager.render(display)
             self.hud_wintersim.render(display, world)
         else:
             self.multi_sensor_view.render()
 
-        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
-            self.open3d_lidar.render_open3d_lidar()
+        #elf.hud_wintersim.render(display, world)
+        if self.open3d_lidar_enabled:
+            self.open3d_lidar.render()
 
         if self.sync_mode:    
             self.world.tick()
@@ -296,58 +298,40 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
-
-            self.open3d_lidar_enabled = True
             self.fps = 20
             self.sync_mode = True
-           
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
-
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
             self.fps = 60
-            self.open3d_lidar_enabled = False
             self.sync_mode = False
-
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,
             fixed_delta_seconds=0.00))
-
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
+        self.open3d_lidar_enabled ^= True
         text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
         self.hud_wintersim.notification(text, 6)
         
     def toggle_multi_sensor_view(self):
         if not self.multi_sensor_view_enabled:
-            print("multi sensor view")
-            sensors = [self.camera_manager.sensor,
-                self.collision_sensor.sensor,
-                self.lane_invasion_sensor.sensor,
-                self.gnss_sensor.sensor,
-                self.imu_sensor.sensor]
-            for sensor in sensors:
-                if sensor is not None:
-                    sensor.stop()
-                    sensor.destroy()
+            if self.camera_manager.sensor is None:
+                return
 
+            self.camera_manager.sensor.stop()
+            self.camera_manager.sensor.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
             self.multi_sensor_view.setup(self.world, self.player, self.display)
         else:
-            print("normal view")
             self.multi_sensor_view.destroy()
-            # self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
-            # self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
-            # self.gnss_sensor = wintersim_sensors.GnssSensor(self.player)
-            # self.imu_sensor = wintersim_sensors.IMUSensor(self.player)
-            # self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
-            # self.camera_manager.transform_index = 0
-            # self.camera_manager.set_sensor(0, notify=False)
+            self.multi_sensor_view = None
+            self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
 
         self.multi_sensor_view_enabled ^= True
            
@@ -377,9 +361,10 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        '''Destroy all current sensors'''
 
         if not self.static_tiretracks_enabled:
-            self.toggle_static_tiretracks() # enable static road tiretracks on quit
+            self.toggle_static_tiretracks()
 
         if self.spawn_npc is not None:
             self.toggle_npcs()
@@ -395,6 +380,9 @@ class World(object):
 
         if self.radar_sensor is not None:
             self.toggle_radar()
+
+        if self.multi_sensor_view_enabled:
+            self.multi_sensor_view.destroy()
 
         sensors = [self.camera_manager.sensor,
             self.collision_sensor.sensor,
@@ -452,6 +440,7 @@ def game_loop(args):
 
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
+
             world.tick(clock, hud_wintersim)
             world.render(world, display)
             pygame.display.flip()

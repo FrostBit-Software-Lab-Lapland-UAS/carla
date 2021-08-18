@@ -40,9 +40,9 @@ class DisplayManager:
         self.grid_size = grid_size
         self.window_size = window_size
         self.sensor_list = []
-        pygame.init()
-        pygame.font.init()
-        self.display = pygame.display.set_mode(window_size, pygame.HWSURFACE | pygame.DOUBLEBUF)
+        # pygame.init()
+        # pygame.font.init()
+        # self.display = pygame.display.set_mode(window_size, pygame.HWSURFACE | pygame.DOUBLEBUF)
 
     def get_window_size(self):
         return [int(self.window_size[0]), int(self.window_size[1])]
@@ -72,6 +72,8 @@ class DisplayManager:
     def destroy(self):
         for s in self.sensor_list:
             s.destroy()
+
+        print("multi sensor view destroyed")
 
     def render_enabled(self):
         return self.display != None
@@ -185,6 +187,7 @@ class SensorManager:
             self.display_manager.display.blit(self.surface, offset)
 
     def destroy(self):
+        self.sensor.stop()
         self.sensor.destroy()
 
 class MultiSensorView():
