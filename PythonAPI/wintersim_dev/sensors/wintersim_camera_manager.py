@@ -110,6 +110,7 @@ class CameraManager(object):
         self.hud.notification('Recording %s' % ('On' if self.recording else 'Off'))
 
     def render(self, display):
+        '''Render camera to pygame window'''
         if self.surface is not None:
             display.blit(self.surface, (0, 0))
         

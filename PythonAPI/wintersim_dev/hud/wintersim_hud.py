@@ -36,6 +36,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F2           : toggle NPC's
+    F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F8           : toggle  separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
@@ -64,7 +65,6 @@ import os
 import math
 import datetime
 import carla
-
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -183,14 +183,18 @@ class WinterSimHud(object):
                     break
                 vehicle_type = get_actor_display_name(vehicle, truncate=22)
                 self._info_text.append('% 4dm %s' % (d, vehicle_type))
-        # if len(vehicles) > 1:
-        #     self._info_text += ['Nearby vehicles:']
-        #     distance = lambda l: math.sqrt((l.x - t.location.x)**2 + (l.y - t.location.y)**2 + (l.z - t.location.z)**2)
-        #     vehicles = [(distance(x.get_location()), x) for x in vehicles if x.id != world.player.id]
-        #     for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
-        #         if d > 200.0:
-        #             break
-        #         vehicle_type = get_actor_display_name(vehicle, truncate=22)
+
+    def toggle_info(self):
+        '''Toggle HUD and infotext on/off'''
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
+        self.is_hud ^= True
+
+    def set_hud(self, enabled):
+        '''Set HUD on/off'''
+        self.is_hud = enabled
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
@@ -198,7 +202,8 @@ class WinterSimHud(object):
     def error(self, text):
         self._notifications.set_text('Error: %s' % text, (255, 0, 0))
 
-    def render(self, display, world):
+    def render(self, display):
+        '''Render hud to pygame window'''
         if self.is_hud:
             display_rect = display.get_rect()
             self.logo_rect.topright = tuple(map(lambda i, j: i - j, display_rect.topright, (5,-5))) 

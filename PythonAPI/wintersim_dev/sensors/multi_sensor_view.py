@@ -67,8 +67,6 @@ class DisplayManager:
         for s in self.sensor_list:
             s.render()
 
-        pygame.display.flip()
-
     def destroy(self):
         for s in self.sensor_list:
             s.destroy()
@@ -211,5 +209,5 @@ class MultiSensorView():
         self.display_manager.destroy()
 
     def render(self):
-        if self.display_manager is not None:
-            self.display_manager.render()
+        '''Render multi sensor view to pygame window'''
+        self.display_manager.render()

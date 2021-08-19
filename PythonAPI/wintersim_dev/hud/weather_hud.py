@@ -88,16 +88,19 @@ class InfoHud(object):
             ]
 
     # Update slider positions if weather is changed without moving sliders.
-    def update_sliders(self, preset, month=None, clock=None): 
-        #print(preset)
-        self.snow_amount_slider.val = preset.snow_amount
-        self.ice_slider.val = preset.ice_amount
-        self.temp_slider.val = preset.temperature
-        self.rain_slider.val = preset.precipitation
-        self.fog_slider.val = preset.fog_density
-        self.wind_slider.val = preset.wind_intensity * 100.0
-        self.particle_slider.val = preset.particle_size
-        self.humidity_slider.val = preset.humidity
+    def update_sliders(self, preset, month=None, clock=None):
+        try:
+            self.snow_amount_slider.val = preset.snow_amount
+            self.ice_slider.val = preset.ice_amount
+            self.temp_slider.val = preset.temperature
+            self.rain_slider.val = preset.precipitation
+            self.fog_slider.val = preset.fog_density
+            self.wind_slider.val = preset.wind_intensity * 100.0
+            self.particle_slider.val = preset.particle_size
+            self.humidity_slider.val = preset.humidity
+        except AttributeError as e:
+            print(e, "not implemented")
+
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
@@ -159,7 +162,7 @@ class InfoHud(object):
             v_offset += 18
         self._notifications.render(display)
 
-        # render checkboxes to PyGame
+        # render checkboxes to PyGame window
         for box in self.boxes:
             box.render_checkbox()
 
