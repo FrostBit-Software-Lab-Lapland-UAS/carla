@@ -22,29 +22,6 @@ import math
 import carla
 
 # ==============================================================================
-# -- Global functions ----------------------------------------------------------
-# ==============================================================================
-
-# RH = Relative Humidity
-# T  = Temperature
-# TD = Dew point
-
-# https://stackoverflow.com/questions/27288021/formula-to-calculate-dew-point-from-temperature-and-humidity
-def get_approx_dew_point(T, RH):
-    td =  (T- (14.55 + 0.114 * T) * (1 - (0.01 * RH)) - pow(((2.5 + 0.007 * T) * (1- (0.01 * RH))),3)-(15.9 + 0.117 *T ) * pow((1 - (0.01 * RH)), 14))
-    return td
-
-# https://earthscience.stackexchange.com/questions/20577/relative-humidity-approximation-from-dew-point-and-temperature
-def get_approx_relative_humidity(T, TD):
-    rh = int(100 * (math.exp((17.625 * TD) / (243.04 + TD)) / math.exp((17.625 * T)/(243.04 + T))))
-    return rh
-
-# https://bmcnoldy.rsmas.miami.edu/Humidity.html
-def get_approx_temp(TD, RH):
-    t = 243.04 * (((17.625 * TD) / (243.04 + TD)) - math.log(RH / 100)) / (17.625 + math.log(RH / 100) - ((17.625 * TD) / (243.04 + TD)))
-    return t
-
-# ==============================================================================
 # -- INFO_HUD -------------------------------------------------------------
 # ==============================================================================
 
@@ -58,12 +35,11 @@ class InfoHud(object):
         default_font = 'ubuntumono'
         mono = default_font if default_font in fonts else fonts[0]
         mono = pygame.font.match_font(mono)
-        self.temp_slider = Slider
-        self.dewpoint_slider = Slider
-        self.humidity = 0
         self.snow_amount_slider = Slider
         self.ice_slider = Slider
-        self.precipitation_slider = Slider
+        self.temp_slider = Slider
+        self.rain_slider = Slider
+        self.humidity_slider = Slider
         self.fog_slider = Slider
         self.wind_slider = Slider
         self.particle_slider = Slider
@@ -86,45 +62,50 @@ class InfoHud(object):
             [12.5, 3.66, -40.75],[12.5, -0.56, -45.32]
             ]
 
-        # create checkboxe(s)
+        # create checkboxes
         self.boxes = []
-        self.button = Checkbox(self.screen, 20, 610, 0, caption='Static Tiretracks (F5)')
+        self.button = Checkbox(self.screen, 20, 570, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
 
     # Make sliders and add them in to list
     def make_sliders(self):
         self.temp_slider = Slider("Temp", 0, 40, -40, 10)
-        self.dewpoint_slider = Slider("Dewpoint", 0, 40, -40, 77)
+        self.snow_amount_slider = Slider("Snow amount", 0, 100, 0, 77)
         self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
-        self.precipitation_slider = Slider("Precipitation", 0, 100, 0, 211)
-        self.snow_amount_slider = Slider("Snow amount", 0, 100, 0, 278)
+        self.rain_slider = Slider("Precipitation", 0, 100, 0, 211)
+        self.humidity_slider = Slider("Humidity", 0, 100, 0, 278)
         self.fog_slider = Slider("Fog", 0, 100, 0, 345)
         self.wind_slider = Slider("Wind", 0, 100, 0, 412)
         self.particle_slider = Slider("Snow particle size", 0.5, 7, 0.5, 479)
         self.time_slider = Slider("Time", 10, 24, 0, 546)
         self.month_slider = Slider("Month", 0, 11, 0, 613)
         self.sliders = [
-            self.temp_slider, self.dewpoint_slider,
-            self.ice_slider, self.precipitation_slider, self.snow_amount_slider,self.fog_slider, 
+            self.temp_slider, self.snow_amount_slider,
+            self.ice_slider, self.rain_slider, 
+            self.humidity_slider,self.fog_slider, 
             self.wind_slider, self.particle_slider, 
             self.time_slider, self.month_slider
             ]
 
-    # Update slider positions if weather is changed without moving sliders
+    # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None):
-        self.snow_amount_slider.val = preset.snow_amount
-        self.ice_slider.val = preset.ice_amount
-        self.temp_slider.val = preset.temperature
-        self.precipitation_slider.val = preset.precipitation
-        self.fog_slider.val = preset.fog_density
-        self.wind_slider.val = preset.wind_intensity * 100.0
-        self.particle_slider.val = preset.particle_size
-        self.humidity = preset.relative_humidity
-        self.dewpoint_slider.val = preset.dewpoint
+        try:
+            self.snow_amount_slider.val = preset.snow_amount
+            self.ice_slider.val = preset.ice_amount
+            self.temp_slider.val = preset.temperature
+            self.rain_slider.val = preset.precipitation
+            self.fog_slider.val = preset.fog_density
+            self.wind_slider.val = preset.wind_intensity * 100.0
+            self.particle_slider.val = preset.particle_size
+            self.humidity_slider.val = preset.humidity
+        except AttributeError as e:
+            print(e, "not implemented")
+
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
 
+    # Get month name and sun position according to month number
     def get_month(self, val): 
         return self.months[val], self.sun_positions[val]
 
@@ -138,21 +119,19 @@ class InfoHud(object):
             '',
             'Temperature:  {}°C'.format(round(hud.temp_slider.val,1)),
             '',
-            'Humidity: {}%'.format(round((hud.humidity), 1)),
-            '',
-            'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
-            '',
             'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
             '',
             'Iciness:  {}.00%'.format(int(hud.ice_slider.val)),
             '',
-            'Precipitation:  {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
+            'Rain:  {} mm'.format(round((hud.rain_slider.val/10), 1)),
             '',
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
             'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
+            '',
+            'Humidity: {}%'.format(round((hud.humidity_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
@@ -183,7 +162,7 @@ class InfoHud(object):
             v_offset += 18
         self._notifications.render(display)
 
-        # render checkboxes to PyGame
+        # render checkboxes to PyGame window
         for box in self.boxes:
             box.render_checkbox()
 
@@ -357,14 +336,14 @@ class Weather(object):
         self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) #instantiate sun object and pass angles 
 
     # This is called always when slider is being moved.
-    def tick(self, hud, preset, slider): 
+    def tick(self, hud, preset): 
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        self.weather.cloudiness = hud.precipitation_slider.val
-        self.weather.precipitation = hud.precipitation_slider.val
-        self.weather.precipitation_deposits = hud.precipitation_slider.val
+        self.weather.cloudiness = hud.rain_slider.val
+        self.weather.precipitation = hud.rain_slider.val
+        self.weather.precipitation_deposits = hud.rain_slider.val
         self.weather.wind_intensity = hud.wind_slider.val /100.0
         self.weather.fog_density = hud.fog_slider.val
         self.weather.wetness = preset.wetness
@@ -374,15 +353,7 @@ class Weather(object):
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
         self.weather.particle_size = hud.particle_slider.val
-        self.weather.humidity = hud.humidity
-        self.weather.dewpoint = hud.dewpoint_slider.val
-        if slider.name == 'Temp' or slider.name == 'Dewpoint':
-            val = get_approx_relative_humidity(self.weather.temperature, self.weather.dewpoint)
-            if val > 100.0:
-                val = 100
-            self.weather.humidity = val
-            hud.humidity = val
-
+        self.weather.humidity = hud.humidity_slider.val
 
     def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, humidity, clock, m):
         month, sundata = hud.get_month(m)
@@ -401,6 +372,7 @@ class Weather(object):
         self.weather.ice_amount = 0
         self.weather.humidity = humidity
        
+
     def __str__(self):
         return '%s %s' % (self._sun, self._storm)
 

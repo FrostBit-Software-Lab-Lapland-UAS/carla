@@ -74,7 +74,7 @@ class World(object):
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
 
-    def next_weather(self, reverse=False):
+    def next_weather(self, world, reverse=False):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
@@ -157,7 +157,7 @@ class World(object):
         for slider in hud.sliders:
                 if slider.hit:                                      # if slider is being touched
                     slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0], slider)    # update weather object
+                    weather.tick(hud, world._weather_presets[0])    # update weather object
                     client.get_world().set_weather(weather.weather) # send weather to server
         for slider in hud.sliders:
             slider.draw(display, slider)                            # move sliders
@@ -187,7 +187,7 @@ class World(object):
                 for box in self.hud.boxes:
                     box.checked ^= True
             elif key.char == "c":
-                self.next_weather(reverse=False)
+                self.next_weather(self.world, reverse=False)
             elif key.char == "r":
                 self.muonio_weather()
         except:
@@ -225,7 +225,7 @@ class KeyboardControl(object):
                 if self._is_quit_shortcut(event.key):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
-                    world.next_weather(reverse=True)
+                    world.next_weather(world, reverse=True)
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -258,12 +258,11 @@ def game_loop(args):
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
         hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
-        world.next_weather()                                                # change preset on startup
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                         
-        
+        listener.start()                                                        
+
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):

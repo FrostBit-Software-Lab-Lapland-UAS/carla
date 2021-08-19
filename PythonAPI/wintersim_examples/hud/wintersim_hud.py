@@ -27,7 +27,7 @@ Use ARROWS or WASD keys for control.
     I            : toggle interior light
 
     TAB          : change sensor position
-    N            : next sensor
+    ` or N       : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
@@ -36,8 +36,9 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F2           : toggle NPC's
+    F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
-    F8           : toggle separate front and back RGB camera windows
+    F8           : toggle  separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering
     H            : toggle help
@@ -89,7 +90,7 @@ class WinterSimHud(object):
         mono = pygame.font.match_font(mono)
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height)
+        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height, self)
         self.server_fps = 0
         self.frame = 0
         self.simulation_time = 0
@@ -183,13 +184,26 @@ class WinterSimHud(object):
                 vehicle_type = get_actor_display_name(vehicle, truncate=22)
                 self._info_text.append('% 4dm %s' % (d, vehicle_type))
 
+    def toggle_info(self):
+        '''Toggle HUD and infotext on/off'''
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
+        self.is_hud ^= True
+
+    def set_hud(self, enabled):
+        '''Set HUD on/off'''
+        self.is_hud = enabled
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
+
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):
         self._notifications.set_text('Error: %s' % text, (255, 0, 0))
 
-    def render(self, display, world):
+    def render(self, display):
+        '''Render hud to pygame window'''
         if self.is_hud:
             display_rect = display.get_rect()
             self.logo_rect.topright = tuple(map(lambda i, j: i - j, display_rect.topright, (5,-5))) 
@@ -230,6 +244,7 @@ class WinterSimHud(object):
         self._notifications.render(display)
         self.help_text.render(display)
 
+
 # ==============================================================================
 # -- FadingText ----------------------------------------------------------------
 # ==============================================================================
@@ -263,7 +278,7 @@ class FadingText(object):
 
 class HelpText(object):
     """Helper class to handle text output using pygame"""
-    def __init__(self, font, width, height):
+    def __init__(self, font, width, height, hud):
         lines = __doc__.split('\n')
         self.font = font
         self.line_space = 18

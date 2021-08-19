@@ -29,7 +29,7 @@ Use ARROWS or WASD keys for control.
     I            : toggle interior light
 
     TAB          : change sensor position
-    N            : next sensor
+    ` or N       : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
     C            : change weather (Shift+C reverse)
@@ -38,6 +38,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F2           : toggle NPC's
+    F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
@@ -59,6 +60,8 @@ import re
 import sys
 import subprocess
 
+from numpy.core.numeric import True_
+
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
         sys.version_info.major,
@@ -79,9 +82,10 @@ from carla import ColorConverter as cc
 from hud import wintersim_hud
 from sensors import wintersim_sensors
 from sensors import open3d_lidar_window
-from camera.wintersim_camera_manager import CameraManager
-from camera.wintersim_camera_windows import CameraWindows
+from sensors.wintersim_camera_manager import CameraManager
+from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
+from sensors import multi_sensor_view
 from utils.spawn_npc import SpawnNPC
 
 try:
@@ -139,14 +143,18 @@ class World(object):
         self.settings = None
         self.args = args
         self.multiple_windows_enabled = args.camerawindows
+        self.multi_sensor_view_enabled = False
         self.cv2_windows = None
         self.open3d_lidar = None
+        self.multi_sensor_view = None
         self.open3d_lidar_enabled = False
         self.hud_wintersim = hud_wintersim
         self.sync_mode = False
         self.static_tiretracks_enabled = True
+        self.multiple_window_setup = False
         self.preset = None
         self.player = None
+        self.display = None
         self.w_control = None
         self.collision_sensor = None
         self.lane_invasion_sensor = None
@@ -166,10 +174,14 @@ class World(object):
         self._gamma = args.gamma
         self.restart()
         preset = self._weather_presets[0]
-        self.world.set_weather(preset[0])  # set weather preset
+        self.world.set_weather(preset[0])
         self.recording_start = 0
+        self.constant_velocity_enabled = False
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
+
+        if not args.no_server_rendering:
+            self.toggle_server_rendering()
 
     def restart(self):
         self.player_max_speed = 1.589
@@ -214,25 +226,56 @@ class World(object):
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
-        self.multiple_window_setup = False
 
         self.sensors.extend((self.camera_manager.sensor,
             self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,self.imu_sensor.sensor))
 
+    def is_process_alive(self):
+        '''Check if w_control subprocess.Popen is still alive'''
+        if self.w_control is not None:
+            poll = self.w_control.poll()
+            if poll is not None:
+                self.w_control = None
+                return False
+            else:
+                return True
+
     def next_weather(self, reverse=False):
+        ''''Change weather preset'''
+        if self.is_process_alive():
+            return
+
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
         self.player.get_world().set_weather(self.preset[0])
 
+    def toggle_static_tiretracks(self, force_toggle=False):
+        '''Toggle static tiretracks on snowy roads on/off
+        This is wrapped around try - expect block
+        just in case someone runs this script elsewhere
+        world.set_static_tiretracks() is WinterSim project specific Python API command 
+        and does not work on default Carla simulator'''
+
+        if self.is_process_alive() and not force_toggle:
+            return
+
+        try:
+            self.world.set_static_tiretracks(self.static_tiretracks_enabled)
+            text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
+            self.hud.notification(text)
+            self.static_tiretracks_enabled ^= True
+        except AttributeError:
+            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
+
     def tick(self, clock, hud_wintersim):
         '''Tick WinterSim hud'''
         self.hud_wintersim.tick(self, clock, hud_wintersim)
 
     def render_camera_windows(self):
-        '''Render camera windows if enabled'''
+        '''Render separate camera windows if enabled'''
         if not self.multiple_windows_enabled:
             return
 
@@ -250,31 +293,29 @@ class World(object):
         if self.multiple_windows_enabled and self.cv2_windows is not None:
             self.cv2_windows.pause()
 
-    def render(self, world, display):
+    def render(self, display):
         '''Render everything to screen'''
         self.render_camera_windows()
-        self.camera_manager.render(display)
-        self.hud_wintersim.render(display, world)
 
-        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
-            self.open3d_lidar.render_open3d_lidar()
+        if not self.multi_sensor_view_enabled:
+            self.camera_manager.render(display)
+        else:
+            self.multi_sensor_view.render()
 
-        if self.sync_mode:    
+        self.hud_wintersim.render(display)
+
+        if self.open3d_lidar_enabled:
+            self.open3d_lidar.render()
+
+        if self.sync_mode:
             self.world.tick()
 
-    def toggle_static_tiretracks(self):
-        '''Toggle static tiretracks on snowy roads on/off
-        This is wrapped around try - expect block
-        just in case someone runs this script elsewhere
-        world.set_static_tiretracks() is WinterSim project specific Python API command 
-        and does not work on default Carla simulator'''
-        self.static_tiretracks_enabled ^= True
-        try:
-            self.world.set_static_tiretracks(self.static_tiretracks_enabled)
-            text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
-            self.hud_wintersim.notification(text)
-        except AttributeError:
-            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
+    def toggle_server_rendering(self):
+        settings = self.world.get_settings()
+        settings.no_rendering_mode = not settings.no_rendering_mode
+        self.world.apply_settings(settings)
+        text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
+        self.hud_wintersim.notification(text)
 
     def toggle_cv2_windows(self):
         '''toggle separate camera windows'''
@@ -291,9 +332,7 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
-            self.open3d_lidar_enabled = True
             self.fps = 20
-            self.sync_mode = True
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
@@ -302,17 +341,38 @@ class World(object):
         else:
             self.open3d_lidar.destroy()
             self.fps = 60
-            self.open3d_lidar_enabled = False
-            self.sync_mode = False
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,
             fixed_delta_seconds=0.00))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
+        self.open3d_lidar_enabled ^= True
+        self.sync_mode ^= True
         text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
         self.hud_wintersim.notification(text, 6)
+        
+    def toggle_multi_sensor_view(self):
+        if not self.multi_sensor_view_enabled:
+            if self.camera_manager.sensor is None:
+                return
 
+            self.camera_manager.sensor.stop()
+            self.camera_manager.sensor.destroy()
+            self.multi_sensor_view = multi_sensor_view.MultiSensorView()
+            self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height)
+            self.hud_wintersim.set_hud(False)
+        else:
+            self.multi_sensor_view.destroy()
+            self.multi_sensor_view = None
+            self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
+            self.hud_wintersim.set_hud(True)
+        
+        self.multi_sensor_view_enabled ^= True
+        self.fps = 30 if self.multi_sensor_view_enabled else 60
+        text = "Multi sensor view enabled" if self.multi_sensor_view_enabled else "Multi sensor view disabled"
+        self.hud_wintersim.notification(text)
+ 
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
@@ -339,8 +399,9 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
+        '''Destroy all current sensors'''
         if not self.static_tiretracks_enabled:
-            self.toggle_static_tiretracks() # enable static road tiretracks on quit
+            self.toggle_static_tiretracks(force_toggle=True)
 
         if self.spawn_npc is not None:
             self.toggle_npcs()
@@ -356,6 +417,9 @@ class World(object):
 
         if self.radar_sensor is not None:
             self.toggle_radar()
+
+        if self.multi_sensor_view_enabled:
+            self.multi_sensor_view.destroy()
 
         for sensor in self.sensors:
             if sensor is not None:
@@ -392,9 +456,15 @@ def game_loop(args):
         world.original_settings = world.world.get_settings()
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
+        world.display = display
 
+        # enable open 3d lidar if launch argument '--open3dlidar' given
         if world.args.open3dlidar:
             world.toggle_open3d_lidar()
+
+        # enable multi sensor view if launch argument '--open3dlidar' given
+        if world.args.multisensorview:
+            world.toggle_multi_sensor_view()
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
@@ -403,13 +473,13 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(world.fps)
+            clock.tick_busy_loop(world.fps)         # fps changes if open3d lidar is on
 
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
 
             world.tick(clock, hud_wintersim)
-            world.render(world, display)
+            world.render(display)
             pygame.display.flip()
 
     finally:
@@ -475,19 +545,33 @@ def main():
         help='Gamma correction of the camera (default: 2.2)')
     argparser.add_argument(
         '--camerawindows',
-        default=False,
-        type=bool,
+        default=-False,
+        dest='camerawindows', 
+        action='store_true',
         help='Enable multiple camera view on startup')
     argparser.add_argument(
+        '--multisensorview',
+        default=-False,
+        dest='multisensorview',
+        action='store_true',
+        help='Enable multi sensor view on startup')
+    argparser.add_argument(
         '--open3dlidar',
-        default=False,
-        type=bool,
+        default=-False,
+        dest='open3dlidar', 
+        action='store_true',
         help='Enable open3d lidar window on startup')
     argparser.add_argument(
         '--spawnpoint',
         default=-1,
         type=int,
         help='Specify spawn point')
+    argparser.add_argument(
+        '--no_server_rendering',
+        default=-True,
+        dest='no_server_rendering', 
+        action='store_false',
+        help='Disable server rendering on startup')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
