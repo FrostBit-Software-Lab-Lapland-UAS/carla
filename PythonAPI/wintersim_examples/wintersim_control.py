@@ -270,9 +270,9 @@ class World(object):
         except AttributeError:
             print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
-    def tick(self, clock, hud_wintersim):
+    def tick(self, clock):
         '''Tick WinterSim hud'''
-        self.hud_wintersim.tick(self, clock, hud_wintersim)
+        self.hud_wintersim.tick(self, clock)
 
     def render_camera_windows(self):
         '''Render separate camera windows if enabled'''
@@ -454,6 +454,7 @@ def game_loop(args):
         world.client = client
         world.preset = world._weather_presets[0]
         world.original_settings = world.world.get_settings()
+        hud_wintersim.setup(world)
         controller = KeyboardControl(world, args.autopilot)
         clock = pygame.time.Clock()
         world.display = display
@@ -478,7 +479,7 @@ def game_loop(args):
             if controller.parse_events(client, world, clock, hud_wintersim):
                 return
 
-            world.tick(clock, hud_wintersim)
+            world.tick(clock)
             world.render(display)
             pygame.display.flip()
 

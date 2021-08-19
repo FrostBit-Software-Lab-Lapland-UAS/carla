@@ -5,21 +5,9 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>
 
-import glob
-import os
-import sys
-
-try:
-    sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
-        sys.version_info.major,
-        sys.version_info.minor,
-        'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
-except IndexError:
-    pass
-
 import pygame
 import math
-import carla
+import os
 
 # ==============================================================================
 # -- INFO_HUD -------------------------------------------------------------
@@ -67,8 +55,8 @@ class InfoHud(object):
         self.button = Checkbox(self.screen, 20, 570, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
 
-    # Make sliders and add them in to list
     def make_sliders(self):
+        '''Make sliders and add them in to list'''
         self.temp_slider = Slider("Temp", 0, 40, -40, 10)
         self.snow_amount_slider = Slider("Snow amount", 0, 100, 0, 77)
         self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
@@ -82,13 +70,13 @@ class InfoHud(object):
         self.sliders = [
             self.temp_slider, self.snow_amount_slider,
             self.ice_slider, self.rain_slider, 
-            self.humidity_slider,self.fog_slider, 
+            self.humidity_slider,self.fog_slider,
             self.wind_slider, self.particle_slider, 
             self.time_slider, self.month_slider
             ]
 
-    # Update slider positions if weather is changed without moving sliders.
     def update_sliders(self, preset, month=None, clock=None):
+        '''Update slider positions if weather is changed without moving sliders.'''
         try:
             self.snow_amount_slider.val = preset.snow_amount
             self.ice_slider.val = preset.ice_amount
@@ -105,12 +93,12 @@ class InfoHud(object):
             self.month_slider.val = month
             self.time_slider.val = clock
 
-    # Get month name and sun position according to month number
-    def get_month(self, val): 
+    def get_month(self, val):
+        '''Get month name and sun position according to month number'''
         return self.months[val], self.sun_positions[val]
 
-    # Update hud text values
-    def tick(self, world, clock, hud): 
+    def tick(self, world, clock, hud):
+        '''Update hud text values'''
         self._notifications.tick(world, clock)
         month, sundata = self.get_month(int(hud.month_slider.val))
         self._info_text = [
@@ -145,12 +133,11 @@ class InfoHud(object):
             'Press R to get real time',
             'weather from Muonio']
 
-    # Notification about changing weather preset.
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
-    # Render hud texts into pygame window.
-    def render(self, display): 
+    def render(self, world, weather, display): 
+        '''Render hud texts into pygame window.'''
         info_surface = pygame.Surface((345, self.dim[1]))
         info_surface.set_alpha(100)
         info_surface.fill((75, 75, 75))
@@ -162,9 +149,18 @@ class InfoHud(object):
             v_offset += 18
         self._notifications.render(display)
 
-        # render checkboxes to PyGame window
+        # render checkboxes to pygame window
         for box in self.boxes:
             box.render_checkbox()
+
+        # render sliders to pygame window
+        for slider in self.sliders:
+            if slider.hit:                                      # if slider is being touched
+                slider.move()                                   # move slider
+                weather.tick(self, world._weather_presets[0])   # update weather object
+                world.world.set_weather(weather.weather)        # send weather to server
+
+            slider.draw(display, slider)
 
 # ==============================================================================
 # -- Checkbox ----------------------------------------------------------------
@@ -273,7 +269,7 @@ class Slider():
         pygame.draw.rect(self.button_surf, WHITE, [6,23,6,15], 0)
 
     def draw(self, screen, slider):
-        """ Combination of static and dynamic graphics in a copy ofthe basic slide surface"""
+        """Combination of static and dynamic graphics in a copy ofthe basic slide surface"""
         # static
         surf = self.surf.copy()
         # dynamic
@@ -302,8 +298,8 @@ class Sun(object):
         self.azimuth = azimuth
         self.altitude = altitude
 
-    # Overal handler for sun altitude and azimuth.
     def SetSun(self, highest_time, sun_highest, sun_lowest, clock): 
+        '''handler for sun altitude and azimuth.'''
         if clock is highest_time:
             self.altitude = sun_highest
         elif clock < highest_time:
@@ -322,7 +318,8 @@ class Sun(object):
             self.altitude = (Y * A) + ((1 - Y) * B)
         self.azimuth = 348.98 + clock * 15
         if self.azimuth > 360: 
-            self.azimuth -= 360    
+            self.azimuth -= 360
+
     def __str__(self):
         return 'Sun(alt: %.2f, azm: %.2f)' % (self.altitude, self.azimuth)
 
@@ -333,10 +330,10 @@ class Sun(object):
 class Weather(object):
     def __init__(self, weather):
         self.weather = weather
-        self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) #instantiate sun object and pass angles 
+        self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) # instantiate sun object and pass angles 
 
-    # This is called always when slider is being moved.
-    def tick(self, hud, preset): 
+    def tick(self, hud, preset):
+        '''This is called always when slider is being moved.'''
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val
@@ -358,7 +355,6 @@ class Weather(object):
     def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, humidity, clock, m):
         month, sundata = hud.get_month(m)
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        #self.weather.cloudiness = cloudiness
         self.weather.precipitation = precipitation
         self.weather.precipitation_deposits = precipitation
         self.weather.wind_intensity = wind / 100.0
@@ -372,7 +368,6 @@ class Weather(object):
         self.weather.ice_amount = 0
         self.weather.humidity = humidity
        
-
     def __str__(self):
         return '%s %s' % (self._sun, self._storm)
 

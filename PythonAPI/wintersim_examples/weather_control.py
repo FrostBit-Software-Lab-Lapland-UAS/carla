@@ -24,7 +24,6 @@ except IndexError:
 
 import carla
 import requests
-from fmiopendata.wfs import download_stored_query
 
 try:
     import pygame
@@ -92,9 +91,7 @@ class World(object):
 
         date = x[0].split("-")
 
-        #year = int(date[0])
-        month = int(date[1]) - 1        
-        #day = int(date[2])
+        month = int(date[1]) - 1
 
         clock = x[1].split(":")
         clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
@@ -122,10 +119,10 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
+        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
-        self.world.set_weather(weather.weather)                                                                     # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)
+        self.world.set_weather(weather.weather)
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
@@ -149,18 +146,8 @@ class World(object):
     def tick(self, clock, hud):
         self.hud.tick(self, clock, hud)
 
-    def render(self, world, client, hud, display, weather):
-        self.hud.render(display)
-        self.render_sliders(world, client, hud, display, weather)
-
-    def render_sliders(self, world, client, hud, display, weather):
-        for slider in hud.sliders:
-                if slider.hit:                                      # if slider is being touched
-                    slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0])    # update weather object
-                    client.get_world().set_weather(weather.weather) # send weather to server
-        for slider in hud.sliders:
-            slider.draw(display, slider)                            # move sliders
+    def render(self, world, display, weather):
+        self.hud.render(world, weather, display)
 
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
@@ -268,7 +255,7 @@ def game_loop(args):
             if controller.parse_events(world, hud):
                 return
             world.tick(clock, hud)
-            world.render(world, client, hud, display, weather)
+            world.render(world, display, weather)
             pygame.display.flip()
 
     finally:
