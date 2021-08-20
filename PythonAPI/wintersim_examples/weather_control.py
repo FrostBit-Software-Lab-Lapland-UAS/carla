@@ -24,6 +24,7 @@ except IndexError:
 
 import carla
 import requests
+from fmiopendata.wfs import download_stored_query
 
 try:
     import pygame
@@ -73,7 +74,7 @@ class World(object):
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
 
-    def next_weather(self, world, reverse=False):
+    def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
@@ -91,7 +92,9 @@ class World(object):
 
         date = x[0].split("-")
 
-        month = int(date[1]) - 1
+        #year = int(date[0])
+        month = int(date[1]) - 1        
+        #day = int(date[2])
 
         clock = x[1].split(":")
         clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
@@ -119,10 +122,10 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)
+        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)
-        self.world.set_weather(weather.weather)
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
+        self.world.set_weather(weather.weather)                                                                     # update weather
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
@@ -147,7 +150,7 @@ class World(object):
         self.hud.tick(self, clock, hud)
 
     def render(self, world, display, weather):
-        self.hud.render(world, weather, display)
+        self.hud.render(world, display, weather)
 
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
@@ -174,7 +177,7 @@ class World(object):
                 for box in self.hud.boxes:
                     box.checked ^= True
             elif key.char == "c":
-                self.next_weather(self.world, reverse=False)
+                self.next_weather(reverse=False)
             elif key.char == "r":
                 self.muonio_weather()
         except:
@@ -212,7 +215,7 @@ class KeyboardControl(object):
                 if self._is_quit_shortcut(event.key):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
-                    world.next_weather(world, reverse=True)
+                    world.next_weather(reverse=True)
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -245,11 +248,12 @@ def game_loop(args):
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
         hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
+        world.next_weather()                                                # change preset on startup
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                                        
-
+        listener.start()                                         
+        
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):

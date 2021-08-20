@@ -169,7 +169,7 @@ class Open3DLidarWindow():
         parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
         ctrl.convert_from_pinhole_camera_parameters(parameters)
 
-    def render(self):
+    def render_open3d_lidar(self):
         """Render lidar to open3d window"""
         if self.frame == 2:                         # every second frame add new geometry
             self.vis.add_geometry(self.point_list)
