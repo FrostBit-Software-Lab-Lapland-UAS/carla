@@ -55,11 +55,6 @@ try:
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
-try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
 class KeyboardControl(object):
     """Class that handles keyboard input."""
     def __init__(self, world, start_in_autopilot):
@@ -73,7 +68,7 @@ class KeyboardControl(object):
         self._steer_cache = 0.0
         world.hud_wintersim.notification("Press 'H' for help.", seconds=4.0)
 
-    def parse_events(self, client, world, clock, hud_wintersim):
+    def parse_events(self, world, clock):
         if isinstance(self._control, carla.VehicleControl):
             current_lights = self._lights
         for event in pygame.event.get():
@@ -133,11 +128,9 @@ class KeyboardControl(object):
                         current_lights ^= carla.VehicleLightState.Special1
                     elif event.key == K_l and pygame.key.get_mods() & KMOD_SHIFT:
                         current_lights ^= carla.VehicleLightState.HighBeam
-                    elif event.key == K_l:
-                        # Use 'L' key to switch between lights:
-                        # closed -> position -> low beam -> fog
-                        if not self._lights & carla.VehicleLightState.Position:
-                            world.hud_wintersim.notification("Position lights")
+                    elif event.key == K_l:                                      # Use 'L' key to switch between lights:
+                        if not self._lights & carla.VehicleLightState.Position: # closed -> position -> low beam -> fog
+                            world.hud_wintersim.notification("Position lights") 
                             current_lights |= carla.VehicleLightState.Position
                         else:
                             world.hud_wintersim.notification("Low beam lights")

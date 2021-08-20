@@ -210,3 +210,7 @@ class RadarSensor(object):
             self.debug.draw_point(radar_data.transform.location + fw_vec,
                 size=0.075,life_time=0.06,
                 persistent_lines=False, color=carla.Color(r, g, b))
+
+    def destroy_radar(self):
+        self.sensor.stop()
+        self.sensor.destroy()

@@ -59,7 +59,6 @@ import os
 import re
 import sys
 import subprocess
-
 from numpy.core.numeric import True_
 
 try:
@@ -180,6 +179,8 @@ class World(object):
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
 
+        # disable server window rendering (UE4 window) if launch argument '--no_server_rendering' given
+        # this improves performance as less things need to be rendered
         if not args.no_server_rendering:
             self.toggle_server_rendering()
 
@@ -332,7 +333,6 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, True)
-            self.fps = 20
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
@@ -340,7 +340,6 @@ class World(object):
             traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
-            self.fps = 60
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=False,
             fixed_delta_seconds=0.00))
@@ -349,6 +348,7 @@ class World(object):
 
         self.open3d_lidar_enabled ^= True
         self.sync_mode ^= True
+        self.fps = 30 if self.open3d_lidar_enabled else 60
         text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
         self.hud_wintersim.notification(text, 6)
         
@@ -377,7 +377,8 @@ class World(object):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
         else:
-            self.radar_sensor.sensor.destroy()
+            self.radar_sensor.destroy_radar()
+            #self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
 
         text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
@@ -425,6 +426,7 @@ class World(object):
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
+
         if self.player is not None:
             self.player.destroy()
 
@@ -463,7 +465,7 @@ def game_loop(args):
         if world.args.open3dlidar:
             world.toggle_open3d_lidar()
 
-        # enable multi sensor view if launch argument '--open3dlidar' given
+        # enable multi sensor view if launch argument '--multisensorview' given
         if world.args.multisensorview:
             world.toggle_multi_sensor_view()
 
@@ -474,9 +476,9 @@ def game_loop(args):
             print("Couldn't launch weather_control.py")
 
         while True:
-            clock.tick_busy_loop(world.fps)         # fps changes if open3d lidar is on
+            clock.tick_busy_loop(world.fps)
 
-            if controller.parse_events(client, world, clock, hud_wintersim):
+            if controller.parse_events(world, clock):
                 return
 
             world.tick(clock)
