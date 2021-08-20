@@ -51,6 +51,7 @@ try:
     from pygame.locals import K_w
     from pygame.locals import K_x
     from pygame.locals import K_z
+    from pygame.locals import K_t
 
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
@@ -105,6 +106,12 @@ class KeyboardControl(object):
                     world.camera_manager.next_sensor()
                 elif event.key == K_n:
                     world.camera_manager.next_sensor()
+                elif event.key == K_t:
+                    try:
+                        world.show_vehicle_telemetry ^= True
+                        world.player.show_debug_telemetry(world.show_vehicle_telemetry)
+                    except AttributeError:
+                            print("'show_debug_telemetry)' has not been implemented. This works in CARLA version 0.9.12 and above")
                 elif event.key > K_0 and event.key <= K_9:
                     world.camera_manager.set_sensor(event.key - 1 - K_0)
                 if isinstance(self._control, carla.VehicleControl):
