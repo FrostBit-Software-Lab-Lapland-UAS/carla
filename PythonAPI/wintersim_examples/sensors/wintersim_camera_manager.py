@@ -102,6 +102,13 @@ class CameraManager(object):
             self.hud.notification(self.sensors[index][2])
         self.index = index
 
+    def destroy(self):
+        '''Destroy current sensor'''
+        if self.sensor is not None:
+            self.sensor.stop()
+            self.sensor.destroy()
+            self.sensor = None
+
     def next_sensor(self):
         self.set_sensor(self.index + 1)
 

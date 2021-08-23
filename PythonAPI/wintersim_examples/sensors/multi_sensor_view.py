@@ -11,7 +11,7 @@
 Script that render multiple sensors in the same pygame window
 
 By default, it renders four cameras, one LiDAR and one Semantic LiDAR.
-It can easily be configure for any different number of sensors. 
+It can easily be configure for any different number of sensors.
 """
 
 import glob
@@ -45,7 +45,7 @@ class DisplayManager:
         return [int(self.window_size[0]), int(self.window_size[1])]
 
     def get_display_size(self):
-        return [int(self.window_size[0]/self.grid_size[1]), int(self.window_size[1]/self.grid_size[0])]
+        return [int(self.window_size[0] / self.grid_size[1]), int(self.window_size[1] / self.grid_size[0])]
 
     def get_display_offset(self, gridPos):
         dis_size = self.get_display_size()
@@ -117,8 +117,8 @@ class SensorManager:
         elif sensor_type == "Radar":
             print("spawning radar")
             radar_bp = self.world.get_blueprint_library().find('sensor.other.radar')
-            #for key in sensor_options:
-                #radar_bp.set_attribute(key, sensor_options[key])
+            for key in sensor_options:
+                radar_bp.set_attribute(key, sensor_options[key])
             radar = self.world.spawn_actor(radar_bp, transform, attach_to=attached)
             radar.listen(self.save_radar_image)
             return radar
@@ -195,13 +195,14 @@ class MultiSensorView():
         # If can easily configure the grid and the total window size
         self.display_manager = DisplayManager(display, grid_size=[2, 3], window_size=[width, height])
 
-        # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed and assign each of them to a grid position 
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=-90)), vehicle, {}, display_pos=[0, 0])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+00)), vehicle, {}, display_pos=[0, 1])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=+90)), vehicle, {}, display_pos=[0, 2])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(x=0, z=2.4), carla.Rotation(yaw=180)), vehicle, {}, display_pos=[1, 1])
-        SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(carla.Location(x=0, z=2.4)), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
-        SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(carla.Location(x=0, z=2.4)), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
+        # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed and assign each of them to a grid position
+        sensor_location = carla.Location(0,0, 2.4)
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(sensor_location, carla.Rotation(yaw=-90)), vehicle, {}, display_pos=[0, 0])
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(sensor_location, carla.Rotation(yaw=+00)), vehicle, {}, display_pos=[0, 1])
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(sensor_location, carla.Rotation(yaw=+90)), vehicle, {}, display_pos=[0, 2])
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(sensor_location, carla.Rotation(yaw=180)), vehicle, {}, display_pos=[1, 1])
+        SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(sensor_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
+        SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(sensor_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
 
     def destroy(self):
         '''Destroy multi sensor view'''

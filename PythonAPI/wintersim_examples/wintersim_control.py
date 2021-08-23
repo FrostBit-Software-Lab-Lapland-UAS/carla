@@ -357,8 +357,8 @@ class World(object):
             if self.camera_manager.sensor is None:
                 return
 
-            self.camera_manager.sensor.stop()
-            self.camera_manager.sensor.destroy()
+            self.sensors.remove(self.camera_manager.sensor)
+            self.camera_manager.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
             self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height)
             self.hud_wintersim.set_hud(False)
@@ -367,6 +367,7 @@ class World(object):
             self.multi_sensor_view = None
             self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
             self.hud_wintersim.set_hud(True)
+            self.sensors.append(self.camera_manager.sensor)
         
         self.multi_sensor_view_enabled ^= True
         self.fps = 30 if self.multi_sensor_view_enabled else 60
@@ -400,7 +401,7 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
-        '''Destroy all current sensors'''
+        '''Destroy all current sensors on quit'''
         if not self.static_tiretracks_enabled:
             self.toggle_static_tiretracks(force_toggle=True)
 
@@ -419,7 +420,7 @@ class World(object):
         if self.radar_sensor is not None:
             self.toggle_radar()
 
-        if self.multi_sensor_view_enabled:
+        if self.multi_sensor_view_enabled and self.multi_sensor_view is not None:
             self.multi_sensor_view.destroy()
 
         for sensor in self.sensors:
