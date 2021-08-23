@@ -111,7 +111,7 @@ class KeyboardControl(object):
                         world.show_vehicle_telemetry ^= True
                         world.player.show_debug_telemetry(world.show_vehicle_telemetry)
                     except AttributeError:
-                            print("'show_debug_telemetry)' has not been implemented. This works in CARLA version 0.9.12 and above")
+                           print("'show_debug_telemetry)' has not been implemented. This works in CARLA version 0.9.12 and above")
                 elif event.key > K_0 and event.key <= K_9:
                     world.camera_manager.set_sensor(event.key - 1 - K_0)
                 if isinstance(self._control, carla.VehicleControl):

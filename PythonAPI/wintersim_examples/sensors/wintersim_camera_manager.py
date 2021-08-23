@@ -52,11 +52,13 @@ class CameraManager(object):
                 'Camera Semantic Segmentation (CityScapes Palette)', {}],
             ['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)', {'range': '50'}],
             ['sensor.camera.dvs', cc.Raw, 'Dynamic Vision Sensor', {}],
-            ['sensor.camera.rgb', cc.Raw, 'Camera RGB Distorted',
-                {'lens_circle_multiplier': '3.0',
-                'lens_circle_falloff': '3.0',
-                'chromatic_aberration_intensity': '0.5',
-                'chromatic_aberration_offset': '0'}]]
+            ['sensor.camera.optical_flow', cc.Raw, 'Optical Flow', {}]] # this sensor only works in CARLA version 0.9.12 and above
+            # ['sensor.camera.rgb', cc.Raw, 'Camera RGB Distorted',
+            #     {'lens_circle_multiplier': '3.0',
+            #     'lens_circle_falloff': '3.0',
+            #     'chromatic_aberration_intensity': '0.5',
+            #     'chromatic_aberration_offset': '0'}]]
+            
         world = self._parent.get_world()
         bp_library = world.get_blueprint_library()
         for item in self.sensors:
@@ -147,6 +149,13 @@ class CameraManager(object):
             # Blue is positive, red is negative
             dvs_img[dvs_events[:]['y'], dvs_events[:]['x'], dvs_events[:]['pol'] * 2] = 255
             self.surface = pygame.surfarray.make_surface(dvs_img.swapaxes(0, 1))
+        elif self.sensors[self.index][0].startswith('sensor.camera.optical_flow'):
+            image = image.get_color_coded_flow()
+            array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+            array = np.reshape(array, (image.height, image.width, 4))
+            array = array[:, :, :3]
+            array = array[:, :, ::-1]
+            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
         else:
             image.convert(self.sensors[self.index][1])
             array = np.frombuffer(image.raw_data, dtype=np.dtype(np.uint8))

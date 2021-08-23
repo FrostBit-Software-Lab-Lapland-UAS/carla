@@ -157,6 +157,7 @@ class World(object):
         self.w_control = None
         self.collision_sensor = None
         self.lane_invasion_sensor = None
+        self.show_vehicle_telemetry = False
         self.gnss_sensor = None
         self.imu_sensor = None
         self.radar_sensor = None
