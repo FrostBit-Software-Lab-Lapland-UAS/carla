@@ -12,6 +12,8 @@
 #include "carla/Time.h"
 #include "carla/client/DebugHelper.h"
 #include "carla/client/Landmark.h"
+#include "carla/client/Waypoint.h"
+#include "carla/client/Junction.h"
 #include "carla/client/LightManager.h"
 #include "carla/client/Timestamp.h"
 #include "carla/client/WorldSnapshot.h"
@@ -149,6 +151,8 @@ namespace client {
 
     SharedPtr<Actor> GetTrafficLight(const Landmark& landmark) const;
 
+    SharedPtr<Actor> GetTrafficLightFromOpenDRIVE(const road::SignId& sign_id) const;
+
     void ResetAllTrafficLights();
 
     SharedPtr<LightManager> GetLightManager() const;
@@ -180,6 +184,12 @@ namespace client {
 
     std::vector<rpc::LabelledPoint> CastRay(
         geom::Location start_location, geom::Location end_location) const;
+
+    std::vector<SharedPtr<Actor>> GetTrafficLightsFromWaypoint(
+        const Waypoint& waypoint, double distance) const;
+
+    std::vector<SharedPtr<Actor>> GetTrafficLightsInJunction(
+        const road::JuncId junc_id) const;
 
   private:
 

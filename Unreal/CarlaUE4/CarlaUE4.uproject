@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{01616FF6-4B08-9C4A-157E-9B89B9CB5A10}",
+	"EngineAssociation": "{89A72E60-461A-C3D9-1C30-E4B4B582BCD0}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -106,11 +106,7 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/2d712649ca864c80812da7b5252f5608"
 		},
 		{
-			"Name": "RoadRunnerImporter",
-			"Enabled": true
-		},
-		{
-			"Name": "RoadRunnerCarlaIntegration",
+			"Name": "EditorScriptingUtilities",
 			"Enabled": true
 		}
 	]

@@ -1,7 +1,7 @@
 // Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
-// Copyright (c) 2021 FrostBit Software Lab
+// Copyright(c) 2021 FrostBit Software Lab
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -70,13 +70,17 @@ void ARadar::BeginPlay()
 
 void ARadar::PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaTime)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(ARadar::PostPhysTick);
 	CalculateCurrentVelocity(DeltaTime);
 
 	RadarData.Reset();
 	SendLineTraces(DeltaTime);
 
-	auto DataStream = GetDataStream(*this);
-	DataStream.Send(*this, RadarData, DataStream.PopBufferFromPool());
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE_STR("Send Stream");
+		auto DataStream = GetDataStream(*this);
+		DataStream.Send(*this, RadarData, DataStream.PopBufferFromPool());
+	}
 }
 
 void ARadar::CalculateCurrentVelocity(const float DeltaTime)
@@ -88,7 +92,7 @@ void ARadar::CalculateCurrentVelocity(const float DeltaTime)
 
 void ARadar::SendLineTraces(float DeltaTime)
 {
-
+	TRACE_CPUPROFILER_EVENT_SCOPE(ARadar::SendLineTraces);
 	constexpr float TO_METERS = 1e-2;
 	const FTransform& ActorTransform = GetActorTransform();
 	const FRotator& TransformRotator = ActorTransform.Rotator();
@@ -106,7 +110,7 @@ void ARadar::SendLineTraces(float DeltaTime)
 
 
 	// -- WinterSim experimental -- 
-	// Radar distance drop of rate based on current simulation weather conditions
+	// First implemenation of Radar distance drop off based on current simulation weather conditions
 	// Some stuff to read about Radar performance in rain, snowy and foggy conditions
 	// https://www.researchgate.net/publication/331723697_The_Impact_of_Adverse_Weather_Conditions_on_Autonomous_Vehicles_Examining_how_rain_snow_fog_and_hail_affect_the_performance_of_a_self-driving_car
 	// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6068852/
@@ -151,45 +155,49 @@ void ARadar::SendLineTraces(float DeltaTime)
 
 	FCriticalSection Mutex;
 	GetWorld()->GetPhysicsScene()->GetPxScene()->lockRead();
-	ParallelFor(NumPoints, [&](int32 idx) {
-		FHitResult OutHit(ForceInit);
-		const float Radius = Rays[idx].Radius;
-		const float Angle = Rays[idx].Angle;
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(ParallelFor);
+		ParallelFor(NumPoints, [&](int32 idx) {
+			TRACE_CPUPROFILER_EVENT_SCOPE(ParallelForTask);
+			FHitResult OutHit(ForceInit);
+			const float Radius = Rays[idx].Radius;
+			const float Angle = Rays[idx].Angle;
 
-		float Sin, Cos;
-		FMath::SinCos(&Sin, &Cos, Angle);
+			float Sin, Cos;
+			FMath::SinCos(&Sin, &Cos, Angle);
 
-		const FVector EndLocation = RadarLocation + TransformRotator.RotateVector({
-		  Range,
-		  MaxRx * Radius * Cos,
-		  MaxRy * Radius * Sin
-			});
+			const FVector EndLocation = RadarLocation + TransformRotator.RotateVector({
+			Range,
+			MaxRx * Radius * Cos,
+			MaxRy * Radius * Sin
+				});
 
-		const bool Hitted = GetWorld()->LineTraceSingleByChannel(
-			OutHit,
-			RadarLocation,
-			EndLocation,
-			ECC_GameTraceChannel2,
-			TraceParams,
-			FCollisionResponseParams::DefaultResponseParam
-		);
-
-		const TWeakObjectPtr<AActor> HittedActor = OutHit.Actor;
-		if (Hitted && HittedActor.Get()) {
-			Rays[idx].Hitted = true;
-
-			Rays[idx].RelativeVelocity = CalculateRelativeVelocity(OutHit, RadarLocation);
-
-			Rays[idx].AzimuthAndElevation = FMath::GetAzimuthAndElevation(
-				(EndLocation - RadarLocation).GetSafeNormal() * newRange,
-				TransformXAxis,
-				TransformYAxis,
-				TransformZAxis
+			const bool Hitted = GetWorld()->LineTraceSingleByChannel(
+				OutHit,
+				RadarLocation,
+				EndLocation,
+				ECC_GameTraceChannel2,
+				TraceParams,
+				FCollisionResponseParams::DefaultResponseParam
 			);
 
-			Rays[idx].Distance = OutHit.Distance * TO_METERS;
-		}
-	});
+			const TWeakObjectPtr<AActor> HittedActor = OutHit.Actor;
+			if (Hitted && HittedActor.Get()) {
+				Rays[idx].Hitted = true;
+
+				Rays[idx].RelativeVelocity = CalculateRelativeVelocity(OutHit, RadarLocation);
+
+				Rays[idx].AzimuthAndElevation = FMath::GetAzimuthAndElevation(
+					(EndLocation - RadarLocation).GetSafeNormal() * newRange,
+					TransformXAxis,
+					TransformYAxis,
+					TransformZAxis
+				);
+
+				Rays[idx].Distance = OutHit.Distance * TO_METERS;
+			}
+		});
+	}
 	GetWorld()->GetPhysicsScene()->GetPxScene()->unlockRead();
 
 	// Write the detections in the output structure
