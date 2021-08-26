@@ -118,7 +118,7 @@ class InfoHud(object):
         '''Make sliders and add them in to list'''
         self.temp_slider = Slider(self, "Temp", 0, 40, -40, SLIDER_GAP)
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Road Ice", 0, 5, 0, get_slider_offset())
+        self.ice_slider = Slider(self, "Road slipperiness", 0, 5, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
         self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
@@ -165,7 +165,7 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Iciness:  {}.00%'.format(int(hud.ice_slider.val)),
+            'Road slipperiness: {}.00%'.format(int(hud.ice_slider.val)),
             '',
             'Precipitation:  {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
             '',
