@@ -149,18 +149,8 @@ class World(object):
     def tick(self, clock, hud):
         self.hud.tick(self, clock, hud)
 
-    def render(self, world, client, hud, display, weather):
-        self.hud.render(display)
-        self.render_sliders(world, client, hud, display, weather)
-
-    def render_sliders(self, world, client, hud, display, weather):
-        for slider in hud.sliders:
-                if slider.hit:                                      # if slider is being touched
-                    slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0], slider)    # update weather object
-                    client.get_world().set_weather(weather.weather) # send weather to server
-        for slider in hud.sliders:
-            slider.draw(display, slider)                            # move sliders
+    def render(self, world, display, weather):
+        self.hud.render(world, display, weather)
 
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
@@ -253,7 +243,6 @@ def game_loop(args):
         pygame.display.flip()
 
         hud = weather_hud.InfoHud(args.width, args.height, display)
-        hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
@@ -269,7 +258,7 @@ def game_loop(args):
             if controller.parse_events(world, hud):
                 return
             world.tick(clock, hud)
-            world.render(world, client, hud, display, weather)
+            world.render(world, display, weather)
             pygame.display.flip()
 
     finally:
@@ -297,7 +286,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x720',
+        default='620x720',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',

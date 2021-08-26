@@ -37,7 +37,15 @@ import re
 import weakref
 import carla
 from carla import ColorConverter as cc
-import wintersim_control
+import time
+
+# ==============================================================================
+# -- Global functions ----------------------------------------------------------
+# ==============================================================================
+
+def get_actor_display_name(actor, truncate=250):
+    name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
+    return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
 # ==============================================================================
 # -- CollisionSensor -----------------------------------------------------------
@@ -67,7 +75,7 @@ class CollisionSensor(object):
         self = weak_self()
         if not self:
             return
-        actor_type = wintersim_control.get_actor_display_name(event.other_actor)
+        actor_type = get_actor_display_name(event.other_actor)
         self.hud.notification('Collision with %r' % actor_type)
         impulse = event.normal_impulse
         intensity = math.sqrt(impulse.x**2 + impulse.y**2 + impulse.z**2)
@@ -87,7 +95,6 @@ class LaneInvasionSensor(object):
         world = self._parent.get_world()
         bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
         self.sensor = world.spawn_actor(bp, carla.Transform(), attach_to=self._parent)
-        # We need to pass the lambda a weak reference to self to avoid circular reference.
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda event: LaneInvasionSensor._on_invasion(weak_self, event))
 
@@ -113,7 +120,6 @@ class GnssSensor(object):
         world = self._parent.get_world()
         bp = world.get_blueprint_library().find('sensor.other.gnss')
         self.sensor = world.spawn_actor(bp, carla.Transform(carla.Location(x=1.0, z=2.8)), attach_to=self._parent)
-        # We need to pass the lambda a weak reference to self to avoid circular reference.
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda event: GnssSensor._on_gnss_event(weak_self, event))
 
@@ -140,7 +146,6 @@ class IMUSensor(object):
         bp = world.get_blueprint_library().find('sensor.other.imu')
         self.sensor = world.spawn_actor(
             bp, carla.Transform(), attach_to=self._parent)
-        # We need to pass the lambda a weak reference to self to avoid circular reference.
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda sensor_data: IMUSensor._IMU_callback(weak_self, sensor_data))
 
@@ -159,7 +164,7 @@ class IMUSensor(object):
             max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.y))),
             max(limits[0], min(limits[1], math.degrees(sensor_data.gyroscope.z))))
         self.compass = math.degrees(sensor_data.compass)
-
+        
 # ==============================================================================
 # -- RadarSensor ---------------------------------------------------------------
 # ==============================================================================
@@ -176,8 +181,7 @@ class RadarSensor(object):
         bp.set_attribute('vertical_fov', str(20))
         self.sensor = world.spawn_actor(bp,
             carla.Transform(carla.Location(x=2.8, z=1.0),
-                carla.Rotation(pitch=5)),attach_to=self._parent)
-        # We need a weak reference to self to avoid circular reference.
+            carla.Rotation(pitch=5)),attach_to=self._parent)
         weak_self = weakref.ref(self)
         self.sensor.listen(lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data))
 
@@ -190,8 +194,7 @@ class RadarSensor(object):
         for detect in radar_data:
             azi = math.degrees(detect.azimuth)
             alt = math.degrees(detect.altitude)
-            # The 0.25 adjusts a bit the distance so the dots can be properly seen
-            fw_vec = carla.Vector3D(x=detect.depth - 0.25)
+            fw_vec = carla.Vector3D(x=detect.depth - 0.25)  # The 0.25 adjusts a bit the distance so the dots can be properly seen
             carla.Transform(carla.Location(), carla.Rotation(
                     pitch=current_rot.pitch + alt,
                     yaw=current_rot.yaw + azi,
@@ -207,3 +210,7 @@ class RadarSensor(object):
             self.debug.draw_point(radar_data.transform.location + fw_vec,
                 size=0.075,life_time=0.06,
                 persistent_lines=False, color=carla.Color(r, g, b))
+
+    def destroy_radar(self):
+        self.sensor.stop()
+        self.sensor.destroy()

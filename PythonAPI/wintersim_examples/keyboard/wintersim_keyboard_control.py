@@ -24,6 +24,7 @@ try:
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
     from pygame.locals import K_F2
+    from pygame.locals import K_F4
     from pygame.locals import K_F5
     from pygame.locals import K_F8
     from pygame.locals import K_F9
@@ -50,14 +51,10 @@ try:
     from pygame.locals import K_w
     from pygame.locals import K_x
     from pygame.locals import K_z
+    from pygame.locals import K_t
 
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
 class KeyboardControl(object):
     """Class that handles keyboard input."""
@@ -72,7 +69,7 @@ class KeyboardControl(object):
         self._steer_cache = 0.0
         world.hud_wintersim.notification("Press 'H' for help.", seconds=4.0)
 
-    def parse_events(self, client, world, clock, hud_wintersim):
+    def parse_events(self, world, clock):
         if isinstance(self._control, carla.VehicleControl):
             current_lights = self._lights
         for event in pygame.event.get():
@@ -82,34 +79,39 @@ class KeyboardControl(object):
                 if self._is_quit_shortcut(event.key):
                     return True
                 elif event.key == K_F1:
-                    world.hud_wintersim.toggle_info(world)
+                    world.hud_wintersim.toggle_info()
                 elif event.key == K_F2:
                     world.toggle_npcs()
+                elif event.key == K_F4:
+                    world.toggle_multi_sensor_view()
+                elif event.key == K_F5:
+                    world.toggle_static_tiretracks()
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
                     world.toggle_open3d_lidar()
                 elif event.key == K_F12:
-                    game_world = client.get_world()  # toggle server rendering
-                    settings = game_world.get_settings()
-                    settings.no_rendering_mode = not settings.no_rendering_mode
-                    game_world.apply_settings(settings)
-                    text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
-                    hud_wintersim.notification(text)
+                    world.toggle_server_rendering()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:
                     world.camera_manager.toggle_camera()
-                # elif event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
-                #     world.next_weather(reverse=True)
-                # elif event.key == K_c:
-                #     world.next_weather()
+                elif event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
+                    world.next_weather(reverse=True)
+                elif event.key == K_c:
+                    world.next_weather()
                 elif event.key == K_g:
                     world.toggle_radar()
                 elif event.key == K_BACKQUOTE:
                     world.camera_manager.next_sensor()
                 elif event.key == K_n:
                     world.camera_manager.next_sensor()
+                elif event.key == K_t:
+                    try:
+                        world.show_vehicle_telemetry ^= True
+                        world.player.show_debug_telemetry(world.show_vehicle_telemetry)
+                    except AttributeError:
+                           print("'show_debug_telemetry)' has not been implemented. This works in CARLA version 0.9.12 and above")
                 elif event.key > K_0 and event.key <= K_9:
                     world.camera_manager.set_sensor(event.key - 1 - K_0)
                 if isinstance(self._control, carla.VehicleControl):
@@ -133,11 +135,9 @@ class KeyboardControl(object):
                         current_lights ^= carla.VehicleLightState.Special1
                     elif event.key == K_l and pygame.key.get_mods() & KMOD_SHIFT:
                         current_lights ^= carla.VehicleLightState.HighBeam
-                    elif event.key == K_l:
-                        # Use 'L' key to switch between lights:
-                        # closed -> position -> low beam -> fog
-                        if not self._lights & carla.VehicleLightState.Position:
-                            world.hud_wintersim.notification("Position lights")
+                    elif event.key == K_l:                                      # Use 'L' key to switch between lights:
+                        if not self._lights & carla.VehicleLightState.Position: # closed -> position -> low beam -> fog
+                            world.hud_wintersim.notification("Position lights") 
                             current_lights |= carla.VehicleLightState.Position
                         else:
                             world.hud_wintersim.notification("Low beam lights")
