@@ -243,7 +243,6 @@ def game_loop(args):
         pygame.display.flip()
 
         hud = enviroment_hud.InfoHud(args.width, args.height, display)
-        hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = enviroment_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders

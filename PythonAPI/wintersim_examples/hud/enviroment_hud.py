@@ -24,8 +24,8 @@ import carla
 # Slider constants
 SLIDER_RIGHT_OFFSET = 120
 SLIDER_SIZE = 120
-SLIDER_Y = 15
 SLIDER_GAP = 90
+SLIDER_Y = 15
 
 # Color constants
 BLACK = (0, 0, 0)
@@ -68,6 +68,7 @@ def get_slider_offset(offset=40):
 # ==============================================================================
 
 class InfoHud(object):
+    
     def __init__(self, width, height, display):
         self.dim = (width, height)
         self.screen = display
@@ -111,6 +112,7 @@ class InfoHud(object):
         self.boxes = []
         self.button = Checkbox(self.screen, 20, 650, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
+        self.make_sliders()
 
     def make_sliders(self):
         '''Make sliders and add them in to list'''
@@ -119,10 +121,10 @@ class InfoHud(object):
         self.ice_slider = Slider(self, "Road Ice", 0, 5, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
-        self.particle_slider = Slider(self, "Snow P. size", 0.5, 7, 0.5, get_slider_offset())
+        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
-        self.wind_slider = Slider(self, "Wind", 0, 100, 0, get_slider_offset())
-        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, get_slider_offset())
+        self.wind_slider = Slider(self, "Wind intensity", 0, 100, 0, get_slider_offset())
+        self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
         self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
 
@@ -139,6 +141,7 @@ class InfoHud(object):
             self.particle_slider.val = preset.particle_size
             self.humidity = preset.relative_humidity
             self.dewpoint_slider.val = preset.dewpoint
+            self.wind_dir_slider.val = preset.wind_direction
         except AttributeError as e:
             print(e, "not implemented")
         if month and clock:
@@ -162,19 +165,19 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
-            '',
             'Iciness:  {}.00%'.format(int(hud.ice_slider.val)),
             '',
             'Precipitation:  {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
+            '',
+            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
+            '',
+            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
             'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
-            '',
-            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
@@ -219,13 +222,14 @@ class InfoHud(object):
                 slider.move()
                 weather.tick(self, world._weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
-            slider.draw(display, slider)
+            slider.render(display, slider)
 
 # ==============================================================================
 # -- Checkbox ----------------------------------------------------------------
 # ==============================================================================
 
 class Checkbox:
+
     def __init__(self, surface, x, y, idnum, color=(230, 230, 230),
         caption="", outline_color=(255, 255, 255), check_color=(0, 0, 0),
         font_size=16, font_color=(255, 255, 255), text_offset=(20, 1), checkbox_size=12):
@@ -279,6 +283,7 @@ class Checkbox:
 # ==============================================================================
 
 class Slider():
+
     def __init__(self, InfoHud, name, val, maxi, mini, pos):
         self.hud = InfoHud
         self.font = pygame.font.SysFont("ubuntumono", 20)
@@ -298,8 +303,6 @@ class Slider():
         self.txt_rect.top = 8
 
         # Static graphics - slider background #
-        #pygame.draw.rect(self.surf, WHITE,  [10, 7, SLIDER_SIZE, 20], 3)
-        #pygame.draw.rect(self.surf, WHITE,  [0, 7, SLIDER_SIZE, 20], 3)
         pygame.draw.rect(self.surf, ORANGE, [SLIDER_RIGHT_OFFSET, SLIDER_Y, SLIDER_SIZE, 1], 0)
 
         #borders
@@ -316,7 +319,6 @@ class Slider():
 
         # this surface never changes
         self.surf.blit(self.txt_surf, self.txt_rect)  
-        self.surf.set_alpha(200)
 
         # dynamic graphics - button surface #
         self.button_surf = pygame.surface.Surface((40, 40))
@@ -326,14 +328,14 @@ class Slider():
 
         self.hud.sliders.append(self)
 
-    def draw(self, screen, slider):
+    def render(self, screen, slider):
         """Draw sliders"""
         surf = self.surf.copy()
         pos = (SLIDER_RIGHT_OFFSET+int((self.val-self.mini) / (self.maxi-self.mini) * SLIDER_SIZE), 29)
         self.button_rect = self.button_surf.get_rect(center=pos)
         surf.blit(self.button_surf, self.button_rect)
-        self.button_rect.move_ip(self.xpos, self.ypos)      # Move of button box to correct screen position.
-        screen.blit(surf, (self.xpos, self.ypos))           # screen
+        self.button_rect.move_ip(self.xpos, self.ypos)
+        screen.blit(surf, (self.xpos, self.ypos))
 
     def move(self):
         """The dynamic part; reacts to movement of the slider button."""
@@ -348,12 +350,13 @@ class Slider():
 # ==============================================================================
 
 class Sun(object):
+
     def __init__(self, azimuth, altitude):
         self.azimuth = azimuth
         self.altitude = altitude
 
-    # Overal handler for sun altitude and azimuth.
-    def SetSun(self, highest_time, sun_highest, sun_lowest, clock): 
+    def SetSun(self, highest_time, sun_highest, sun_lowest, clock):
+        '''handler for sun altitude and azimuth.'''
         if clock is highest_time:
             self.altitude = sun_highest
         elif clock < highest_time:
@@ -381,12 +384,13 @@ class Sun(object):
 # ==============================================================================
 
 class Weather(object):
+
     def __init__(self, weather):
         self.weather = weather
         self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) #instantiate sun object and pass angles 
 
-    # This is called always when slider is being moved.
-    def tick(self, hud, preset, slider): 
+    def tick(self, hud, preset, slider):
+        '''This is called always when slider is being moved'''
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val
@@ -394,7 +398,7 @@ class Weather(object):
         self.weather.cloudiness = hud.precipitation_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
         self.weather.precipitation_deposits = hud.precipitation_slider.val
-        self.weather.wind_intensity = hud.wind_slider.val /100.0
+        self.weather.wind_intensity = hud.wind_slider.val / 100.0
         self.weather.fog_density = hud.fog_slider.val
         self.weather.wetness = preset.wetness
         self.weather.sun_azimuth_angle = self.sun.azimuth
@@ -405,6 +409,7 @@ class Weather(object):
         self.weather.particle_size = hud.particle_slider.val
         self.weather.humidity = hud.humidity
         self.weather.dewpoint = hud.dewpoint_slider.val
+        self.weather.wind_direction = hud.wind_dir_slider.val
         if slider.name == 'Temp' or slider.name == 'Dewpoint':
             val = get_approx_relative_humidity(self.weather.temperature, self.weather.dewpoint)
             if val > 100.0:

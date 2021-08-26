@@ -80,7 +80,8 @@ namespace rpc {
         float in_ice_amount,
         float in_particle_size,
 		float in_relative_humidity,
-		float in_dewpoint)
+		float in_dewpoint,
+        float in_wind_direction)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -99,7 +100,8 @@ namespace rpc {
         ice_amount(in_ice_amount),
         particle_size(in_particle_size),
 		relative_humidity(in_relative_humidity),
-		dewpoint(in_dewpoint) {}
+		dewpoint(in_dewpoint),
+        wind_direction(in_wind_direction) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -120,6 +122,7 @@ namespace rpc {
     float particle_size = 0.0f;
 	float relative_humidity = 0.0f;
 	float dewpoint = 0.0f;
+    float wind_direction = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -142,7 +145,8 @@ namespace rpc {
         ice_amount(Weather.IceAmount),
         particle_size(Weather.ParticleSize),
 		relative_humidity(Weather.RelativeHumidity),
-		dewpoint(Weather.Dewpoint) {}
+		dewpoint(Weather.Dewpoint),
+        wind_direction(Weather.WindDirection) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -165,6 +169,7 @@ namespace rpc {
       Weather.ParticleSize = particle_size;
 	  Weather.RelativeHumidity = relative_humidity;
 	  Weather.Dewpoint = dewpoint;
+      Weather.WindDirection = wind_direction;
       return Weather;
     }
 
@@ -182,15 +187,16 @@ namespace rpc {
 			fog_distance != rhs.fog_distance ||
 			fog_falloff != rhs.fog_falloff ||
 			wetness != rhs.wetness ||
-      scattering_intensity != rhs.scattering_intensity ||
-      mie_scattering_scale != rhs.mie_scattering_scale ||
-      rayleigh_scattering_scale != rhs.rayleigh_scattering_scale ||
+            scattering_intensity != rhs.scattering_intensity ||
+            mie_scattering_scale != rhs.mie_scattering_scale ||
+            rayleigh_scattering_scale != rhs.rayleigh_scattering_scale ||
 			snow_amount != rhs.snow_amount ||
 			temperature != rhs.temperature ||
 			ice_amount != rhs.ice_amount ||
 			particle_size != rhs.particle_size ||
 			relative_humidity != rhs.relative_humidity ||
-			dewpoint != rhs.dewpoint;
+			dewpoint != rhs.dewpoint ||
+            wind_direction != rhs.wind_direction;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -216,7 +222,8 @@ namespace rpc {
         ice_amount,
         particle_size,
 		relative_humidity,
-		dewpoint);
+		dewpoint,
+        wind_direction);
   };
 
 } // namespace rpc
