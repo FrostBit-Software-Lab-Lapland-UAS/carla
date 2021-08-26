@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{89A72E60-461A-C3D9-1C30-E4B4B582BCD0}",
+	"EngineAssociation": "{2A900058-4D57-66AE-EF69-31B7D628C4C8}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -107,6 +107,10 @@
 		},
 		{
 			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "Volumetrics",
 			"Enabled": true
 		}
 	]
