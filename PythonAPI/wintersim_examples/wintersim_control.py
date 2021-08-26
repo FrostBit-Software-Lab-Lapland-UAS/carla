@@ -473,7 +473,7 @@ def game_loop(args):
 
         # open another terminal window and launch wintersim weather_hud.py script
         try:
-            world.w_control = subprocess.Popen('python enviroment_control.py')
+            world.w_control = subprocess.Popen('python weather_control.py')
         except:
             print("Couldn't launch weather_control.py")
 

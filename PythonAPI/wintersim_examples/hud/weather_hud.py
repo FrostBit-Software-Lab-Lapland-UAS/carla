@@ -21,6 +21,19 @@ import pygame
 import math
 import carla
 
+# Slider constants
+SLIDER_RIGHT_OFFSET = 120
+SLIDER_SIZE = 120
+SLIDER_GAP = 90
+SLIDER_Y = 15
+
+# Color constants
+BLACK = (0, 0, 0)
+ORANGE = (255, 183, 0)
+WHITE = (255, 255, 255)
+GREY = (75, 75, 75)
+BLUE = (0, 0, 255)
+
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
@@ -44,11 +57,18 @@ def get_approx_temp(TD, RH):
     t = 243.04*(((17.625*TD)/(243.04+TD))-math.log(RH/100))/(17.625+math.log(RH/100)-((17.625*TD)/(243.04+TD)))
     return t
 
+def get_slider_offset(offset=40):
+    '''Return offset between each slider'''
+    global SLIDER_GAP
+    SLIDER_GAP += offset
+    return SLIDER_GAP
+
 # ==============================================================================
 # -- INFO_HUD -------------------------------------------------------------
 # ==============================================================================
 
 class InfoHud(object):
+    
     def __init__(self, width, height, display):
         self.dim = (width, height)
         self.screen = display
@@ -66,52 +86,51 @@ class InfoHud(object):
         self.precipitation_slider = Slider
         self.fog_slider = Slider
         self.wind_slider = Slider
+        self.wind_dir_slider = Slider
         self.particle_slider = Slider
         self.time_slider = Slider
         self.month_slider = Slider
         self.sliders = []
         self._font_mono = pygame.font.Font(mono, 18 if os.name == 'nt' else 18)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
+        self.logo = pygame.image.load('images/WinterSim_White_Color.png')
+        self.logo = pygame.transform.scale(self.logo, (262,61))
+        self.logo_rect = self.logo.get_rect()
         self._info_text = []
         self.months = [
             'January','February','March','April','May','June',
-            'July','August','September','October','November','December'
-            ]
+            'July','August','September','October','November','December']
         self.sun_positions = [
             [12.5, 1.36, -43.6],[12.5, 9.25, -35.11],
             [12.5, 20.13, -24.24],[12.5, 31.99, -12.37],
             [12.5, 41.03, -2.74],[12.5, 45.39, 1.60],
             [12.5, 43.51, 0.05],[12.5, 35.97, -8.07],
             [12.5, 24.94, -19.04],[12.5, 13.44, -30.56],
-            [12.5, 3.66, -40.75],[12.5, -0.56, -45.32]
-            ]
+            [12.5, 3.66, -40.75],[12.5, -0.56, -45.32]]
 
         # create checkboxe(s)
         self.boxes = []
-        self.button = Checkbox(self.screen, 20, 610, 0, caption='Static Tiretracks (F5)')
+        self.button = Checkbox(self.screen, 20, 650, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
+        self.make_sliders()
 
     def make_sliders(self):
         '''Make sliders and add them in to list'''
-        self.temp_slider = Slider("Temp", 0, 40, -40, 10)
-        self.dewpoint_slider = Slider("Dewpoint", 0, 40, -40, 77)
-        self.ice_slider = Slider("Road Ice", 0, 5, 0, 144)
-        self.precipitation_slider = Slider("Precipitation", 0, 100, 0, 211)
-        self.snow_amount_slider = Slider("Snow amount", 0, 100, 0, 278)
-        self.fog_slider = Slider("Fog", 0, 100, 0, 345)
-        self.wind_slider = Slider("Wind", 0, 100, 0, 412)
-        self.particle_slider = Slider("Snow particle size", 0.5, 7, 0.5, 479)
-        self.time_slider = Slider("Time", 10, 24, 0, 546)
-        self.month_slider = Slider("Month", 0, 11, 0, 613)
-        self.sliders = [
-            self.temp_slider, self.dewpoint_slider,
-            self.ice_slider, self.precipitation_slider, self.snow_amount_slider,self.fog_slider, 
-            self.wind_slider, self.particle_slider, 
-            self.time_slider, self.month_slider
-            ]
+        self.temp_slider = Slider(self, "Temp", 0, 40, -40, SLIDER_GAP)
+        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
+        self.ice_slider = Slider(self, "Road Ice", 0, 5, 0, get_slider_offset())
+        self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
+        self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
+        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
+        self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
+        self.wind_slider = Slider(self, "Wind intensity", 0, 100, 0, get_slider_offset())
+        self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
+        self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
+        self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
 
     def update_sliders(self, preset, month=None, clock=None):
-        '''Update slider positions if weather is changed without moving sliders'''
+        '''Update slider positions if weather is changed without moving sliders
+        wrapped in try-expect block just in-case preset doesn't have certain weather parameter'''
         try:
             self.snow_amount_slider.val = preset.snow_amount
             self.ice_slider.val = preset.ice_amount
@@ -122,6 +141,7 @@ class InfoHud(object):
             self.particle_slider.val = preset.particle_size
             self.humidity = preset.relative_humidity
             self.dewpoint_slider.val = preset.dewpoint
+            self.wind_dir_slider.val = preset.wind_direction
         except AttributeError as e:
             print(e, "not implemented")
         if month and clock:
@@ -136,7 +156,7 @@ class InfoHud(object):
         self._notifications.tick(world, clock)
         month, sundata = self.get_month(int(hud.month_slider.val))
         self._info_text = [
-            'Weather Control',
+            '     Weather Control',
             '----------------------------',
             '',
             'Temperature:  {}°C'.format(round(hud.temp_slider.val,1)),
@@ -145,17 +165,19 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
-            '',
             'Iciness:  {}.00%'.format(int(hud.ice_slider.val)),
             '',
             'Precipitation:  {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
+            '',
+            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
+            '',
+            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
-            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
+            'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
@@ -169,19 +191,23 @@ class InfoHud(object):
             'Press R to get real time',
             'weather from Muonio']
 
-    # Notification about changing weather preset.
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
-    # Render hud texts into pygame window.
-    def render(self, world, display, weather): 
+    def render(self, world, display, weather):
+        """Render hud texts into pygame window"""
+
+        display_rect = display.get_rect()
+        self.logo_rect.topright = tuple(map(lambda i, j: i - j, display_rect.topright, (5,-2))) 
+        display.blit(self.logo, self.logo_rect)
+
         info_surface = pygame.Surface((345, self.dim[1]))
         info_surface.set_alpha(100)
-        info_surface.fill((75, 75, 75))
+        info_surface.fill(GREY)
         display.blit(info_surface, (0, 0))
         v_offset = 4           
         for item in self._info_text:
-            surface = self._font_mono.render(item, True, (255, 255, 255))
+            surface = self._font_mono.render(item, True, WHITE)
             display.blit(surface, (18, v_offset + 10))
             v_offset += 18
         self._notifications.render(display)
@@ -196,13 +222,14 @@ class InfoHud(object):
                 slider.move()
                 weather.tick(self, world._weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
-            slider.draw(display, slider)
+            slider.render(display, slider)
 
 # ==============================================================================
 # -- Checkbox ----------------------------------------------------------------
 # ==============================================================================
 
 class Checkbox:
+
     def __init__(self, surface, x, y, idnum, color=(230, 230, 230),
         caption="", outline_color=(255, 255, 255), check_color=(0, 0, 0),
         font_size=16, font_color=(255, 255, 255), text_offset=(20, 1), checkbox_size=12):
@@ -256,70 +283,63 @@ class Checkbox:
 # ==============================================================================
 
 class Slider():
-    def __init__(self, name, val, maxi, mini, pos):
-        BLACK = (0, 0, 0)
-        ORANGE = (255, 183, 0)
-        WHITE = (255, 255, 255)
-        self.font = pygame.font.SysFont("ubuntumono", 16)
+
+    def __init__(self, InfoHud, name, val, maxi, mini, pos):
+        self.hud = InfoHud
+        self.font = pygame.font.SysFont("ubuntumono", 20)
         self.name = name
         self.val = val      # start value
         self.maxi = maxi    # maximum at slider position right
         self.mini = mini    # minimum at slider position left
         self.xpos = 358     # x-location on screen
         self.ypos = pos
-        self.surf = pygame.surface.Surface((200, 100))
+        self.surf = pygame.surface.Surface((250, 100))
         # The hit attribute indicates slider movement due to mouse interaction.
         self.hit = False    
 
-        self.txt_surf = self.font.render(name, 1, BLACK)
-        self.txt_rect = self.txt_surf.get_rect(center=(90, 17))
+        self.txt_surf = self.font.render(name, 1, WHITE)
+        self.txt_rect = self.txt_surf.get_rect()
+        self.txt_rect.left = 6
+        self.txt_rect.top = 8
 
         # Static graphics - slider background #
-        pygame.draw.rect(self.surf, WHITE, [10, 7, 160, 20], 3)
-        pygame.draw.rect(self.surf, WHITE, [10, 7, 160, 20], 0)
-        pygame.draw.rect(self.surf, ORANGE, [10, 40, 160, 1], 0)
+        pygame.draw.rect(self.surf, ORANGE, [SLIDER_RIGHT_OFFSET, SLIDER_Y, SLIDER_SIZE, 1], 0)
 
         #borders
         line_width = 1
-        width = 180
-        height = 53
+        width = 250
+        height = 27
 
         # top line #first = starting point on width, second = starting point on height,
         # third = width, fourth = height
-        pygame.draw.rect(self.surf, WHITE, [0,0,width,line_width])
-        # bottom line
-        pygame.draw.rect(self.surf, WHITE, [0,height-line_width,width,line_width])
-        # left line
-        pygame.draw.rect(self.surf, WHITE, [0,0,line_width, height])
-        # right line
-        pygame.draw.rect(self.surf, WHITE, [width-line_width,0,line_width, height+line_width])
+        pygame.draw.rect(self.surf, WHITE, [0,0, width,line_width])                             # top line
+        pygame.draw.rect(self.surf, WHITE, [0, height-line_width,width,line_width])             # bottom line
+        pygame.draw.rect(self.surf, WHITE, [0,0, line_width, height])                           # left line
+        pygame.draw.rect(self.surf, WHITE, [width-line_width,0,line_width, height+line_width])  # right line
 
         # this surface never changes
         self.surf.blit(self.txt_surf, self.txt_rect)  
-        self.surf.set_alpha(200)
 
         # dynamic graphics - button surface #
-        self.button_surf = pygame.surface.Surface((20, 40))
+        self.button_surf = pygame.surface.Surface((40, 40))
         self.button_surf.fill((1, 1, 1))
         self.button_surf.set_colorkey((1, 1, 1))
-        pygame.draw.rect(self.button_surf, WHITE, [6, 23, 6, 15], 0)
+        pygame.draw.rect(self.button_surf, WHITE, [18, 0, 6, 15], 0)
 
-    def draw(self, screen, slider):
-        """ Combination of static and dynamic graphics in a copy ofthe basic slide surface"""
-        # static
+        self.hud.sliders.append(self)
+
+    def render(self, screen, slider):
+        """Draw sliders"""
         surf = self.surf.copy()
-        # dynamic
-        pos = (10+int((self.val-self.mini)/(self.maxi-self.mini)*160), 29)
+        pos = (SLIDER_RIGHT_OFFSET+int((self.val-self.mini) / (self.maxi-self.mini) * SLIDER_SIZE), 29)
         self.button_rect = self.button_surf.get_rect(center=pos)
         surf.blit(self.button_surf, self.button_rect)
-        # Move of button box to correct screen position.
-        self.button_rect.move_ip(self.xpos, self.ypos)  
-        # screen
+        self.button_rect.move_ip(self.xpos, self.ypos)
         screen.blit(surf, (self.xpos, self.ypos))
 
     def move(self):
         """The dynamic part; reacts to movement of the slider button."""
-        self.val = (pygame.mouse.get_pos()[0] - self.xpos - 10) / 160 * (self.maxi - self.mini) + self.mini
+        self.val = (pygame.mouse.get_pos()[0] - self.xpos - SLIDER_RIGHT_OFFSET) / SLIDER_SIZE * (self.maxi - self.mini) + self.mini
         if self.val < self.mini:
             self.val = self.mini
         if self.val > self.maxi:
@@ -330,12 +350,13 @@ class Slider():
 # ==============================================================================
 
 class Sun(object):
+
     def __init__(self, azimuth, altitude):
         self.azimuth = azimuth
         self.altitude = altitude
 
-    # Overal handler for sun altitude and azimuth.
-    def SetSun(self, highest_time, sun_highest, sun_lowest, clock): 
+    def SetSun(self, highest_time, sun_highest, sun_lowest, clock):
+        '''handler for sun altitude and azimuth.'''
         if clock is highest_time:
             self.altitude = sun_highest
         elif clock < highest_time:
@@ -363,12 +384,13 @@ class Sun(object):
 # ==============================================================================
 
 class Weather(object):
+
     def __init__(self, weather):
         self.weather = weather
         self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) #instantiate sun object and pass angles 
 
-    # This is called always when slider is being moved.
-    def tick(self, hud, preset, slider): 
+    def tick(self, hud, preset, slider):
+        '''This is called always when slider is being moved'''
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val
@@ -376,7 +398,7 @@ class Weather(object):
         self.weather.cloudiness = hud.precipitation_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
         self.weather.precipitation_deposits = hud.precipitation_slider.val
-        self.weather.wind_intensity = hud.wind_slider.val /100.0
+        self.weather.wind_intensity = hud.wind_slider.val / 100.0
         self.weather.fog_density = hud.fog_slider.val
         self.weather.wetness = preset.wetness
         self.weather.sun_azimuth_angle = self.sun.azimuth
@@ -387,13 +409,13 @@ class Weather(object):
         self.weather.particle_size = hud.particle_slider.val
         self.weather.humidity = hud.humidity
         self.weather.dewpoint = hud.dewpoint_slider.val
+        self.weather.wind_direction = hud.wind_dir_slider.val
         if slider.name == 'Temp' or slider.name == 'Dewpoint':
             val = get_approx_relative_humidity(self.weather.temperature, self.weather.dewpoint)
             if val > 100.0:
                 val = 100
             self.weather.humidity = val
             hud.humidity = val
-
 
     def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, humidity, clock, m):
         month, sundata = hud.get_month(m)

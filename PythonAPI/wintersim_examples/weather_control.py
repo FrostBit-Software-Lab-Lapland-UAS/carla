@@ -243,7 +243,6 @@ def game_loop(args):
         pygame.display.flip()
 
         hud = weather_hud.InfoHud(args.width, args.height, display)
-        hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
@@ -287,7 +286,7 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x720',
+        default='620x720',
         help='window resolution (default: 1280x720)')
     argparser.add_argument(
         '--gamma',
