@@ -85,6 +85,7 @@ class InfoHud(object):
         self.ice_slider = Slider
         self.precipitation_slider = Slider
         self.fog_slider = Slider
+        self.fog_falloff = Slider
         self.wind_slider = Slider
         self.wind_dir_slider = Slider
         self.particle_slider = Slider
@@ -123,6 +124,7 @@ class InfoHud(object):
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
         self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
+        self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, get_slider_offset())
         self.wind_slider = Slider(self, "Wind intensity", 0, 100, 0, get_slider_offset())
         self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
@@ -137,6 +139,7 @@ class InfoHud(object):
             self.temp_slider.val = preset.temperature
             self.precipitation_slider.val = preset.precipitation
             self.fog_slider.val = preset.fog_density
+            self.fog_falloff.val = preset.fog_falloff
             self.wind_slider.val = preset.wind_intensity * 100.0
             self.particle_slider.val = preset.particle_size
             self.humidity = preset.relative_humidity
@@ -175,6 +178,8 @@ class InfoHud(object):
             '',
             'Fog:  {}%'.format(int(hud.fog_slider.val)),
             '',
+            'Fog Falloff:  {}'.format(round((hud.fog_falloff.val), 1)),
+            '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
             '',
             'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
@@ -182,9 +187,7 @@ class InfoHud(object):
             'Time: {}:00'.format(int(hud.time_slider.val)),
             '',
             'Month: {}'.format(month),
-            '',
             '----------------------------',
-            '',
             'Press C to change',
             'weather preset',
             '',
