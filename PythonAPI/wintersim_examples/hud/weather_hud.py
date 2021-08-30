@@ -20,6 +20,7 @@ except IndexError:
 import pygame
 import math
 import carla
+import re
 
 # Slider constants
 SLIDER_RIGHT_OFFSET = 120
@@ -63,6 +64,12 @@ def get_slider_offset(offset=40):
     SLIDER_GAP += offset
     return SLIDER_GAP
 
+def find_weather_presets():
+    rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
+    name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
+    presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
+    return [(getattr(carla.WeatherParameters, x), name(x)) for x in presets]
+
 # ==============================================================================
 # -- INFO_HUD -------------------------------------------------------------
 # ==============================================================================
@@ -78,6 +85,7 @@ class InfoHud(object):
         default_font = 'ubuntumono'
         mono = default_font if default_font in fonts else fonts[0]
         mono = pygame.font.match_font(mono)
+        self.preset_slider = Slider
         self.temp_slider = Slider
         self.dewpoint_slider = Slider
         self.humidity = 0
@@ -98,6 +106,18 @@ class InfoHud(object):
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
         self._info_text = []
+        self._weather_presets = []
+        self.preset_names = []
+
+        self._weather_presets_all = find_weather_presets()
+        for preset in self._weather_presets_all:
+            if preset[0].temperature <= 0: # only get winter presets
+                self._weather_presets.append(preset)
+                self.preset_names.append(str(preset[1]))
+        self.preset_names.append("Custom") # add 'Custom' prest for the last list index, 
+                                           # this is shown if sliders are changed manually
+
+        self.preset_count = len(self._weather_presets)
         self.months = [
             'January','February','March','April','May','June',
             'July','August','September','October','November','December']
@@ -117,7 +137,8 @@ class InfoHud(object):
 
     def make_sliders(self):
         '''Make sliders and add them in to list'''
-        self.temp_slider = Slider(self, "Temp", 0, 40, -40, SLIDER_GAP)
+        self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
+        self.temp_slider = Slider(self, "Temp", 0, 40, -40, get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
         self.ice_slider = Slider(self, "Road slipperiness", 0, 5, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
@@ -129,6 +150,8 @@ class InfoHud(object):
         self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
         self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
+
+        self
 
     def update_sliders(self, preset, month=None, clock=None):
         '''Update slider positions if weather is changed without moving sliders
@@ -158,36 +181,37 @@ class InfoHud(object):
     def tick(self, world, clock, hud): 
         self._notifications.tick(world, clock)
         month, sundata = self.get_month(int(hud.month_slider.val))
+        preset = hud.preset_names[int(hud.preset_slider.val)]
         self._info_text = [
-            '     Weather Control',
+            '      Weather Control',
             '----------------------------',
             '',
-            'Temperature:  {}°C'.format(round(hud.temp_slider.val,1)),
+            'Preset: {}'.format(preset),
+            '',
+            'Temperature: {}°C'.format(round(hud.temp_slider.val,1)),
             '',
             'Humidity: {}%'.format(round((hud.humidity), 1)),
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Road slipperiness: {}.00%'.format(int(hud.ice_slider.val)),
+            'Road slipperiness: {}.00'.format(int(hud.ice_slider.val)),
             '',
-            'Precipitation:  {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
+            'Precipitation: {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
             '',
-            'Amount of Snow:  {} cm'.format(round(hud.snow_amount_slider.val)),
-            '',
+            'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
             'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
             '',
-            'Fog:  {}%'.format(int(hud.fog_slider.val)),
-            '',
-            'Fog Falloff:  {}'.format(round((hud.fog_falloff.val), 1)),
+            'Fog: {}%'.format(int(hud.fog_slider.val)),
+            'Fog Falloff: {}'.format(round((hud.fog_falloff.val), 1)),
             '',
             'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
-            '',
             'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
-            '',
             'Month: {}'.format(month),
+            '',
             '----------------------------',
+            '',
             'Press C to change',
             'weather preset',
             '',
@@ -223,7 +247,7 @@ class InfoHud(object):
         for slider in self.sliders:
             if slider.hit:
                 slider.move()
-                weather.tick(self, world._weather_presets[0], slider)
+                weather.tick(self, world, world._weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
             slider.render(display, slider)
 
@@ -390,10 +414,18 @@ class Weather(object):
 
     def __init__(self, weather):
         self.weather = weather
-        self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle) #instantiate sun object and pass angles 
+        self.sun = Sun(weather.sun_azimuth_angle, weather.sun_altitude_angle)
 
-    def tick(self, hud, preset, slider):
+    def tick(self, hud, world, preset, slider):
         '''This is called always when slider is being moved'''
+
+        # if preset slider is the one being moved, change other sliders as well
+        # else set preset_slider to Custom
+        if slider.name == 'Preset':
+            world.set_weather(int(hud.preset_slider.val))
+        else:
+            hud.preset_slider.val = hud.preset_count
+
         preset = preset[0]
         month, sundata = hud.get_month(int(hud.month_slider.val))
         clock = hud.time_slider.val
@@ -403,6 +435,7 @@ class Weather(object):
         self.weather.precipitation_deposits = hud.precipitation_slider.val
         self.weather.wind_intensity = hud.wind_slider.val / 100.0
         self.weather.fog_density = hud.fog_slider.val
+        self.weather.fog_falloff= hud.fog_falloff.val
         self.weather.wetness = preset.wetness
         self.weather.sun_azimuth_angle = self.sun.azimuth
         self.weather.sun_altitude_angle = self.sun.altitude
