@@ -101,13 +101,15 @@ class World(object):
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
-        
+
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
         wind *= 10 # Multiply wind by 10 to get it into range of 0-100
+
+        wind_direction = data['weatherStations'][0]['sensorValues'][13]['sensorValue'] / 2
 
         humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
         humidity = 100 if humidity > 100 else humidity
@@ -121,11 +123,15 @@ class World(object):
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
+
+        weather_values = [ temp, precipitation, wind,
+            0.5, 0, snow, humidity, wind_direction,
+            clock, month]
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
+        weather.set_weather_manually(self.hud, weather_values)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
-        self.world.set_weather(weather.weather)                                                                     # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)
+        self.world.set_weather(weather.weather)
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''

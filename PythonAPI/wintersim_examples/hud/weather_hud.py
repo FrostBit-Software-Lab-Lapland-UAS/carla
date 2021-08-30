@@ -410,6 +410,9 @@ class Weather(object):
         self.weather.humidity = hud.humidity
         self.weather.dewpoint = hud.dewpoint_slider.val
         self.weather.wind_direction = hud.wind_dir_slider.val
+
+        # Adjust humidity correctly when either 
+        # temperature or dewpoint slider changed
         if slider.name == 'Temp' or slider.name == 'Dewpoint':
             val = get_approx_relative_humidity(self.weather.temperature, self.weather.dewpoint)
             if val > 100.0:
@@ -417,22 +420,23 @@ class Weather(object):
             self.weather.humidity = val
             hud.humidity = val
 
-    def set_weather_manually(self, hud, temp, precipitation, wind, particle_size, visibility, snow, humidity, clock, m):
-        month, sundata = hud.get_month(m)
-        self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
-        #self.weather.cloudiness = cloudiness
-        self.weather.precipitation = precipitation
-        self.weather.precipitation_deposits = precipitation
-        self.weather.wind_intensity = wind / 100.0
-        self.weather.fog_density = visibility
-        self.weather.particle_size = particle_size
+    def set_weather_manually(self, hud, weather_values):
+        # weather_values must be in correct order!
+        self.weather.temperature = weather_values[0]
+        self.weather.precipitation = weather_values[1]
+        self.weather.precipitation_deposits = weather_values[1]
+        self.weather.wind_intensity = weather_values[2] / 100.0
+        self.weather.particle_size = weather_values[3]
+        self.weather.fog_density = weather_values[4]
+        self.weather.snow_amount = weather_values[5]
+        self.weather.humidity = weather_values[6]
+        self.weather.wind_direction = weather_values[7]
+        month, sundata = hud.get_month(weather_values[9])
+        self.sun.SetSun(sundata[0],sundata[1],sundata[2], weather_values[8])
         self.weather.wetness = 0
         self.weather.sun_azimuth_angle = self.sun.azimuth
         self.weather.sun_altitude_angle = self.sun.altitude
-        self.weather.snow_amount = snow
-        self.weather.temperature = temp
         self.weather.ice_amount = 0
-        self.weather.humidity = humidity
        
     def __str__(self):
         return '%s %s' % (self._sun, self._storm)
