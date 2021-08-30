@@ -536,7 +536,7 @@ def main():
     argparser.add_argument(
         '--filter',
         metavar='PATTERN',
-        default='model3',
+        default='pickup',
         help='actor filter (default: "vehicle.*")')
     argparser.add_argument(
         '--rolename',
