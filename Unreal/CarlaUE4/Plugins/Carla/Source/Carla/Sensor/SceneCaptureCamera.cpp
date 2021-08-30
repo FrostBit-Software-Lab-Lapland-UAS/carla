@@ -11,7 +11,7 @@
 
 FActorDefinition ASceneCaptureCamera::GetSensorDefinition()
 {
-  constexpr bool bEnableModifyingPostProcessEffects = true;
+  constexpr bool bEnableModifyingPostProcessEffects = false;
   return UActorBlueprintFunctionLibrary::MakeCameraDefinition(
       TEXT("rgb"),
       bEnableModifyingPostProcessEffects);

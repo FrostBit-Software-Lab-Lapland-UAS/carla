@@ -202,6 +202,8 @@ class World(object):
             spawn_point.rotation.pitch = 0.0
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+        
+        spawn_attempts = 0
         while self.player is None:
             if not self.map.get_spawn_points():
                 print('There are no spawn points available in your map/town.')
@@ -216,7 +218,13 @@ class World(object):
             else:
                 spawn_point = spawn_points[self.args.spawnpoint]
 
+            #self.player = self.world.spawn_actor(blueprint, spawn_point)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+
+            if spawn_attempts == 5:
+                print('Tried to spawn vehicle 5 times without success. Something is wrong!')
+                sys.exit(1)
+            spawn_attempts += 1
 
         # Set up the sensors
         self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
