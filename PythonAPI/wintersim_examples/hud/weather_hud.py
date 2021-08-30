@@ -403,6 +403,7 @@ class Weather(object):
         self.weather.precipitation_deposits = hud.precipitation_slider.val
         self.weather.wind_intensity = hud.wind_slider.val / 100.0
         self.weather.fog_density = hud.fog_slider.val
+        self.weather.fog_falloff= hud.fog_falloff.val
         self.weather.wetness = preset.wetness
         self.weather.sun_azimuth_angle = self.sun.azimuth
         self.weather.sun_altitude_angle = self.sun.altitude
