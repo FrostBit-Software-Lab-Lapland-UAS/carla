@@ -40,6 +40,7 @@ Use ARROWS or WASD keys for control.
     F2           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
+    F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
     F10          : toggle separate radar window
@@ -266,9 +267,8 @@ class World(object):
         '''Toggle static tiretracks on snowy roads on/off
         This is wrapped around try - expect block
         just in case someone runs this script elsewhere
-        world.set_static_tiretracks() is WinterSim project specific Python API command 
+        world.set_static_tiretracks(bool) is WinterSim project specific Python API command 
         and does not work on default Carla simulator'''
-
         if self.is_process_alive() and not force_toggle:
             return
 
@@ -278,7 +278,20 @@ class World(object):
             self.hud.notification(text)
             self.static_tiretracks_enabled ^= True
         except AttributeError:
-            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
+            print("'set_static_tiretracks(bool)' has not been implemented. This is WinterSim specific Python API command.")
+
+    def clear_dynamic_tiretracks(self, force_toggle=False):
+        '''Clear dynamic tiretracks on snowy roads
+        This is wrapped around try - expect block
+        just in case someone runs this script elsewhere
+        world.clear_dynamic_tiretracks() is WinterSim project specific Python API command 
+        and does not work on default Carla simulator'''
+        try:
+            self.world.clear_dynamic_tiretracks()
+            text = "Dynamic tiretracks cleared"
+            self.hud.notification(text)
+        except AttributeError:
+            print("'clear_dynamic_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
     def tick(self, clock):
         '''Tick WinterSim hud'''

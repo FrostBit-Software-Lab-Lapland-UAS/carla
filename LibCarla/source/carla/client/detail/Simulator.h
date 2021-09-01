@@ -77,6 +77,10 @@ namespace detail {
 		_client.SetStaticTiretracks(enabled);
 	}
 
+    void ClearDynamicTiretracks() const {
+        _client.ClearDynamicTiretracks();
+    }
+
     void LoadLevelLayer(rpc::MapLayer map_layers) const {
       _client.LoadLevelLayer(map_layers);
     }

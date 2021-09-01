@@ -41,11 +41,6 @@ void AWeather::ApplyWeather(const FWeatherParameters &InWeather)
   RefreshWeather(Weather);
 }
 
-void AWeather::UpdateRoad(bool enabled)
-{
-	this->SetStaticTiretracks(enabled);
-}
-
 void AWeather::NotifyWeather()
 {
   // Call the blueprint that actually changes the weather.

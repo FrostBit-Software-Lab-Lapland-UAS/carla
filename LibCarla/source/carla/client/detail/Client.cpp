@@ -147,6 +147,10 @@ namespace detail {
 	  _pimpl->AsyncCall("set_static_tiretracks", enabled);
   }
 
+  void Client::ClearDynamicTiretracks() const {
+      _pimpl->AsyncCall("clear_dynamic_tiretracks");
+  }
+
   void Client::LoadEpisode(std::string map_name, bool reset_settings, rpc::MapLayer map_layer) {
     // Await response, we need to be sure in this one.
     _pimpl->CallAndWait<void>("load_new_episode", std::move(map_name), reset_settings, map_layer);

@@ -25,9 +25,6 @@ public:
   UFUNCTION(BlueprintCallable)
   void ApplyWeather(const FWeatherParameters &WeatherParameters);
 
-  UFUNCTION(BlueprintCallable)
-  void UpdateRoad(bool enabled);
-
   /// Notifing the weather to the blueprint's event
   void NotifyWeather();
 
@@ -42,8 +39,15 @@ public:
     return Weather;
   }
 
+  // This is called from CarlaServer.cpp when 'set_static_tiretracks(bool)' is called from Python side
+  // Actual handing of static tracks is done in blueprint bp_weather
   UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = Gameplay)
   void SetStaticTiretracks(bool enabled);
+
+  // This is called from CarlaServer.cpp when 'clear_dynamic_tiretracks' is called from Python side
+  // Actual handing of dynamic tiretracks is done in blueprint bp_weather
+  UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = Gameplay)
+  void ClearDynamicTireTracks();
 
 protected:
 

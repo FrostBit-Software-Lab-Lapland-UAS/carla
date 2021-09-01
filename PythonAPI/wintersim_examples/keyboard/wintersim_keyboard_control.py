@@ -26,6 +26,7 @@ try:
     from pygame.locals import K_F2
     from pygame.locals import K_F4
     from pygame.locals import K_F5
+    from pygame.locals import K_F6
     from pygame.locals import K_F8
     from pygame.locals import K_F9
     from pygame.locals import K_F12
@@ -86,6 +87,8 @@ class KeyboardControl(object):
                     world.toggle_multi_sensor_view()
                 elif event.key == K_F5:
                     world.toggle_static_tiretracks()
+                elif event.key == K_F6:
+                    world.clear_dynamic_tiretracks()
                 elif event.key == K_F8:
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
