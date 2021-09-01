@@ -79,6 +79,18 @@ class World(object):
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(self.preset[0])
+        self.world.set_weather(self.preset[0])
+
+    def set_weather(self, index):
+        if not index < len(self._weather_presets):
+            return
+
+        self._weather_index = index
+        self.preset = self._weather_presets[self._weather_index]
+        self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
@@ -293,7 +305,7 @@ def main():
         '--res',
         metavar='WIDTHxHEIGHT',
         default='620x720',
-        help='window resolution (default: 1280x720)')
+        help='window resolution (default: 620x720)') # note. UI does not scale properly with resolution!
     argparser.add_argument(
         '--gamma',
         default=2.2,

@@ -98,6 +98,8 @@ namespace detail {
 
 	void SetStaticTiretracks(bool enabled) const;
 
+    void ClearDynamicTiretracks() const;
+
     void LoadLevelLayer(rpc::MapLayer map_layer) const;
 
     void UnloadLevelLayer(rpc::MapLayer map_layer) const;

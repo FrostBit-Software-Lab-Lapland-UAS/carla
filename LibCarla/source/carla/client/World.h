@@ -65,6 +65,8 @@ namespace client {
 
 	void SetStaticTiretracks(bool enabled) const;
 
+    void ClearDynamicTiretracks() const;
+
     void LoadLevelLayer(rpc::MapLayer map_layers) const;
 
     void UnloadLevelLayer(rpc::MapLayer map_layers) const;

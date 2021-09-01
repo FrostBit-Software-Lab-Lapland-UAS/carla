@@ -308,7 +308,7 @@ void FCarlaServer::FPimpl::BindActions()
     return R<void>::Success();
   };
 
-  // enable/disable static tiretracks
+  // enable/disable static tiretracks on snowy roads
   BIND_SYNC(set_static_tiretracks) << [this](bool enabled) -> R<void>
   {
 	  REQUIRE_CARLA_EPISODE();
@@ -318,8 +318,22 @@ void FCarlaServer::FPimpl::BindActions()
 	  {
 		  RESPOND_ERROR("internal error: unable to find weather");
 	  }
-	  Weather->UpdateRoad(enabled);
+	  Weather->SetStaticTiretracks(enabled);
 	  return R<void>::Success();
+  };
+
+  // clear dynamic tiretracks on snowy roads
+  BIND_SYNC(clear_dynamic_tiretracks) << [this]() -> R<void>
+  {
+      REQUIRE_CARLA_EPISODE();
+
+      auto* Weather = Episode->GetWeather();
+      if (Weather == nullptr)
+      {
+          RESPOND_ERROR("internal error: unable to find weather");
+      }
+      Weather->ClearDynamicTireTracks();
+      return R<void>::Success();
   };
 
   BIND_SYNC(unload_map_layer) << [this](cr::MapLayer MapLayers) -> R<void>

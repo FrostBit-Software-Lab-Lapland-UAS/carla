@@ -40,6 +40,7 @@ Use ARROWS or WASD keys for control.
     F2           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
+    F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
     F10          : toggle separate radar window
@@ -202,6 +203,8 @@ class World(object):
             spawn_point.rotation.pitch = 0.0
             self.destroy()
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+        
+        spawn_attempts = 0
         while self.player is None:
             if not self.map.get_spawn_points():
                 print('There are no spawn points available in your map/town.')
@@ -216,7 +219,13 @@ class World(object):
             else:
                 spawn_point = spawn_points[self.args.spawnpoint]
 
+            #self.player = self.world.spawn_actor(blueprint, spawn_point)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+
+            if spawn_attempts == 5:
+                print('Tried to spawn vehicle 5 times without success. Something is wrong!')
+                sys.exit(1)
+            spawn_attempts += 1
 
         # Set up the sensors
         self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
@@ -258,9 +267,8 @@ class World(object):
         '''Toggle static tiretracks on snowy roads on/off
         This is wrapped around try - expect block
         just in case someone runs this script elsewhere
-        world.set_static_tiretracks() is WinterSim project specific Python API command 
+        world.set_static_tiretracks(bool) is WinterSim project specific Python API command 
         and does not work on default Carla simulator'''
-
         if self.is_process_alive() and not force_toggle:
             return
 
@@ -270,7 +278,20 @@ class World(object):
             self.hud.notification(text)
             self.static_tiretracks_enabled ^= True
         except AttributeError:
-            print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
+            print("'set_static_tiretracks(bool)' has not been implemented. This is WinterSim specific Python API command.")
+
+    def clear_dynamic_tiretracks(self, force_toggle=False):
+        '''Clear dynamic tiretracks on snowy roads
+        This is wrapped around try - expect block
+        just in case someone runs this script elsewhere
+        world.clear_dynamic_tiretracks() is WinterSim project specific Python API command 
+        and does not work on default Carla simulator'''
+        try:
+            self.world.clear_dynamic_tiretracks()
+            text = "Dynamic tiretracks cleared"
+            self.hud.notification(text)
+        except AttributeError:
+            print("'clear_dynamic_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
     def tick(self, clock):
         '''Tick WinterSim hud'''
@@ -536,7 +557,7 @@ def main():
     argparser.add_argument(
         '--filter',
         metavar='PATTERN',
-        default='model3',
+        default='pickup',
         help='actor filter (default: "vehicle.*")')
     argparser.add_argument(
         '--rolename',
