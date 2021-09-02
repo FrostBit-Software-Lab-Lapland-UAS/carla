@@ -4,7 +4,7 @@ This reference contains WinterSim specific Python API commands.
 For CARLA Python API reference see [Python API reference](https://carla.readthedocs.io/en/latest/python_api/)
 
 ## carla.World<a name="carla.World"></a>
-World objects are created by the client to have a place for the simulation to happen. The world contains the map we can see, meaning the asset, not the navigation map. Navigation maps are part of the [carla.Map](#carla.Map) class. It also manages the weather and actors present in it. There can only be one world per simulation, but it can be changed anytime.  
+World objects are created by the client to have a place for the simulation to happen. The world contains the map we can see, meaning the asset, not the navigation map. Navigation maps are part of the [carla.Map](https://carla.readthedocs.io/en/latest/python_api/#carlamap) class. It also manages the weather and actors present in it. There can only be one world per simulation, but it can be changed anytime.  
 
 ### Methods
 
