@@ -53,10 +53,10 @@ protected:
   void SimulateLidar(const float DeltaTime);
 
   /// Shoot a laser ray-trace, return whether the laser hit something.
-  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
+  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w);
 
   /// Calculate new hitpoint for linetrace if it is snowing
-  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc);
 
   bool CustomDropOff(float rain_amount) const;
 
@@ -80,7 +80,10 @@ protected:
   FLidarDescription Description;
 
   TArray<float> LaserAngles;
-
+  //----------------------------------------------------------------------------------------------------
+  //Added vector TArray for snowflakes
+  TArray<FVector> flakePoints;
+  //----------------------------------------------------------------------------------------------------
   std::vector<std::vector<FHitResult>> RecordedHits;
   std::vector<std::vector<bool>> RayPreprocessCondition;
   std::vector<uint32_t> PointsPerChannel;

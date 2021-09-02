@@ -226,7 +226,7 @@ void ARayCastSemanticLidar::ComputeRawDetection(const FHitResult& HitInfo, const
     }
 }
 
-bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const
+bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc)
 {
   FVector max_distance = end_trace; //lidar max range
   FVector start_point = LidarBodyLoc; //start point is lidar position
@@ -249,6 +249,15 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
 	if (r < prob) //if random is smaller than probability from formula we hit the trace to snowflake
 	{
 		HitInfo.ImpactPoint = new_hitpoint; //assign new hitpoint
+
+    //------------------------------------------------------------------------------------------------------------------------
+    //Add the point as snowflake
+    if (HitInfo.Component != nullptr)
+    {
+      flakePoints.Add(new_hitpoint);
+    }
+    //------------------------------------------------------------------------------------------------------------------------
+
 		return true;
 	}
 	else {
@@ -269,7 +278,7 @@ bool ARayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custo
   
 }
 
-bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const
+bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w)
 {
   TRACE_CPUPROFILER_EVENT_SCOPE_STR(__FUNCTION__);
 
