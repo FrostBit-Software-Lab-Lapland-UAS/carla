@@ -22,7 +22,9 @@ CARLA is an open-source simulator for autonomous driving research. CARLA has bee
 
 -------
 
-WinterSim Release Installation Guide:
+For older releases and detailed changelog see [WinterSim changelog](https://github.com/FrostBit-Software-Lab-Lapland-UAS/carla/blob/wintersim/master/WINTERSIM_CHANGELOG.md)
+
+WinterSim latest release installation guide:
 
 1. Download [wintersim.zip](https://a3s.fi/swift/v1/AUTH_8811c563a60e4395828a2393f44e064b/Releases/wintersim.zip)
 
