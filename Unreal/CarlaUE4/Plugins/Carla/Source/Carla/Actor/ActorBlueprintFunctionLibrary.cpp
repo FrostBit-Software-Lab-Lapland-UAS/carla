@@ -478,7 +478,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMinBright;
     ExposureMinBright.Id = TEXT("exposure_min_bright");
     ExposureMinBright.Type = EActorAttributeType::Float;
-    ExposureMinBright.RecommendedValues = { TEXT("10.0") };
+    ExposureMinBright.RecommendedValues = { TEXT("-10.0") };
     ExposureMinBright.bRestrictToRecommended = false;
 
     // The maximum brightness for auto exposure that limits the upper
@@ -486,7 +486,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMaxBright;
     ExposureMaxBright.Id = TEXT("exposure_max_bright");
     ExposureMaxBright.Type = EActorAttributeType::Float;
-    ExposureMaxBright.RecommendedValues = { TEXT("12.0") };
+    ExposureMaxBright.RecommendedValues = { TEXT("20.0") };
     ExposureMaxBright.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a dark environment
@@ -494,7 +494,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureSpeedUp;
     ExposureSpeedUp.Id = TEXT("exposure_speed_up");
     ExposureSpeedUp.Type = EActorAttributeType::Float;
-    ExposureSpeedUp.RecommendedValues = { TEXT("3.0") };
+    ExposureSpeedUp.RecommendedValues = { TEXT("10.0") };
     ExposureSpeedUp.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a bright environment
@@ -502,7 +502,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureSpeedDown;
     ExposureSpeedDown.Id = TEXT("exposure_speed_down");
     ExposureSpeedDown.Type = EActorAttributeType::Float;
-    ExposureSpeedDown.RecommendedValues = { TEXT("1.0") };
+    ExposureSpeedDown.RecommendedValues = { TEXT("10.0") };
     ExposureSpeedDown.bRestrictToRecommended = false;
 
     // Calibration constant for 18% Albedo.
