@@ -478,7 +478,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMinBright;
     ExposureMinBright.Id = TEXT("exposure_min_bright");
     ExposureMinBright.Type = EActorAttributeType::Float;
-    ExposureMinBright.RecommendedValues = { TEXT("-10.0") };
+    ExposureMinBright.RecommendedValues = { TEXT("0.0") };
     ExposureMinBright.bRestrictToRecommended = false;
 
     // The maximum brightness for auto exposure that limits the upper

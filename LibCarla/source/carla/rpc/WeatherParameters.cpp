@@ -13,7 +13,7 @@ namespace rpc {
 
   using WP = WeatherParameters;
 
-  //                        cloudiness,   precip.  prec.dep.     wind,   azimuth,   altitude,  fog dens,  fog dist,  fog fall,  wetness, snow,   temp,  iciness, psize, r_humidity, dewpoint, wind dir
+  //                        cloudiness,   precip.  prec.dep.     wind,   azimuth,   altitude,  fog dens,  fog dist,  fog fall,  wetness,                          snow,   temp,  iciness, psize, r_humidity, dewpoint, wind dir
 
   WP WP::Default         = {     -1.0f,    -1.0f,     -1.0f,  -1.00f,    -1.0f,      -1.0f,    -1.0f,     -1.0f,     -1.0f,   -1.0f,  1.0f,   0.03f,   0.0331f,    0.0f,    20.0f,  0.0f,   0.0f,  85.0f, 0.0f, 15.0f };
   WP WP::ClearNoon       = {     15.0f,     0.0f,      0.0f,   0.35f,     0.0f,      75.0f,     0.0f,      0.0f,      0.0f,    0.0f,  1.0f,   0.03f,   0.0331f,    0.0f,    20.0f,  0.0f,   0.0f,  84.0f, 0.0f, 35.0f };
