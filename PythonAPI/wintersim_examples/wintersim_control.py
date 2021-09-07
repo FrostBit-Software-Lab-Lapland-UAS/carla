@@ -43,7 +43,7 @@ Use ARROWS or WASD keys for control.
     F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back camera windows
     F9           : toggle separate Open3D lidar window
-    F10          : toggle separate radar window
+    F11          : take fullscreen screenshot
     F12          : toggle server window rendering
     H            : toggle help
     ESC          : quit;
@@ -87,6 +87,7 @@ from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
 from utils.spawn_npc import SpawnNPC
+import time
 
 try:
     import pygame
@@ -421,6 +422,13 @@ class World(object):
         self.camera_manager.sensor.destroy()
         self.camera_manager.sensor = None
         self.camera_manager.index = None
+
+    def take_fullscreen_screenshot(self):
+        '''Take fullscreen screenshot of pygame window
+        and save it as png'''
+        date = str(int(time.time()))
+        filename = "screenshot" + date + ".png"
+        pygame.image.save(self.display, filename)
 
     def destroy(self):
         '''Destroy all current sensors on quit'''

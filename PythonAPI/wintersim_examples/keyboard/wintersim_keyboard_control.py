@@ -29,6 +29,7 @@ try:
     from pygame.locals import K_F6
     from pygame.locals import K_F8
     from pygame.locals import K_F9
+    from pygame.locals import K_F11
     from pygame.locals import K_F12
     from pygame.locals import K_LEFT
     from pygame.locals import K_PERIOD
@@ -93,6 +94,8 @@ class KeyboardControl(object):
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
                     world.toggle_open3d_lidar()
+                elif event.key == K_F11:
+                    world.take_fullscreen_screenshot()
                 elif event.key == K_F12:
                     world.toggle_server_rendering()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
