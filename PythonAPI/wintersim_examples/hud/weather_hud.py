@@ -150,9 +150,7 @@ class InfoHud(object):
         self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
         self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
-
-        self
-
+        
     def update_sliders(self, preset, month=None, clock=None):
         '''Update slider positions if weather is changed without moving sliders
         wrapped in try-expect block just in-case preset doesn't have certain weather parameter'''
