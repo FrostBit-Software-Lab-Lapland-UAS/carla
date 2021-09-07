@@ -74,11 +74,23 @@ class World(object):
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
 
-    def next_weather(self, world, reverse=False):
+    def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(self.preset[0])
+        self.world.set_weather(self.preset[0])
+
+    def set_weather(self, index):
+        if not index < len(self._weather_presets):
+            return
+
+        self._weather_index = index
+        self.preset = self._weather_presets[self._weather_index]
+        self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
@@ -101,13 +113,15 @@ class World(object):
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
-        
+
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
         wind *= 10 # Multiply wind by 10 to get it into range of 0-100
+
+        wind_direction = data['weatherStations'][0]['sensorValues'][13]['sensorValue'] / 2
 
         humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
         humidity = 100 if humidity > 100 else humidity
@@ -121,11 +135,15 @@ class World(object):
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
+
+        weather_values = [ temp, precipitation, wind,
+            0.5, 0, snow, humidity, wind_direction,
+            clock, month]
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
+        weather.set_weather_manually(self.hud, weather_values)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
-        self.world.set_weather(weather.weather)                                                                     # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)
+        self.world.set_weather(weather.weather)
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
@@ -149,18 +167,8 @@ class World(object):
     def tick(self, clock, hud):
         self.hud.tick(self, clock, hud)
 
-    def render(self, world, client, hud, display, weather):
-        self.hud.render(display)
-        self.render_sliders(world, client, hud, display, weather)
-
-    def render_sliders(self, world, client, hud, display, weather):
-        for slider in hud.sliders:
-                if slider.hit:                                      # if slider is being touched
-                    slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0])    # update weather object
-                    client.get_world().set_weather(weather.weather) # send weather to server
-        for slider in hud.sliders:
-            slider.draw(display, slider)                            # move sliders
+    def render(self, world, display, weather):
+        self.hud.render(world, display, weather)
 
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
@@ -187,7 +195,7 @@ class World(object):
                 for box in self.hud.boxes:
                     box.checked ^= True
             elif key.char == "c":
-                self.next_weather(self.world, reverse=False)
+                self.next_weather(reverse=False)
             elif key.char == "r":
                 self.muonio_weather()
         except:
@@ -225,7 +233,7 @@ class KeyboardControl(object):
                 if self._is_quit_shortcut(event.key):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
-                    world.next_weather(world, reverse=True)
+                    world.next_weather(reverse=True)
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -253,22 +261,22 @@ def game_loop(args):
         pygame.display.flip()
 
         hud = weather_hud.InfoHud(args.width, args.height, display)
-        hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
         hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
+        world.next_weather()                                                # change preset on startup
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                                        
-
+        listener.start()                                         
+        
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):
                 return
             world.tick(clock, hud)
-            world.render(world, client, hud, display, weather)
+            world.render(world, display, weather)
             pygame.display.flip()
 
     finally:
@@ -296,8 +304,8 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x720',
-        help='window resolution (default: 1280x720)')
+        default='620x720',
+        help='window resolution (default: 620x720)') # note. UI does not scale properly with resolution!
     argparser.add_argument(
         '--gamma',
         default=2.2,

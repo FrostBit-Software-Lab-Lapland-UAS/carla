@@ -38,7 +38,7 @@ Use ARROWS or WASD keys for control.
     F2           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
-    F8           : toggle  separate front and back RGB camera windows
+    F8           : toggle separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
     F12          : toggle server window rendering
     H            : toggle help
@@ -103,6 +103,16 @@ class WinterSimHud(object):
         self.frames = 0
         self.vehicles = [1]
         self.walkers = []
+        self.world = None
+        self.actor_name = None
+
+    def setup(self, world):
+        self.world = world
+        self.on_actor_change()
+
+    def on_actor_change(self):
+        '''Store actor name'''
+        self.actor_name = get_actor_display_name(self.world.player, truncate=20)
 
     def on_world_tick(self, timestamp):
         self._server_clock.tick()
@@ -110,8 +120,9 @@ class WinterSimHud(object):
         self.frame = timestamp.frame
         self.simulation_time = timestamp.elapsed_seconds
 
-    def tick(self, world, clock, hud_wintersim):
+    def tick(self, world, clock):
         '''Tick WinterSim hud'''
+        
         self._notifications.tick(world, clock)
 
         if not self.is_hud:
@@ -142,7 +153,7 @@ class WinterSimHud(object):
             'Server:  % 16.0f FPS' % self.server_fps,
             'Client:  % 16.0f FPS' % clock.get_fps(),
             '',
-            'Vehicle: % 20s' % get_actor_display_name(world.player, truncate=20),
+            'Vehicle: % 20s' % self.actor_name,
             'Map:     % 20s' % world.map.name,
             'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)),
             '',
@@ -243,7 +254,6 @@ class WinterSimHud(object):
                 v_offset += 18
         self._notifications.render(display)
         self.help_text.render(display)
-
 
 # ==============================================================================
 # -- FadingText ----------------------------------------------------------------
