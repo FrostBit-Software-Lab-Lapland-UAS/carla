@@ -383,7 +383,7 @@ class World(object):
             self.sensors.remove(self.camera_manager.sensor)
             self.camera_manager.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
-            self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height)
+            self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height, self._actor_filter)
             self.hud_wintersim.set_hud(False)
         else:
             self.multi_sensor_view.destroy()
