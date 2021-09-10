@@ -29,6 +29,7 @@ try:
     from pygame.locals import K_F6
     from pygame.locals import K_F8
     from pygame.locals import K_F9
+    from pygame.locals import K_F11
     from pygame.locals import K_F12
     from pygame.locals import K_LEFT
     from pygame.locals import K_PERIOD
@@ -93,12 +94,15 @@ class KeyboardControl(object):
                     world.toggle_cv2_windows()
                 elif event.key == K_F9:
                     world.toggle_open3d_lidar()
+                elif event.key == K_F11:
+                    world.take_fullscreen_screenshot()
                 elif event.key == K_F12:
                     world.toggle_server_rendering()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:
-                    world.camera_manager.toggle_camera()
+                    if not world.multi_sensor_view_enabled:
+                        world.camera_manager.toggle_camera()
                 elif event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(reverse=True)
                 elif event.key == K_c:
@@ -116,7 +120,8 @@ class KeyboardControl(object):
                     except AttributeError:
                            print("'show_debug_telemetry)' has not been implemented. This works in CARLA version 0.9.12 and above")
                 elif event.key > K_0 and event.key <= K_9:
-                    world.camera_manager.set_sensor(event.key - 1 - K_0)
+                    if not world.multi_sensor_view_enabled:
+                        world.camera_manager.set_sensor(event.key - 1 - K_0)
                 if isinstance(self._control, carla.VehicleControl):
                     if event.key == K_q:
                         self._control.gear = 1 if self._control.reverse else -1
