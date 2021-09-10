@@ -265,11 +265,10 @@ def game_loop(args):
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
         hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
-        world.next_weather()                                                # change preset on startup
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                         
+        listener.start()                  
         
         while True:
             clock.tick_busy_loop(30)

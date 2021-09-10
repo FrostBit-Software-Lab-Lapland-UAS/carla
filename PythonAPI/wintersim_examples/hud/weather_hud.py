@@ -424,10 +424,13 @@ class Weather(object):
         else:
             hud.preset_slider.val = hud.preset_count
 
+        # only update time / month when either of those sliders touched
+        if slider.name == "Time" or slider.name == "Month":
+            month, sundata = hud.get_month(int(hud.month_slider.val))
+            clock = hud.time_slider.val
+            self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
+
         preset = preset[0]
-        month, sundata = hud.get_month(int(hud.month_slider.val))
-        clock = hud.time_slider.val
-        self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
         self.weather.cloudiness = hud.precipitation_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
         self.weather.precipitation_deposits = hud.precipitation_slider.val
