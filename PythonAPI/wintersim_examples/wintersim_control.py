@@ -45,6 +45,7 @@ Use ARROWS or WASD keys for control.
     F9           : toggle separate Open3D lidar window
     F11          : take fullscreen screenshot
     F12          : toggle server window rendering
+    
     H            : toggle help
     ESC          : quit;
 """
@@ -239,7 +240,7 @@ class World(object):
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
 
-        self.sensors.extend((self.camera_manager.sensor,
+        self.sensors.extend((
             self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,self.imu_sensor.sensor))
 
@@ -380,7 +381,6 @@ class World(object):
             if self.camera_manager.sensor is None:
                 return
 
-            self.sensors.remove(self.camera_manager.sensor)
             self.camera_manager.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
             self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height, self._actor_filter)
@@ -390,8 +390,7 @@ class World(object):
             self.multi_sensor_view = None
             self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
             self.hud_wintersim.set_hud(True)
-            self.sensors.append(self.camera_manager.sensor)
-        
+
         self.multi_sensor_view_enabled ^= True
         self.fps = 30 if self.multi_sensor_view_enabled else 60
         text = "Multi sensor view enabled" if self.multi_sensor_view_enabled else "Multi sensor view disabled"
@@ -402,7 +401,6 @@ class World(object):
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
         else:
             self.radar_sensor.destroy_radar()
-            #self.radar_sensor.sensor.destroy()
             self.radar_sensor = None
 
         text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
@@ -457,6 +455,10 @@ class World(object):
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
+
+        if self.camera_manager.sensor is not None:
+            self.camera_manager.sensor.stop()
+            self.camera_manager.sensor.destroy()
 
         if self.player is not None:
             self.player.destroy()
