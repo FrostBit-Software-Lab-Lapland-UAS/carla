@@ -65,6 +65,7 @@ class CameraWindows(threading.Thread):
         weak_rgb_self = weakref.ref(self)
         self.front_rgb_camera.listen(lambda front_rgb_image: weak_rgb_self().set_front_rgb_image(weak_rgb_self, front_rgb_image))
         self.front_rgb_camera_display = cv2.namedWindow('front RGB camera')
+        cv2.moveWindow('front RGB camera', 5, 740)
 
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
@@ -74,6 +75,7 @@ class CameraWindows(threading.Thread):
         weak_back_rgb_self = weakref.ref(self)
         self.back_rgb_camera.listen(lambda back_rgb_image: weak_back_rgb_self().set_back_rgb_image(weak_back_rgb_self, back_rgb_image))
         self.back_rgb_camera_display = cv2.namedWindow('back RGB camera')
+        cv2.moveWindow('back RGB camera', 610, 740)
 
     def setup_front_depth_camera(self):
         """Spawn Camera-actor (front depth camera) to given position and
@@ -83,7 +85,7 @@ class CameraWindows(threading.Thread):
         weak_depth_self = weakref.ref(self)
         self.depth_camera.listen(lambda front_depth_image: weak_depth_self().set_front_depth_image(weak_depth_self, front_depth_image))
         self.front_depth_display = cv2.namedWindow('front_depth_image')
-
+       
     @staticmethod
     def set_front_rgb_image(weak_self, img):
         """Sets image coming from front RGB camera sensor."""
