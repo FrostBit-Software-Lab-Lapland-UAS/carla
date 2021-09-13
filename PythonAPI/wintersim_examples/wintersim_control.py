@@ -415,15 +415,9 @@ class World(object):
             self.spawn_npc.destroy_all_npcs()
             self.spawn_npc = None
             self.hud_wintersim.notification('Destroyed all NPCs')
-       
-    def destroy_sensors(self):
-        self.camera_manager.sensor.destroy()
-        self.camera_manager.sensor = None
-        self.camera_manager.index = None
 
     def take_fullscreen_screenshot(self):
-        '''Take fullscreen screenshot of pygame window
-        and save it as png'''
+        '''Take fullscreen screenshot of pygame window and save it as png'''
         date = str(int(time.time()))
         filename = "screenshot" + date + ".png"
         pygame.image.save(self.display, filename)

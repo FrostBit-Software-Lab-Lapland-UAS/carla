@@ -142,12 +142,15 @@ class CameraWindows(threading.Thread):
         self.stop()
 
         if self.front_rgb_camera is not None:
+            self.front_rgb_camera.stop()
             self.front_rgb_camera.destroy()
 
         if self.back_rgb_camera is not None:
+            self.back_rgb_camera.stop()
             self.back_rgb_camera.destroy()
 
         if self.front_depth_camera is not None:
+            self.front_depth_camera.stop()
             self.front_depth_camera.destroy()
 
         cv2.destroyAllWindows()

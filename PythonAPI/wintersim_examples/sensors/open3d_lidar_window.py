@@ -185,6 +185,7 @@ class Open3DLidarWindow():
 
     def destroy(self):
         """Destroy lidar and open3d window"""
+        self.lidar.stop()
         self.lidar.destroy()
         self.vis.destroy_window()
 
