@@ -230,7 +230,6 @@ class MultiSensorView():
             SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(0.0, 0.0, 2.4),  carla.Rotation(yaw=+90)), vehicle, {}, display_pos=[0, 2])
             SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(carla.Location(0.0, 0.0, 2.4),  carla.Rotation(yaw=180)), vehicle, {}, display_pos=[1, 1])
             
-
         # spawn lidars
         SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
         SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
