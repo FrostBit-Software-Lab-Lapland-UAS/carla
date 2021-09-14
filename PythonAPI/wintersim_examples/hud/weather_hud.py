@@ -121,13 +121,13 @@ class InfoHud(object):
         self.months = [
             'January','February','March','April','May','June',
             'July','August','September','October','November','December']
-        self.sun_positions = [
-            [12.5, 1.36, -43.6],[12.5, 9.25, -35.11],
+        self.muonio_sun_positions = [
+            [12.5, 1.36, -43.6],  [12.5, 9.25, -35.11],
             [12.5, 20.13, -24.24],[12.5, 31.99, -12.37],
-            [12.5, 41.03, -2.74],[12.5, 45.39, 1.60],
-            [12.5, 43.51, 0.05],[12.5, 35.97, -8.07],
+            [12.5, 41.03, -2.74], [12.5, 45.39, 1.60],
+            [12.5, 43.51, 0.05],  [12.5, 35.97, -8.07],
             [12.5, 24.94, -19.04],[12.5, 13.44, -30.56],
-            [12.5, 3.66, -40.75],[12.5, -0.56, -45.32]]
+            [12.5, 3.66, -40.75], [12.5, -0.56, -45.32]]
 
         # create checkboxe(s)
         self.boxes = []
@@ -168,12 +168,13 @@ class InfoHud(object):
             self.wind_dir_slider.val = preset.wind_direction
         except AttributeError as e:
             print(e, "not implemented")
+            
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
 
-    def get_month(self, val): 
-        return self.months[val], self.sun_positions[val]
+    def get_month(self, val):
+        return self.months[val], self.muonio_sun_positions[val]
 
     # Update hud text values
     def tick(self, world, clock, hud): 

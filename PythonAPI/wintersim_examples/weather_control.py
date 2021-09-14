@@ -246,7 +246,7 @@ class KeyboardControl(object):
 def game_loop(args):
     # position offset for pygame window
     x = 1290
-    y = 100
+    y = 50
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()

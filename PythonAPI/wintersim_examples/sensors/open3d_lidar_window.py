@@ -185,6 +185,7 @@ class Open3DLidarWindow():
 
     def destroy(self):
         """Destroy lidar and open3d window"""
+        self.lidar.stop()
         self.lidar.destroy()
         self.vis.destroy_window()
 
@@ -206,7 +207,7 @@ class Open3DLidarWindow():
         self.vis.create_window(
             window_name='Carla Lidar',
             width=860, height=540,
-            left=480, top=270)
+            left=600, top=600)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
         self.vis.get_render_option().point_size = 1
         self.vis.get_render_option().show_coordinate_frame = True
