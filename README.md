@@ -4,6 +4,9 @@
 
 The vision of WinterSim project is to renew the services and products of smart and autonomous vehicles. The main goal is to produce research and data about the functionality of the most common sensors in vehicles in winter conditions by utilizing game engine technologies.
 
+
+In practise in the WinterSim project we have added detailed winter layer, custom maps and vehicles to the CARLA simulator. The core of the simulator is the same as default CARLA simulator but with added and modified features for winter conditions. Full detailed changes can be found in the [WinterSim changelog.](https://github.com/FrostBit-Software-Lab-Lapland-UAS/carla/blob/wintersim/master/WINTERSIM_CHANGELOG.md)
+
 ![Thumbnail](https://github.com/FrostBit-Software-Lab-Lapland-UAS/carla/blob/wintersim/master/Docs/wintersim/WinterSim_Thumbnail.gif)
 
 [Learn more about WinterSim Project](https://wintersim.fi/)
