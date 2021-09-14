@@ -277,12 +277,12 @@ class World(object):
         try:
             self.world.set_static_tiretracks(self.static_tiretracks_enabled)
             text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
-            self.hud.notification(text)
+            self.hud_wintersim.notification(text)
             self.static_tiretracks_enabled ^= True
         except AttributeError:
             print("'set_static_tiretracks(bool)' has not been implemented. This is WinterSim specific Python API command.")
 
-    def clear_dynamic_tiretracks(self, force_toggle=False):
+    def clear_dynamic_tiretracks(self):
         '''Clear dynamic tiretracks on snowy roads
         This is wrapped around try - expect block
         just in case someone runs this script elsewhere
@@ -290,8 +290,7 @@ class World(object):
         and does not work on default Carla simulator'''
         try:
             self.world.clear_dynamic_tiretracks()
-            text = "Dynamic tiretracks cleared"
-            self.hud.notification(text)
+            self.hud_wintersim.notification("Dynamic Tiretracks Cleared")
         except AttributeError:
             print("'clear_dynamic_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
