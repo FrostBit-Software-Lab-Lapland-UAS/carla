@@ -175,6 +175,8 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
+        self.map_name = ""
+        self.filtered_map_name = ""
         self.restart()
         preset = self._weather_presets[0]
         self.world.set_weather(preset[0])
@@ -182,13 +184,15 @@ class World(object):
         self.constant_velocity_enabled = False
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
-
+       
         # disable server window rendering (UE4 window) if launch argument '--no_server_rendering' given
         # this improves performance as less things need to be rendered
         if not args.no_server_rendering:
             self.toggle_server_rendering()
 
     def restart(self):
+        self.map_name = self.map.name
+        self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.player_max_speed = 1.589
         self.player_max_speed_fast = 3.713
         # Keep same camera config if the camera manager exists.

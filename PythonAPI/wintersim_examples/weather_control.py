@@ -73,6 +73,10 @@ class World(object):
         self._weather_index = 0
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
+        self.muonio = False
+        self.map_name = self.world.get_map().name
+        self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
+        self.muonio = self.filtered_map_name == "Muonio"
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
@@ -94,10 +98,16 @@ class World(object):
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
-    def muonio_weather(self):
-        '''Get Muonio real time weather data from digitraffic API'''
+    def realtime_weather(self):
+        '''Get real time Muonio or Rovaniemi weather data from digitraffic API'''
         weather = weather_hud.Weather(self.world.get_weather())
-        r = requests.get('https://tie.digitraffic.fi/api/v1/data/weather-data/14047')
+
+        if self.muonio:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14047'   # Muonio
+        else:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14031'   # Rovaniemi
+
+        r = requests.get(url)
         data = r.json()
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
@@ -197,7 +207,7 @@ class World(object):
             elif key.char == "c":
                 self.next_weather(reverse=False)
             elif key.char == "r":
-                self.muonio_weather()
+                self.realtime_weather()
         except:
             pass
 
@@ -264,7 +274,7 @@ def game_loop(args):
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
-        hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
+        hud.setup(world, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
