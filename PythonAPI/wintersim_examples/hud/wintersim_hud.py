@@ -156,7 +156,7 @@ class WinterSimHud(object):
             'Client:  % 16.0f FPS' % clock.get_fps(),
             '',
             'Vehicle: % 20s' % self.actor_name,
-            'Map:     % 20s' % world.map.name,
+            'Map:     % 20s' % world.filtered_map_name,
             'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)),
             '',
             'Speed:   % 15.0f km/h' % (3.6 * math.sqrt(v.x**2 + v.y**2 + v.z**2)),

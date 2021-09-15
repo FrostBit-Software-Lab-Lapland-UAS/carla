@@ -175,6 +175,8 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
+        self.map_name = ""
+        self.filtered_map_name = ""
         self.restart()
         preset = self._weather_presets[0]
         self.world.set_weather(preset[0])
@@ -182,13 +184,15 @@ class World(object):
         self.constant_velocity_enabled = False
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
-
+       
         # disable server window rendering (UE4 window) if launch argument '--no_server_rendering' given
         # this improves performance as less things need to be rendered
         if not args.no_server_rendering:
             self.toggle_server_rendering()
 
     def restart(self):
+        self.map_name = self.map.name
+        self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.player_max_speed = 1.589
         self.player_max_speed_fast = 3.713
         # Keep same camera config if the camera manager exists.
@@ -277,12 +281,12 @@ class World(object):
         try:
             self.world.set_static_tiretracks(self.static_tiretracks_enabled)
             text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
-            self.hud.notification(text)
+            self.hud_wintersim.notification(text)
             self.static_tiretracks_enabled ^= True
         except AttributeError:
             print("'set_static_tiretracks(bool)' has not been implemented. This is WinterSim specific Python API command.")
 
-    def clear_dynamic_tiretracks(self, force_toggle=False):
+    def clear_dynamic_tiretracks(self):
         '''Clear dynamic tiretracks on snowy roads
         This is wrapped around try - expect block
         just in case someone runs this script elsewhere
@@ -290,8 +294,7 @@ class World(object):
         and does not work on default Carla simulator'''
         try:
             self.world.clear_dynamic_tiretracks()
-            text = "Dynamic tiretracks cleared"
-            self.hud.notification(text)
+            self.hud_wintersim.notification("Dynamic Tiretracks Cleared")
         except AttributeError:
             print("'clear_dynamic_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
@@ -356,7 +359,7 @@ class World(object):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
-            self.open3d_lidar.setup(self.world, self.player, True, True)
+            self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))

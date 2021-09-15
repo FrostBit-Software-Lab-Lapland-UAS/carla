@@ -189,7 +189,7 @@ class Open3DLidarWindow():
         self.lidar.destroy()
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, semantic):
+    def setup(self, world, vehicle, show_axis, semantic = True):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
