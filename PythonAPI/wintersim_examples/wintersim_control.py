@@ -359,7 +359,7 @@ class World(object):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
-            self.open3d_lidar.setup(self.world, self.player, True, True)
+            self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
             self.world.apply_settings(carla.WorldSettings(
             no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
