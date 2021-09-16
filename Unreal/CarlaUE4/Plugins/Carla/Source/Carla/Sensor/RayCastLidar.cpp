@@ -79,11 +79,15 @@ float ARayCastLidar::ComputeIntensity(const FSemanticDetection& RawDetection) co
   return IntRec;
 }
 
-ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
+ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf)
 {
   FDetection Detection;
+  FVector snowflake;
+  int tag = 0;
+
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
+
 
   const float Distance = Detection.point.Length();
 
@@ -93,6 +97,113 @@ ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitI
   const float IntRec = AbsAtm;
 
   Detection.intensity = IntRec;
+
+  // Check if the point is a snowflake and assign the correct intensity
+  for (auto& Str :  flakePoints)
+  {
+    if(Str == HitPoint)
+    {
+      snowflake = Str;
+      tag = static_cast<uint32_t>(23);
+      //flakePoints.Remove(snowflake);
+    }
+  }
+
+  if(tag == 0)
+  {
+    if (HitInfo.Component == nullptr)
+    {
+      tag = static_cast<uint32_t>(23);
+    } 
+    else
+    {
+      tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
+    }
+  }
+
+  // Apply intesity based on object type
+  switch (tag)
+  {
+  case 0:
+    Detection.intensity = 0.1;
+    break;
+  case 1:
+    Detection.intensity = 0.8;
+    break;
+  case 2:
+    Detection.intensity = 0.4;
+    break;
+  case 3:
+    Detection.intensity = 0.99;
+    break;
+  case 4:
+    Detection.intensity = 0.97;
+    break;
+  case 5:
+    Detection.intensity = 0.95;
+    break;
+  case 6:
+    Detection.intensity = 0.94;
+    break;
+  case 7:
+    Detection.intensity = 0.93;
+    break;
+  case 8:
+    Detection.intensity = 0.92;
+    break;
+  case 9:
+    Detection.intensity = 0.91;
+    break;
+  case 10:
+    Detection.intensity = 0.90;
+    break;
+  case 11:
+    Detection.intensity = 0.89;
+    break;
+  case 12:
+    Detection.intensity = 0.88;
+    break;
+  case 13:
+    Detection.intensity = 0.87;
+    break;
+  case 14:
+    Detection.intensity = 0.86;
+    break;
+  case 15:
+    Detection.intensity = 0.85;
+    break;
+  case 16:
+    Detection.intensity = 0.84;
+    break;
+  case 17:
+    Detection.intensity = 0.83;
+    break;
+  case 18:
+    Detection.intensity = 0.82;
+    break;
+  case 19:
+    Detection.intensity = 0.81;
+    break;
+  case 20:
+    Detection.intensity = 0.80;
+    break;
+  case 21:
+    Detection.intensity = 0.79;
+    break;
+  case 22:
+    Detection.intensity = 0.77;
+    break;
+  case 23:
+    Detection.intensity = 0.99;
+    break;
+  case 24:
+    Detection.intensity = 0.1;
+    break;
+  default:
+    Detection.intensity = IntRec;
+  }
+
+  flakePoints.Empty();
 
   return Detection;
 }

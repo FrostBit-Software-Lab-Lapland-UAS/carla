@@ -21,6 +21,8 @@
 #include <list>
 #include <iostream>
 #include <fstream>
+#include "Async.h"
+
 using namespace std;
 
 namespace crp = carla::rpc;
@@ -211,45 +213,52 @@ void ARayCastSemanticLidar::ComputeRawDetection(const FHitResult& HitInfo, const
       Detection.object_tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
     }
 
-    
     //Detection.object_tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
 
     if (actor != nullptr) {
-
       const FCarlaActor* view = Registry.FindCarlaActor(actor);
-      if(view)
-        Detection.object_idx = view->GetActorId();
-
+      if (view) 
+      {
+          Detection.object_idx = view->GetActorId();
+      }
     }
-    else {
+    //else {
       //UE_LOG(LogCarla, Warning, TEXT("Actor not valid %p!!!!"), actor);
-    }
+    //}
 }
 
-bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const
+bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc)
 {
-  FVector max_distance = end_trace; //lidar max range
-  FVector start_point = LidarBodyLoc; //start point is lidar position
-	if (HitInfo.bBlockingHit) //If linetrace hits something
+    FVector max_distance = end_trace;                                                                                           // Lidar max range
+    FVector start_point = LidarBodyLoc;                                                                                         // Start point is lidar position
+	if (HitInfo.bBlockingHit)                                                                                                   // If linetrace hits something
 	{
-		max_distance = HitInfo.ImpactPoint; //max_distance = where we got hit with linetrace
+		max_distance = HitInfo.ImpactPoint;                                                                                     // Max_distance = where we got hit with linetrace
 	}
 
-  FVector vector = end_trace - start_point; 
-	FVector new_start_point = start_point + 0.01 * vector; //make start point away from center of lidar
-	FVector new_vector = max_distance - new_start_point; //new vector from new start point to end point
-  float random = (float) rand()/RAND_MAX; //random floating number between 0-1
-  FVector new_hitpoint = new_start_point + random * new_vector; //Generate new point from new start point to end point
-	float distance = FVector::Dist(start_point, new_hitpoint)/100; //distance beteen new_hitpoint and start point (divide by 100 to get meters)
+    FVector vector = end_trace - start_point; 
+	FVector new_start_point = start_point + 0.01 * vector;                                                                      // Make start point away from center of lidar
+	FVector new_vector = max_distance - new_start_point;                                                                        // New vector from new start point to end point
+    float random = (float) rand()/RAND_MAX;                                                                                     // Random floating number between 0-1
+    FVector new_hitpoint = new_start_point + random * new_vector;                                                               // Generate new point from new start point to end point
+	float distance = FVector::Dist(start_point, new_hitpoint)/100;                                                              // distance beteen new_hitpoint and start point (divide by 100 to get meters)
 	
-  float vis = 60 / (2000 - (rain_amount*18.4f));
-  float prob = vis*exp(-pow((distance-20.0f),2.0f)/pow(8.0f,2.0f))+vis*exp(-pow((distance-38.0f),2.0f)/pow(18.0f,2.0f)); //value between 0-1 this is the probability of trace to hit snowflake at certain distances
+    float vis = 60 / (2000 - (rain_amount*18.4f));
+    float prob = vis*exp(-pow((distance-20.0f),2.0f)/pow(8.0f,2.0f))+vis*exp(-pow((distance-38.0f),2.0f)/pow(18.0f,2.0f));      // Value between 0-1 this is the probability of trace to hit snowflake at certain distances
 
-  float r = (float)rand() / RAND_MAX; //random between 0-1
-	if (r < prob) //if random is smaller than probability from formula we hit the trace to snowflake
+    float r = (float)rand() / RAND_MAX;     // random between 0-1
+	if (r < prob)                           //if random is smaller than probability from formula we hit the trace to snowflake
 	{
 		HitInfo.ImpactPoint = new_hitpoint; //assign new hitpoint
-		return true;
+
+        if (HitInfo.Component != nullptr)
+        {
+            // Add point as snowflake to TArray on the main thread
+            AsyncTask(ENamedThreads::GameThread, [this, new_hitpoint]() {
+                flakePoints.Add(new_hitpoint);
+            });
+        }
+	return true;
 	}
 	else {
 		return false;
@@ -269,7 +278,7 @@ bool ARayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custo
   
 }
 
-bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const
+bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w)
 {
   TRACE_CPUPROFILER_EVENT_SCOPE_STR(__FUNCTION__);
 
@@ -298,25 +307,27 @@ bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float Ho
   );
 
   float temp = w.Temperature;
-	float rain_amount = w.Precipitation;
+  float rain_amount = w.Precipitation;
   bool keepPoint = true;
   if (HitInfo.bBlockingHit) { 
 	  if (temp < 0 && rain_amount > 0) //If it is snowing
 	  {
 		  CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc);
-      keepPoint = CustomDropOff(rain_amount);
+          keepPoint = CustomDropOff(rain_amount);
 	  }
     HitResult = HitInfo; //equal to new hitpoint or the old one
     return keepPoint;
-  } else { //If no hit is acquired
+  } 
+  else // If no hit is acquired
+  { 
     if (temp < 0 && rain_amount > 0) //If it is snowing
-	  {
-		  if(CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc)) //if new hitpoint is made
-      {
+	{
+        if(CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc)) //if new hitpoint is made
+        {
         HitResult = HitInfo;
         return CustomDropOff(rain_amount);
-      }
-	  }
+        }
+	}
     return false;
   }
 }
