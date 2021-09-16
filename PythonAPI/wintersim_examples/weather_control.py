@@ -274,6 +274,7 @@ def game_loop(args):
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
+        world.next_weather()
         hud.setup(world, world.filtered_map_name)
         clock = pygame.time.Clock()
 
