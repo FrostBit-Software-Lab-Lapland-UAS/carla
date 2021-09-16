@@ -243,13 +243,13 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
     FVector new_hitpoint = new_start_point + random * new_vector;                                                               // Generate new point from new start point to end point
 	float distance = FVector::Dist(start_point, new_hitpoint)/100;                                                              // distance beteen new_hitpoint and start point (divide by 100 to get meters)
 	
-    float vis = 60 / (2000 - (rain_amount*18.4f));
+    float vis = 60 / (2000 - (rain_amount * 18.4f));
     float prob = vis*exp(-pow((distance-20.0f),2.0f)/pow(8.0f,2.0f))+vis*exp(-pow((distance-38.0f),2.0f)/pow(18.0f,2.0f));      // Value between 0-1 this is the probability of trace to hit snowflake at certain distances
 
-    float r = (float)rand() / RAND_MAX;     // random between 0-1
-	if (r < prob)                           //if random is smaller than probability from formula we hit the trace to snowflake
+    float r = (float)rand() / RAND_MAX;                                                                                         // random value between 0-1
+	if (r < prob)                                                                                                               // if random is smaller than probability from formula we hit the trace to snowflake
 	{
-		HitInfo.ImpactPoint = new_hitpoint; //assign new hitpoint
+		HitInfo.ImpactPoint = new_hitpoint;
 
         if (HitInfo.Component != nullptr)
         {
@@ -267,7 +267,7 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
 
 bool ARayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custom drop off rate for lidar hits according to rainamount(snow)
 {
-  float random = (float) rand()/RAND_MAX;
+  float random = (float) rand() / RAND_MAX;
   float dropoff = rain_amount * 0.003;
   if (random < dropoff) //dropoff max value is 0.3 at rain_amount value 100
   {
