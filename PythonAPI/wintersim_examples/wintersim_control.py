@@ -146,6 +146,7 @@ class World(object):
         self.args = args
         self.multiple_windows_enabled = args.camerawindows
         self.multi_sensor_view_enabled = False
+        self.server_rendering = True
         self.cv2_windows = None
         self.open3d_lidar = None
         self.multi_sensor_view = None
@@ -341,6 +342,7 @@ class World(object):
     def toggle_server_rendering(self):
         settings = self.world.get_settings()
         settings.no_rendering_mode = not settings.no_rendering_mode
+        self.server_rendering = settings.no_rendering_mode
         self.world.apply_settings(settings)
         text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
         self.hud_wintersim.notification(text)
@@ -361,14 +363,14 @@ class World(object):
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
             self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=False, synchronous_mode=True,
+            no_rendering_mode=self.server_rendering, synchronous_mode=True,
             fixed_delta_seconds=0.05))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
             self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=False, synchronous_mode=False,
+            no_rendering_mode=self.server_rendering, synchronous_mode=False,
             fixed_delta_seconds=0.00))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
@@ -376,7 +378,7 @@ class World(object):
         self.open3d_lidar_enabled ^= True
         self.sync_mode ^= True
         self.fps = 30 if self.open3d_lidar_enabled else 60
-        text = "Destroyed Open3D Lidar" if not self.open3d_lidar_enabled else "Spawned Open3D Lidar"
+        text = "Open3D Lidar disabled" if not self.open3d_lidar_enabled else "Open3D Lidar enabled"
         self.hud_wintersim.notification(text, 6)
         
     def toggle_multi_sensor_view(self):
