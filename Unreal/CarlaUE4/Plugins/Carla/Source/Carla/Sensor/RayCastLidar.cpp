@@ -84,10 +84,8 @@ ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitI
   FDetection Detection;
   FVector snowflake;
   int tag = 0;
-
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
-
 
   const float Distance = Detection.point.Length();
 
@@ -98,14 +96,12 @@ ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitI
 
   Detection.intensity = IntRec;
 
-  // Check if the point is a snowflake and assign the correct intensity
   for (auto& Str :  flakePoints)
   {
     if(Str == HitPoint)
     {
       snowflake = Str;
       tag = static_cast<uint32_t>(23);
-      //flakePoints.Remove(snowflake);
     }
   }
 

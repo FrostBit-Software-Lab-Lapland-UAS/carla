@@ -17,12 +17,9 @@
 #include <compiler/disable-ue4-macros.h>
 #include <carla/sensor/data/SemanticLidarData.h>
 #include <compiler/enable-ue4-macros.h>
-#include <list>
-#include <iostream>
-#include <fstream>
+#include "Async.h"
 
 #include "RayCastSemanticLidar.generated.h"
-
 
 /// A ray-cast based Lidar sensor.
 UCLASS()
