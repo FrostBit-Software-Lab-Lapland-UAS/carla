@@ -15,6 +15,7 @@ import sys
 import glob
 import os
 import sys
+import time
 from datetime import datetime
 import numpy as np
 from matplotlib import cm
@@ -194,7 +195,7 @@ class Open3DLidarWindow():
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, y=0.0, z=0.23899))
+        lidar_transform = carla.Transform(carla.Location(x=-0.5, y=0.0, z=2))
         self.lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
 
         self.point_list = o3d.geometry.PointCloud()
@@ -214,6 +215,13 @@ class Open3DLidarWindow():
 
         if show_axis:
             self.add_open3d_axis()
+
+    def take_screenshot(self):
+        '''Take screenshot of Open3D window. This should not be called every frame.'''
+        if self.vis is not None:
+            date = str(int(time.time()))
+            filename = "open3d_" + date + ".png"
+            self.vis.capture_screen_image(filename)
 
     def __init__(self):
         super(Open3DLidarWindow, self).__init__()

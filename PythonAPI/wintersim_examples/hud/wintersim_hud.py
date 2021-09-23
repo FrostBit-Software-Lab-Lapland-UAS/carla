@@ -41,6 +41,7 @@ Use ARROWS or WASD keys for control.
     F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
+    F11          : take screenshot and save it as .png
     F12          : toggle server window rendering
     
     H            : toggle help

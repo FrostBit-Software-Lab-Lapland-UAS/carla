@@ -422,10 +422,15 @@ class World(object):
             self.hud_wintersim.notification('Destroyed all NPCs')
 
     def take_fullscreen_screenshot(self):
-        '''Take fullscreen screenshot of pygame window and save it as png'''
+        '''Take fullscreen screenshot of window and save it as png. 
+        This should not be called every frame.'''
         date = str(int(time.time()))
-        filename = "screenshot" + date + ".png"
+        filename = "pygame" + date + ".png"
         pygame.image.save(self.display, filename)
+
+        if self.open3d_lidar_enabled and self.open3d_lidar is not None:
+            self.open3d_lidar.take_screenshot()
+
 
     def destroy(self):
         '''Destroy all current sensors on quit'''
