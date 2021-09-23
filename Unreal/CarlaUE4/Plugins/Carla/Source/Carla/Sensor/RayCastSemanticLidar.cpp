@@ -20,6 +20,9 @@
 #include "Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/Core/Public/Async/ParallelFor.h"
+#include <list>
+#include <iostream>
+#include <fstream>
 
 namespace crp = carla::rpc;
 
@@ -303,7 +306,7 @@ bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float Ho
     FCollisionResponseParams::DefaultResponseParam
   );
 
-  float temp = -5.0; //w.Temperature;
+  float temp = w.Temperature;
 	float rain_amount = w.Precipitation;
   bool keepPoint = true;
   if (HitInfo.bBlockingHit) { 
