@@ -54,6 +54,7 @@ try:
     from pygame.locals import K_x
     from pygame.locals import K_z
     from pygame.locals import K_t
+    from pygame.locals import K_b
 
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
@@ -113,6 +114,15 @@ class KeyboardControl(object):
                     world.camera_manager.next_sensor()
                 elif event.key == K_n:
                     world.camera_manager.next_sensor()
+                elif event.key == K_b:
+                    self._steer_cache = 0.0
+                    self._control.gear = 0
+                    self._control.brake = 1
+                    self._control.throttle = 0.0
+                    world.player.apply_control(self._control)
+                    world.player.set_target_velocity(carla.Vector3D(0, 0, 0))
+                    world.teleport_vehicle()
+                    continue
                 elif event.key == K_t:
                     try:
                         world.show_vehicle_telemetry ^= True

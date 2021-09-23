@@ -431,6 +431,18 @@ class World(object):
         if self.open3d_lidar_enabled and self.open3d_lidar is not None:
             self.open3d_lidar.take_screenshot()
 
+    def teleport_vehicle(self, position = -1):
+        '''Teleport vehicle to random or given spawn location'''
+        spawn_point = 0
+        if position == -1:
+            # if no argument given for position then teleport to random location 
+            control = carla.VehicleControl()
+            spawn_points = self.map.get_spawn_points()
+            spawn_point = random.choice(spawn_points)
+        else:
+            spawn_point = position
+        
+        self.player.set_transform(spawn_point)
 
     def destroy(self):
         '''Destroy all current sensors on quit'''

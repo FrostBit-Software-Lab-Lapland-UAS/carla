@@ -216,12 +216,12 @@ class InfoHud(object):
             'Precipitation: {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
             '',
             'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
-            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
+            'Snow particle size: {} mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Fog: {}%'.format(int(hud.fog_slider.val)),
             'Fog Falloff: {}'.format(round((hud.fog_falloff.val), 1)),
             '',
-            'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
+            'Wind Intensity: {} m/s'.format(round((hud.wind_slider.val/10), 1)),
             'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
@@ -233,7 +233,7 @@ class InfoHud(object):
             'weather preset',
             '',
             'Press R to get real time',
-            'weather from Muonio']
+            'weather']
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
