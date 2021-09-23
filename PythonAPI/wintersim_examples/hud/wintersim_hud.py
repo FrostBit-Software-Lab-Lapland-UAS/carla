@@ -15,6 +15,7 @@ Use ARROWS or WASD keys for control.
     W            : throttle
     S            : brake
     A/D          : steer left/right
+    B            : respawn vehicle
     Q            : toggle reverse
     Space        : hand-brake
     P            : toggle autopilot
