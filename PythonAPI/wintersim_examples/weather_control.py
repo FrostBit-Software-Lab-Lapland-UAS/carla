@@ -70,7 +70,7 @@ class World(object):
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
                 self._weather_presets.append(preset)
-        self.get_weather()
+        self.set_current_weather()
         self._weather_index = 0
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
@@ -79,7 +79,7 @@ class World(object):
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.muonio = self.filtered_map_name == "Muonio"
 
-    def get_weather(self):
+    def set_current_weather(self):
         default_weather = self.world.get_weather()
         self._weather_index = len(self.hud.preset_names) -1
         self.hud.preset_slider.val = self._weather_index
@@ -268,6 +268,7 @@ def game_loop(args):
     pygame.init()
     pygame.font.init()
     world = None
+    listener = None
 
     try:
         client = carla.Client(args.host, args.port)
@@ -280,12 +281,13 @@ def game_loop(args):
         hud = weather_hud.InfoHud(args.width, args.height, display)
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
-        weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
-        hud.setup(world, world.filtered_map_name)
+        current_weather = client.get_world().get_weather()
+        weather = weather_hud.Weather(current_weather)                      # weather object to update carla weather with sliders
+        hud.setup(current_weather, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                  
+        listener.start()               
         
         while True:
             clock.tick_busy_loop(30)
@@ -296,7 +298,8 @@ def game_loop(args):
             pygame.display.flip()
 
     finally:
-        listener.stop()
+        if listener is not None:
+            listener.stop()
         pygame.quit()
 
 # ==============================================================================

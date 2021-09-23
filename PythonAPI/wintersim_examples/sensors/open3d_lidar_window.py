@@ -217,7 +217,8 @@ class Open3DLidarWindow():
             self.add_open3d_axis()
 
     def take_screenshot(self):
-        '''Take screenshot of Open3D window. This should not be called every frame.'''
+        '''Take screenshot of Open3D window. 
+        This should not be called every frame because this is quite slow.'''
         if self.vis is not None:
             date = str(int(time.time()))
             filename = "open3d_" + date + ".png"
