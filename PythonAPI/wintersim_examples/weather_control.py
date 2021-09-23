@@ -70,6 +70,7 @@ class World(object):
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
                 self._weather_presets.append(preset)
+        self.get_weather()
         self._weather_index = 0
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
@@ -77,6 +78,12 @@ class World(object):
         self.map_name = self.world.get_map().name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.muonio = self.filtered_map_name == "Muonio"
+
+    def get_weather(self):
+        default_weather = self.world.get_weather()
+        self._weather_index = len(self.hud.preset_names) -1
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(default_weather)
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
@@ -274,7 +281,6 @@ def game_loop(args):
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
         weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
-        world.next_weather()
         hud.setup(world, world.filtered_map_name)
         clock = pygame.time.Clock()
 
