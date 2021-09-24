@@ -226,8 +226,8 @@ class World(object):
             else:
                 spawn_point = spawn_points[self.args.spawnpoint]
 
-            #self.player = self.world.spawn_actor(blueprint, spawn_point)
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            self.player = self.world.spawn_actor(blueprint, spawn_point)
+            #self.player = self.world.try_spawn_actor(blueprint, spawn_point)
 
             if spawn_attempts == 5:
                 print('Tried to spawn vehicle 5 times without success. Something is wrong!')
@@ -434,14 +434,18 @@ class World(object):
     def teleport_vehicle(self, position = -1):
         '''Teleport vehicle to random or given spawn location'''
         spawn_point = 0
-        if position == -1:
-            # if no argument given for position then teleport to random location 
-            control = carla.VehicleControl()
+        if position == -1: # if no argument given for position then teleport to random location 
             spawn_points = self.map.get_spawn_points()
             spawn_point = random.choice(spawn_points)
         else:
             spawn_point = position
-        
+
+        control = carla.VehicleControl()
+        control.gear = 0
+        control.brake = 1
+        control.throttle = 0.0
+        self.player.apply_control(control)
+        self.player.set_target_velocity(carla.Vector3D(0, 0, 0))
         self.player.set_transform(spawn_point)
 
     def destroy(self):
