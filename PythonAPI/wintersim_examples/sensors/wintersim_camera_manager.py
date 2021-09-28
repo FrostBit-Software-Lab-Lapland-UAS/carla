@@ -76,6 +76,17 @@ class CameraManager(object):
             item.append(bp)
         self.index = None
 
+    def update_parent_actor(self, new_parent):
+        self._parent = new_parent
+
+    def reset_camera(self, parent):
+        self._parent = parent
+        if self.sensor is not None:
+            self.sensor.stop()
+            self.sensor.destroy()
+            self.sensor = None
+        self.set_sensor(0, notify=False, force_respawn=True)
+
     def toggle_camera(self):
         self.transform_index = (self.transform_index + 1) % len(self._camera_transforms)
         self.set_sensor(self.index, notify=False, force_respawn=True)
@@ -98,6 +109,10 @@ class CameraManager(object):
         if notify:
             self.hud.notification(self.sensors[index][2])
         self.index = index
+    
+    def attach_camera(self):
+        print("")
+
 
     def destroy(self):
         '''Destroy current sensor'''
