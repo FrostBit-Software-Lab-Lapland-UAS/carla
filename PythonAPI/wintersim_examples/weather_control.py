@@ -165,8 +165,7 @@ class World(object):
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
-        friction = 5
-        friction -= iciness / 100 * 4
+        friction = iciness / 5
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
