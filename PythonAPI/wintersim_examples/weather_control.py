@@ -213,7 +213,7 @@ class World(object):
                     box.checked ^= True
             elif key.char == "c":
                 self.next_weather(reverse=False)
-            elif key.char == "r":
+            elif key.char == "b":
                 self.realtime_weather()
         except:
             pass

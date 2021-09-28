@@ -10,30 +10,24 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
 """
-Use ARROWS or WASD keys for control.
+Use ARROW or WASD keys for control.
 
     W            : throttle
+    A/D          : steer left / right
     S            : brake
-    A/D          : steer left/right
-    B            : respawn vehicle
-    Q            : toggle reverse
     Space        : hand-brake
+    R            : respawn vehicle
+    C            : change weather preset
+  
     P            : toggle autopilot
-    M            : toggle manual transmission
-    ,/.          : gear up/down
+    TAB          : change camera position
+    N            : next sensor
+    [1-9]        : change to sensor [1-9]
+    G            : toggle radar visualization
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
     Z/X          : toggle right/left blinker
-    I            : toggle interior light
-
-    TAB          : change sensor position
-    ` or N       : next sensor
-    [1-9]        : change to sensor [1-9]
-    G            : toggle radar visualization
-    C            : change weather (Shift+C reverse)
-
-    R            : toggle recording images to disk
 
     F1           : toggle HUD
     F2           : toggle NPC's
@@ -42,7 +36,7 @@ Use ARROWS or WASD keys for control.
     F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back RGB camera windows
     F9           : toggle separate Open3D lidar window
-    F11          : take screenshot and save it as .png
+    F11          : take screenshot
     F12          : toggle server window rendering
     
     H            : toggle help
@@ -52,9 +46,6 @@ Use ARROWS or WASD keys for control.
 import glob
 import os
 import sys
-import re
-import time
-import numpy as np
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (

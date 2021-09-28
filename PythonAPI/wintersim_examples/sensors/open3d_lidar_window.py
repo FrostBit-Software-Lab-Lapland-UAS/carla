@@ -19,7 +19,6 @@ import time
 from datetime import datetime
 import numpy as np
 from matplotlib import cm
-import open3d as o3d
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -32,6 +31,11 @@ except IndexError:
 import carla
 
 try:
+    import open3d as o3d
+except ImportError:
+    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
+
+try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
@@ -40,7 +44,6 @@ VIRIDIS = np.array(cm.get_cmap('plasma').colors)
 VID_RANGE = np.linspace(0.0, 1.0, VIRIDIS.shape[0])
 LABEL_COLORS = np.array([
     (255, 255, 255), # None
-    #(145, 170, 100), # None
     (70, 70, 70),    # Building
     (100, 40, 40),   # Fences
     (55, 90, 80),    # Other
@@ -112,11 +115,6 @@ class Open3DLidarWindow():
         # what we see in Unreal since Open3D uses a right-handed coordinate system
         points[:, :1] = -points[:, :1]
 
-        # # An example of converting points from sensor to vehicle space if we had
-        # # a carla.Transform variable named "tran":
-        # points = np.append(points, np.ones((points.shape[0], 1)), axis=1)
-        # points = np.dot(tran.get_matrix(), points.T).T
-        # points = points[:, :-1]
         self.point_list.points = o3d.utility.Vector3dVector(points)
         self.point_list.colors = o3d.utility.Vector3dVector(int_color)
 
@@ -175,7 +173,7 @@ class Open3DLidarWindow():
         if self.frame == 2:                         # every second frame add new geometry
             self.vis.add_geometry(self.point_list)
 
-            if not self.startup_done:               # initlize startup position, must be called after add_geometry()
+            if not self.startup_done:               # initialize startup position, must be called after add_geometry()
                 self.startup_done = True
                 self.load_default_open3d_position()
 
@@ -186,8 +184,10 @@ class Open3DLidarWindow():
 
     def destroy(self):
         """Destroy lidar and open3d window"""
-        self.lidar.stop()
-        self.lidar.destroy()
+        if self.lidar is not None:
+            self.lidar.stop()
+            self.lidar.destroy()
+            self.lidar = None
         self.vis.destroy_window()
 
     def setup(self, world, vehicle, show_axis, semantic = True):
