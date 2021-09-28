@@ -20,6 +20,7 @@ try:
     from pygame.locals import K_9
     from pygame.locals import K_DOWN
     from pygame.locals import K_ESCAPE
+    from pygame.locals import K_BACKSPACE
     from pygame.locals import K_F1
     from pygame.locals import K_F3
     from pygame.locals import K_F4
@@ -109,6 +110,8 @@ class KeyboardControl(object):
                 elif event.key == K_r:
                     world.teleport_vehicle()
                     continue
+                elif event.key == K_BACKSPACE:
+                    world.change_vehicle()
                 elif event.key == K_t:
                     try:
                         world.show_vehicle_telemetry ^= True

@@ -168,6 +168,8 @@ class World(object):
         self.spawn_npc = None
         self.camera_manager = None
         self.sensors = []
+        self.wintersim_vehicles = ['pickup', 'wagon', 'van']
+        self.current_vehicle_index = 0
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
@@ -191,6 +193,8 @@ class World(object):
         if not args.no_server_rendering:
             self.toggle_server_rendering()
 
+        print(args.filter)
+
     def restart(self):
         self.map_name = self.map.name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
@@ -209,7 +213,7 @@ class World(object):
             spawn_point.rotation.roll = 0.0
             spawn_point.rotation.pitch = 0.0
             self.destroy()
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            self.player = self.world.spawn_actor(blueprint, spawn_point)
         
         spawn_attempts = 0
         while self.player is None:
@@ -234,21 +238,23 @@ class World(object):
                 sys.exit(1)
             spawn_attempts += 1
 
-        # Set up the sensors
-        self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
-        self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
-        self.gnss_sensor = wintersim_sensors.GnssSensor(self.player)
-        self.imu_sensor = wintersim_sensors.IMUSensor(self.player)
+        self.setup_basic_sensors()
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
         self.hud_wintersim.notification(actor_type)
 
-        self.sensors.extend((
-            self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
+    def setup_basic_sensors(self):
+        '''Setup Collision, LaneInvasion, gnss and IMU sensors'''
+        self.sensors.clear()
+        self.collision_sensor = wintersim_sensors.CollisionSensor(self.player, self.hud_wintersim)
+        self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
+        self.gnss_sensor = wintersim_sensors.GnssSensor(self.player)
+        self.imu_sensor = wintersim_sensors.IMUSensor(self.player)
+        self.sensors.extend((self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,self.imu_sensor.sensor))
-
+            
     def is_process_alive(self):
         '''Check if w_control subprocess.Popen is still alive'''
         if self.w_control is not None:
@@ -451,6 +457,37 @@ class World(object):
         self.player.set_target_velocity(carla.Vector3D(0, 0, 0))
         self.player.set_transform(spawn_point)
 
+    def change_vehicle(self):
+        '''Spawn next WinterSim vehicle'''
+
+        # get current vehicle position and destroy current vehicle
+        current_location = self.player.get_transform()
+        current_location.location.z += 2.0
+        if self.player is not None:
+            self.player.destroy()
+            self.player = None
+
+        # get next WinterSim vehicle
+        self.current_vehicle_index += 1
+        if self.current_vehicle_index >= len(self.wintersim_vehicles):
+            self.current_vehicle_index = 0
+        next_vehicle = self.wintersim_vehicles[self.current_vehicle_index]
+        self._actor_filter = next_vehicle
+
+        # spawn new vehicle and reset camera
+        blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
+        self.player = self.world.spawn_actor(blueprint, current_location)
+        self.camera_manager.reset_camera(self.player)
+
+        # destroy and respawn basic sensors
+        for sensor in self.sensors:
+            if sensor is not None:
+                sensor.stop()
+                sensor.destroy()
+                sensor = None
+        self.setup_basic_sensors()
+        self.hud_wintersim.notification('Changed vehicle to: ' + str(self.wintersim_vehicles[self.current_vehicle_index]))
+
     def destroy(self):
         '''Destroy all current sensors on quit'''
         if not self.static_tiretracks_enabled:
@@ -478,7 +515,7 @@ class World(object):
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
-
+       
         if self.camera_manager.sensor is not None:
             self.camera_manager.sensor.stop()
             self.camera_manager.sensor.destroy()

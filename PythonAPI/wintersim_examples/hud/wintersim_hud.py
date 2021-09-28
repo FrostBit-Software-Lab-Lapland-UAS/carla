@@ -17,6 +17,7 @@ Use ARROW or WASD keys for control.
     S            : brake
     Space        : hand-brake
     R            : respawn vehicle
+    Backspace    : change vehicle
     C            : change weather preset
   
     P            : toggle autopilot
