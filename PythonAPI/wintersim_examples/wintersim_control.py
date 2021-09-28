@@ -415,7 +415,7 @@ class World(object):
         if self.spawn_npc is None:
             self.spawn_npc = SpawnNPC()
             self.spawn_npc.spawn_npc(self.world, self.client, self.player, 10, 10)
-            self.hud_wintersim.notification('Spawned NPCs, Press F2 to destroy all NPCs', 6)
+            self.hud_wintersim.notification('Spawned NPCs, Press F3 to destroy all NPCs', 6)
         else:
             self.spawn_npc.destroy_all_npcs()
             self.spawn_npc = None
@@ -430,6 +430,9 @@ class World(object):
 
         if self.open3d_lidar_enabled and self.open3d_lidar is not None:
             self.open3d_lidar.take_screenshot()
+
+        self.hud_wintersim.notification('Screenshot saved')
+        print('Screenshot saved to: ' + os.path.dirname(os.path.realpath(__file__)))
 
     def teleport_vehicle(self, position = -1):
         '''Teleport vehicle to random or given spawn location'''

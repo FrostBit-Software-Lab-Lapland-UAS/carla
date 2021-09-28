@@ -109,7 +109,7 @@ class InfoHud(object):
         self._weather_presets = []
         self.preset_names = []
         self.muonio = False
-
+        
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # only get winter presets
@@ -232,7 +232,7 @@ class InfoHud(object):
             'Press C to change',
             'weather preset',
             '',
-            'Press R to get real time',
+            'Press B to get real time',
             'weather']
 
     def notification(self, text, seconds=2.0):
