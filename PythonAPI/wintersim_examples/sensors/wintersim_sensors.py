@@ -174,6 +174,8 @@ class RadarSensor(object):
         self.sensor = None
         self._parent = parent_actor
         self.velocity_range = 7.5 # m/s
+
+    def spawn_radar(self):
         world = self._parent.get_world()
         self.debug = world.debug
         bp = world.get_blueprint_library().find('sensor.other.radar')
@@ -190,6 +192,7 @@ class RadarSensor(object):
         self = weak_self()
         if not self:
             return
+
         current_rot = radar_data.transform.rotation
         for detect in radar_data:
             azi = math.degrees(detect.azimuth)
@@ -204,12 +207,18 @@ class RadarSensor(object):
                 return max(min_v, min(value, max_v))
 
             norm_velocity = detect.velocity / self.velocity_range
-            r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
-            g = int(clamp(0.0, 1.0, 1.0 - abs(norm_velocity)) * 255.0)
+            r = int(clamp(0.0, 1.0, 0.0 - norm_velocity) * 255.0)
+            g = int(clamp(0.0, 0.0, 0.0 - abs(norm_velocity)) * 255.0)
             b = int(abs(clamp(- 1.0, 0.0, - 1.0 - norm_velocity)) * 255.0)
-            self.debug.draw_point(radar_data.transform.location + fw_vec,
-                size=0.075,life_time=0.06,
-                persistent_lines=False, color=carla.Color(r, g, b))
+            dot_color = carla.Color(r, g, b)
+            #dot_color = carla.Color(0, 0, 255)
+
+            self.debug.draw_point(
+                radar_data.transform.location + fw_vec,
+                size=0.08,
+                life_time=0.17,
+                persistent_lines=False,
+                color=dot_color)
 
     def destroy_radar(self):
         self.sensor.stop()

@@ -410,6 +410,7 @@ class World(object):
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
+            self.radar_sensor.spawn_radar()
         else:
             self.radar_sensor.destroy_radar()
             self.radar_sensor = None
