@@ -31,7 +31,7 @@ Use ARROW or WASD keys for control.
     Z/X          : toggle right/left blinker
 
     F1           : toggle HUD
-    F2           : toggle NPC's
+    F3           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks on snowy roads
