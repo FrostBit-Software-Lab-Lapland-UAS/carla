@@ -34,9 +34,9 @@ Use ARROW or WASD keys for control.
     F3           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
-    F6           : clear all dynamic tiretracks on snowy roads
-    F8           : toggle separate front and back RGB camera windows
-    F9           : toggle separate Open3D lidar window
+    F6           : clear all dynamic tiretracks
+    F8           : toggle RGB camera windows
+    F9           : toggle Open3D Lidar window
     F11          : take screenshot
     F12          : toggle server window rendering
     

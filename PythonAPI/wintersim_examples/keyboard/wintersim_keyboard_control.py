@@ -87,7 +87,7 @@ class KeyboardControl(object):
                 elif event.key == K_F6:
                     world.clear_dynamic_tiretracks()
                 elif event.key == K_F8:
-                    world.toggle_cv2_windows()
+                    world.toggle_camera_windows()
                 elif event.key == K_F9:
                     world.toggle_open3d_lidar()
                 elif event.key == K_F11:
