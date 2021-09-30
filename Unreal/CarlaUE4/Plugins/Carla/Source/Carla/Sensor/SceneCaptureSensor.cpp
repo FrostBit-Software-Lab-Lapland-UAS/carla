@@ -96,6 +96,11 @@ void ASceneCaptureSensor::SetFOVAngle(const float FOVAngle)
   CaptureComponent2D->FOVAngle = FOVAngle;
 }
 
+void ASceneCaptureSensor::SetCameraSleetEffect(const bool enabled)
+{
+    cameraSleetEffect = enabled;
+}
+
 float ASceneCaptureSensor::GetFOVAngle() const
 {
   check(CaptureComponent2D != nullptr);
@@ -501,6 +506,8 @@ void ASceneCaptureSensor::BeginPlay()
   // This ensures the camera is always spawning the raindrops in case the
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
+
+  // todo implement event here
 
   Super::BeginPlay();
 }

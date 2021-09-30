@@ -17,6 +17,9 @@ class USceneCaptureComponent2D;
 class UStaticMeshComponent;
 class UTextureRenderTarget2D;
 
+
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTestDelegate);
+
 /// Base class for sensors using a USceneCaptureComponent2D for rendering the
 /// scene. This class does not capture data, use
 /// `FPixelReader::SendPixelsInRenderThread(*this)` in derived classes.
@@ -51,6 +54,11 @@ public:
     return ImageHeight;
   }
 
+  bool GetSleetEffect() const
+  {
+      return cameraSleetEffect;
+  }
+
   UFUNCTION(BlueprintCallable)
   void EnablePostProcessingEffects(bool Enable = true)
   {
@@ -77,6 +85,9 @@ public:
 
   UFUNCTION(BlueprintCallable)
   void SetFOVAngle(float FOVAngle);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffect(bool enabled);
 
   UFUNCTION(BlueprintCallable)
   float GetFOVAngle() const;
@@ -298,6 +309,9 @@ public:
     // FlushRenderingCommands();
   }
 
+  //UPROPERTY(BlueprintAssignable, Category = "Test")
+  //FTestDelegate OnTestDelegate;
+
 protected:
 
   virtual void BeginPlay() override;
@@ -336,6 +350,16 @@ protected:
   UPROPERTY(EditAnywhere)
   bool bEnable16BitFormat = false;
 
+  /// Whether to use camera sleet effect for this camera
+  UPROPERTY(EditAnywhere)
+  bool cameraSleetEffect = true;
+
   FRenderCommandFence RenderFence;
+
+  /*UFUNCTION(BlueprintImplementableEvent)
+  void NewCameraAdded();
+
+  UFUNCTION(BlueprintImplementableEvent)
+  void CameraRemoved();*/
 
 };
