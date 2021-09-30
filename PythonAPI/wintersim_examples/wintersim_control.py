@@ -353,7 +353,7 @@ class World(object):
         text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
         self.hud_wintersim.notification(text)
 
-    def toggle_cv2_windows(self):
+    def toggle_camera_windows(self):
         '''toggle separate camera windows'''
         self.multiple_windows_enabled = not self.multiple_windows_enabled
         if self.multiple_windows_enabled == False and self.cv2_windows is not None:
@@ -410,6 +410,7 @@ class World(object):
     def toggle_radar(self):
         if self.radar_sensor is None:
             self.radar_sensor = wintersim_sensors.RadarSensor(self.player)
+            self.radar_sensor.spawn_radar()
         else:
             self.radar_sensor.destroy_radar()
             self.radar_sensor = None
@@ -459,6 +460,17 @@ class World(object):
 
     def change_vehicle(self):
         '''Spawn next WinterSim vehicle'''
+
+        # if camera windows, open3d lidar or multisensorview is enabled
+        # close all of them
+        if self.multiple_windows_enabled:
+            self.toggle_camera_windows()
+
+        if self.open3d_lidar_enabled:
+            self.toggle_open3d_lidar()
+
+        if self.multi_sensor_view_enabled:
+            self.toggle_multi_sensor_view()
 
         # get current vehicle position and destroy current vehicle
         current_location = self.player.get_transform()
