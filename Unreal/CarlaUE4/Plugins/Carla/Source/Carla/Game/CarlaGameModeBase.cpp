@@ -131,6 +131,14 @@ void ACarlaGameModeBase::InitGame(
     UE_LOG(LogCarla, Error, TEXT("Missing weather class!"));
   }
 
+  /// SpectatorCamera toggle class
+  if (ToggleServerCameraClass != nullptr) {
+      Episode->ToggleServerCamera = World->SpawnActor<AToggleServerCamera>(ToggleServerCameraClass);
+  }
+  else {
+      UE_LOG(LogCarla, Error, TEXT("Missing ToggleServerCamera class!"));
+  }
+
   GameInstance->NotifyInitGame();
 
   OnEpisodeSettingsChangeHandle = FCarlaStaticDelegates::OnEpisodeSettingsChange.AddUObject(

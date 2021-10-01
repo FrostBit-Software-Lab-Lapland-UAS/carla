@@ -267,6 +267,7 @@ void export_world() {
     .add_property("debug", &cc::World::MakeDebugHelper)
 	.def("set_static_tiretracks", CONST_CALL_WITHOUT_GIL_1(cc::World, SetStaticTiretracks, bool), arg("enabled"))
     .def("clear_dynamic_tiretracks", CONST_CALL_WITHOUT_GIL(cc::World, ClearDynamicTiretracks))
+    .def("toggle_camera", CONST_CALL_WITHOUT_GIL(cc::World, ToggleCamera))
     .def("load_map_layer", CONST_CALL_WITHOUT_GIL_1(cc::World, LoadLevelLayer, cr::MapLayer), arg("map_layers"))
     .def("unload_map_layer", CONST_CALL_WITHOUT_GIL_1(cc::World, UnloadLevelLayer, cr::MapLayer), arg("map_layers"))
     .def("get_blueprint_library", CONST_CALL_WITHOUT_GIL(cc::World, GetBlueprintLibrary))
