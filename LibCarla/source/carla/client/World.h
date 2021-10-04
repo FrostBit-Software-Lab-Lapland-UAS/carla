@@ -67,6 +67,8 @@ namespace client {
 
     void ClearDynamicTiretracks() const;
 
+    void ToggleCamera() const;
+
     void LoadLevelLayer(rpc::MapLayer map_layers) const;
 
     void UnloadLevelLayer(rpc::MapLayer map_layers) const;
