@@ -1,5 +1,7 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
+// 
+// Copyright(c) 2021 FrostBit Software Lab
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -40,7 +42,7 @@ public:
 private:
   /// Compute the received intensity of the point
   float ComputeIntensity(const FSemanticDetection& RawDetection) const;
-  FDetection ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const;
+  FDetection ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf);
 
   void PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel) override;
   bool PostprocessDetection(FDetection& Detection) const;

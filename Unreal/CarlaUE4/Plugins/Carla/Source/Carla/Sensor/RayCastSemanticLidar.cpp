@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
+// 
+// Copyright(c) 2021 FrostBit Software Lab
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -21,7 +23,6 @@
 #include <list>
 #include <iostream>
 #include <fstream>
-using namespace std;
 
 namespace crp = carla::rpc;
 
@@ -226,7 +227,7 @@ void ARayCastSemanticLidar::ComputeRawDetection(const FHitResult& HitInfo, const
     }
 }
 
-bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const
+bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc)
 {
   FVector max_distance = end_trace; //lidar max range
   FVector start_point = LidarBodyLoc; //start point is lidar position
@@ -249,6 +250,14 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
 	if (r < prob) //if random is smaller than probability from formula we hit the trace to snowflake
 	{
 		HitInfo.ImpactPoint = new_hitpoint; //assign new hitpoint
+
+    if (HitInfo.Component != nullptr)
+    {
+            // Add point as snowflake to TArray on the main thread
+            AsyncTask(ENamedThreads::GameThread, [this, new_hitpoint]() {
+                flakePoints.Add(new_hitpoint);
+            });
+    }
 		return true;
 	}
 	else {
@@ -269,7 +278,7 @@ bool ARayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custo
   
 }
 
-bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const
+bool ARayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w)
 {
   TRACE_CPUPROFILER_EVENT_SCOPE_STR(__FUNCTION__);
 
