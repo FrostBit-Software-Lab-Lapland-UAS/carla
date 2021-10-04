@@ -93,7 +93,7 @@ class KeyboardControl(object):
                 elif event.key == K_F11:
                     world.take_fullscreen_screenshot()
                 elif event.key == K_F12:
-                    world.toggle_server_rendering()
+                    world.world.toggle_camera()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:

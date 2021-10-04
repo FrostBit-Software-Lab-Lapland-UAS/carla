@@ -25,6 +25,7 @@
 #include "Carla/Util/ObjectRegister.h"
 #include "Carla/Weather/Weather.h"
 #include "MapGen/LargeMapManager.h"
+#include "Carla/ToggleServerCamera/ToggleServerCamera.h"
 
 #include "CarlaGameModeBase.generated.h"
 
@@ -147,6 +148,10 @@ private:
   /// The class of Weather to spawn.
   UPROPERTY(Category = "CARLA Game Mode", EditAnywhere)
   TSubclassOf<AWeather> WeatherClass;
+
+  /// SpectatorCamera toggle class
+  UPROPERTY(Category = "CARLA Game Mode", EditAnywhere)
+  TSubclassOf<AToggleServerCamera> ToggleServerCameraClass;
 
   /// List of actor spawners that will be used to define and spawn the actors
   /// available in game.

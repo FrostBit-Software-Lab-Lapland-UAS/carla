@@ -336,6 +336,20 @@ void FCarlaServer::FPimpl::BindActions()
       return R<void>::Success();
   };
 
+  //Togle server camera
+  BIND_SYNC(toggle_camera) << [this]() -> R<void>
+  {
+      REQUIRE_CARLA_EPISODE();
+
+      auto* ToggleServerCamera = Episode->GetToggleServerCamera();
+      if (ToggleServerCamera == nullptr)
+     {
+          RESPOND_ERROR("internal error: unable to find DisableServerCamera");
+      }
+      ToggleServerCamera->ToggleCamera();
+      return R<void>::Success();
+  };
+
   BIND_SYNC(unload_map_layer) << [this](cr::MapLayer MapLayers) -> R<void>
   {
     REQUIRE_CARLA_EPISODE();
