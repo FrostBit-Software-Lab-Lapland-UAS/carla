@@ -1,8 +1,6 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
-// Copyright(c) 2021 FrostBit Software Lab
-//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -19,9 +17,12 @@
 #include <compiler/disable-ue4-macros.h>
 #include <carla/sensor/data/SemanticLidarData.h>
 #include <compiler/enable-ue4-macros.h>
-#include "Async.h"
+#include <list>
+#include <iostream>
+#include <fstream>
 
 #include "RayCastSemanticLidar.generated.h"
+
 
 /// A ray-cast based Lidar sensor.
 UCLASS()
@@ -42,9 +43,6 @@ public:
   virtual void Set(const FActorDescription &Description) override;
   virtual void Set(const FLidarDescription &LidarDescription);
 
-  //TArray for snowflakes
-  TArray<FVector> flakePoints;
-
 protected:
   virtual void PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaTime) override;
 
@@ -55,10 +53,10 @@ protected:
   void SimulateLidar(const float DeltaTime);
 
   /// Shoot a laser ray-trace, return whether the laser hit something.
-  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w);
+  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
 
   /// Calculate new hitpoint for linetrace if it is snowing
-  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc);
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
 
   bool CustomDropOff(float rain_amount) const;
 
@@ -82,6 +80,7 @@ protected:
   FLidarDescription Description;
 
   TArray<float> LaserAngles;
+
   std::vector<std::vector<FHitResult>> RecordedHits;
   std::vector<std::vector<bool>> RayPreprocessCondition;
   std::vector<uint32_t> PointsPerChannel;
