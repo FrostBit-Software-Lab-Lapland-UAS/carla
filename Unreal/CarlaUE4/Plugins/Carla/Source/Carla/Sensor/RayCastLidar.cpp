@@ -94,10 +94,10 @@ ARayCastLidar::FDetection ARayCastLidar::ComputeDetection(const FHitResult& HitI
 
   const float IntRec = AbsAtm;
 
-  if (HitInfo.Component == nullptr) {
-      Detection.intensity = 0,1;
+  if (HitInfo.Component == nullptr) { //snowflakes dont have component
+      Detection.intensity = 1;
   }
-  else {
+  else { 
       int tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
       switch (tag)
       {
