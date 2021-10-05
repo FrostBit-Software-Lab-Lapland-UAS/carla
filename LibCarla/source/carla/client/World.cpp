@@ -35,6 +35,10 @@ namespace client {
       _episode.Lock()->ClearDynamicTiretracks();
   }
 
+  void World::ToggleCamera() const {
+      _episode.Lock()->ToggleCamera();
+  }
+
   void World::LoadLevelLayer(rpc::MapLayer map_layers) const {
     _episode.Lock()->LoadLevelLayer(map_layers);
   }

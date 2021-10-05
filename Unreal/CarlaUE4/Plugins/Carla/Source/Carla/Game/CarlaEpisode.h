@@ -13,6 +13,7 @@
 #include "Carla/Settings/EpisodeSettings.h"
 #include "Carla/Util/ActorAttacher.h"
 #include "Carla/Weather/Weather.h"
+#include "Carla/ToggleServerCamera/ToggleServerCamera.h"
 
 #include "GameFramework/Pawn.h"
 
@@ -129,6 +130,12 @@ public:
   AWeather *GetWeather() const
   {
     return Weather;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  AToggleServerCamera *GetToggleServerCamera() const
+  {
+    return ToggleServerCamera;
   }
 
   const FActorRegistry &GetActorRegistry() const
@@ -334,6 +341,9 @@ private:
 
   UPROPERTY(VisibleAnywhere)
   AWeather *Weather = nullptr;
+
+  UPROPERTY(VisibleAnywhere)
+  AToggleServerCamera *ToggleServerCamera = nullptr;
 
   ACarlaRecorder *Recorder = nullptr;
 

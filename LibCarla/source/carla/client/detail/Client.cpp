@@ -151,6 +151,10 @@ namespace detail {
       _pimpl->AsyncCall("clear_dynamic_tiretracks");
   }
 
+  void Client::ToggleCamera() const {
+      _pimpl->AsyncCall("toggle_camera");
+  }
+
   void Client::LoadEpisode(std::string map_name, bool reset_settings, rpc::MapLayer map_layer) {
     // Await response, we need to be sure in this one.
     _pimpl->CallAndWait<void>("load_new_episode", std::move(map_name), reset_settings, map_layer);

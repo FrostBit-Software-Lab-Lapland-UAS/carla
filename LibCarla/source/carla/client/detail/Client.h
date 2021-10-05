@@ -100,6 +100,8 @@ namespace detail {
 
     void ClearDynamicTiretracks() const;
 
+    void ToggleCamera() const;
+
     void LoadLevelLayer(rpc::MapLayer map_layer) const;
 
     void UnloadLevelLayer(rpc::MapLayer map_layer) const;
