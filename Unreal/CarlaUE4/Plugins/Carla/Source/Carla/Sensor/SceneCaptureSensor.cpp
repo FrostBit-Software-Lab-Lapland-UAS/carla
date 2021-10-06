@@ -508,11 +508,8 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
-
-  //auto a = GetEpisode().GetSensorEventHandler(); // ->CameraAdded.Broadcast();
-  //a->CameraAdded.Broadcast();
-  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast();
-  UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (cameraSleetEffect ? TEXT("true") : TEXT("false")));
+  // notify new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this);
 
   Super::BeginPlay();
 }
@@ -536,6 +533,9 @@ void ASceneCaptureSensor::PostPhysTick(UWorld *World, ELevelTick TickType, float
 
 void ASceneCaptureSensor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+   // notify this camera sensor has been removed
+   GetEpisode().GetSensorEventHandler()->CameraRemoved.Broadcast(this);
+
   Super::EndPlay(EndPlayReason);
   SCENE_CAPTURE_COUNTER = 0u;
 }

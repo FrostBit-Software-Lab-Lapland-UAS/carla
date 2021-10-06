@@ -15,8 +15,3 @@ ASensorEventHandler::ASensorEventHandler(const FObjectInitializer& ObjectInitial
 	PrimaryActorTick.bCanEverTick = false;
 	//RootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("RootComponent"));
 }
-
-//void ASensorEventHandler::Test()
-//{
-//    UE_LOG(LogCarla, Log, TEXT("Test"));
-//}

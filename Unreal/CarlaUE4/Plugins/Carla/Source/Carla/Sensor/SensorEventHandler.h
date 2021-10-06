@@ -9,10 +9,11 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Carla/Sensor/SceneCaptureSensor.h"
 #include "SensorEventHandler.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLevelEventDelegate_CameraAdded);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLevelEventDelegate_CameraRemoved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLevelEventDelegate_CameraAdded, ASceneCaptureSensor*, camera);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLevelEventDelegate_CameraRemoved, ASceneCaptureSensor*, camera);
 
 UCLASS(Abstract)
 class CARLA_API ASensorEventHandler : public AActor
@@ -28,8 +29,5 @@ public:
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FLevelEventDelegate_CameraRemoved CameraRemoved;
-
-	/*UFUNCTION(BlueprintCallable)
-	static Test();*/
 
 };

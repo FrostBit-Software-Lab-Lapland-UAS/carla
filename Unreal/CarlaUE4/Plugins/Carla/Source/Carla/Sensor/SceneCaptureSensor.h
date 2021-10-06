@@ -20,8 +20,6 @@ class UStaticMeshComponent;
 class UTextureRenderTarget2D;
 
 
-//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTestDelegate);
-
 /// Base class for sensors using a USceneCaptureComponent2D for rendering the
 /// scene. This class does not capture data, use
 /// `FPixelReader::SendPixelsInRenderThread(*this)` in derived classes.
@@ -312,9 +310,6 @@ public:
     // FlushRenderingCommands();
   }
 
-  //UPROPERTY(BlueprintAssignable, Category = "Test")
-  //FTestDelegate OnTestDelegate;
-
 protected:
 
   virtual void BeginPlay() override;
@@ -355,14 +350,8 @@ protected:
 
   /// Whether to use camera sleet effect for this camera
   UPROPERTY(EditAnywhere)
-  bool cameraSleetEffect = true;
+  bool cameraSleetEffect = false;
 
   FRenderCommandFence RenderFence;
-
-  /*UFUNCTION(BlueprintImplementableEvent)
-  void NewCameraAdded();
-
-  UFUNCTION(BlueprintImplementableEvent)
-  void CameraRemoved();*/
 
 };
