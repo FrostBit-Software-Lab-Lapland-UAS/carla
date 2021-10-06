@@ -369,14 +369,14 @@ class World(object):
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
             self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=self.server_rendering, synchronous_mode=True,
+            no_rendering_mode=False, synchronous_mode=True,
             fixed_delta_seconds=0.05))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
             self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=self.server_rendering, synchronous_mode=False,
+            no_rendering_mode=False, synchronous_mode=False,
             fixed_delta_seconds=0.00))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)

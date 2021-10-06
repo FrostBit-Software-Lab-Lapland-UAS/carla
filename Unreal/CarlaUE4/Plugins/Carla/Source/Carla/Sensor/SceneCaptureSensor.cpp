@@ -22,6 +22,7 @@
 #include "HighResScreenshot.h"
 #include "Misc/CoreDelegates.h"
 #include "RHICommandList.h"
+#include "Carla/Sensor/SensorEventHandler.h"
 
 static auto SCENE_CAPTURE_COUNTER = 0u;
 
@@ -94,6 +95,11 @@ void ASceneCaptureSensor::SetFOVAngle(const float FOVAngle)
 {
   check(CaptureComponent2D != nullptr);
   CaptureComponent2D->FOVAngle = FOVAngle;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffect(const bool enabled)
+{
+    cameraSleetEffect = enabled;
 }
 
 float ASceneCaptureSensor::GetFOVAngle() const
@@ -502,6 +508,9 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
+  // notify new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this);
+
   Super::BeginPlay();
 }
 
@@ -524,6 +533,9 @@ void ASceneCaptureSensor::PostPhysTick(UWorld *World, ELevelTick TickType, float
 
 void ASceneCaptureSensor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+   // notify this camera sensor has been removed
+   GetEpisode().GetSensorEventHandler()->CameraRemoved.Broadcast(this);
+
   Super::EndPlay(EndPlayReason);
   SCENE_CAPTURE_COUNTER = 0u;
 }

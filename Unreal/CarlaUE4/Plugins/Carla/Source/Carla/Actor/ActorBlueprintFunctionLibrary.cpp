@@ -1,6 +1,8 @@
 // Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -360,6 +362,13 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
   LensYSize.RecommendedValues = { TEXT("0.08") };
   LensYSize.bRestrictToRecommended = false;
 
+  // camera lens sleet effect
+  FActorVariation CameraEffect;
+  CameraEffect.Id = TEXT("camera_sleet_effect");
+  CameraEffect.Type = EActorAttributeType::Bool;
+  CameraEffect.RecommendedValues = { TEXT("True") };
+  CameraEffect.bRestrictToRecommended = false;
+
   Definition.Variations.Append({
       ResX,
       ResY,
@@ -369,7 +378,9 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
       LensK,
       LensKcube,
       LensXSize,
-      LensYSize});
+      LensYSize,
+      CameraEffect
+      });
 
   if (bEnableModifyingPostProcessEffects)
   {
@@ -1417,6 +1428,10 @@ void UActorBlueprintFunctionLibrary::SetCamera(
       RetrieveActorAttributeToInt("image_size_y", Description.Variations, 600));
   Camera->SetFOVAngle(
       RetrieveActorAttributeToFloat("fov", Description.Variations, 90.0f));
+
+  Camera->SetCameraSleetEffect(
+      RetrieveActorAttributeToBool("camera_sleet_effect", Description.Variations, true));
+
   if (Description.Variations.Contains("enable_postprocess_effects"))
   {
     Camera->EnablePostProcessingEffects(

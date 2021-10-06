@@ -138,6 +138,12 @@ public:
     return ToggleServerCamera;
   }
 
+  UFUNCTION(BlueprintCallable)
+  ASensorEventHandler *GetSensorEventHandler() const
+  {
+      return SensorEventHandler;
+  }
+
   const FActorRegistry &GetActorRegistry() const
   {
     return ActorDispatcher->GetActorRegistry();
@@ -344,6 +350,9 @@ private:
 
   UPROPERTY(VisibleAnywhere)
   AToggleServerCamera *ToggleServerCamera = nullptr;
+
+  UPROPERTY(VisibleAnywhere)
+  ASensorEventHandler* SensorEventHandler = nullptr;
 
   ACarlaRecorder *Recorder = nullptr;
 

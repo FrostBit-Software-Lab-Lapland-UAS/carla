@@ -139,6 +139,14 @@ void ACarlaGameModeBase::InitGame(
       UE_LOG(LogCarla, Error, TEXT("Missing ToggleServerCamera class!"));
   }
 
+  // Sensor event handler
+  if (SensorEventHandlerClass != nullptr) {
+      Episode->SensorEventHandler = World->SpawnActor<ASensorEventHandler>(SensorEventHandlerClass);
+  }
+  else {
+      UE_LOG(LogCarla, Error, TEXT("Missing SensorEventHandler class!"));
+  }
+
   GameInstance->NotifyInitGame();
 
   OnEpisodeSettingsChangeHandle = FCarlaStaticDelegates::OnEpisodeSettingsChange.AddUObject(

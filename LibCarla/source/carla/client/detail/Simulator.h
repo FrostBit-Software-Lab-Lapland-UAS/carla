@@ -81,6 +81,10 @@ namespace detail {
         _client.ClearDynamicTiretracks();
     }
 
+    void ToggleCamera() const {
+        _client.ToggleCamera();
+    }
+
     void LoadLevelLayer(rpc::MapLayer map_layers) const {
       _client.LoadLevelLayer(map_layers);
     }

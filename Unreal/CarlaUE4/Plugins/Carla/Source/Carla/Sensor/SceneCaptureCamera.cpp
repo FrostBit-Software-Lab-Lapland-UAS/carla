@@ -20,11 +20,9 @@ FActorDefinition ASceneCaptureCamera::GetSensorDefinition()
 ASceneCaptureCamera::ASceneCaptureCamera(const FObjectInitializer &ObjectInitializer)
   : Super(ObjectInitializer)
 {
-  AddPostProcessingMaterial(
+ AddPostProcessingMaterial(
       TEXT("Material'/Carla/PostProcessingMaterials/PhysicLensDistortion.PhysicLensDistortion'"));
 
-  AddPostProcessingMaterial(
-      TEXT("Material'/Game/Carla/Blueprints/Weather/camera_effects/m_sleet_effect'"));
 }
 
 void ASceneCaptureCamera::PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaSeconds)
