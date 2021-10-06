@@ -249,7 +249,6 @@ bool ARayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, float rain
 	if (r < prob) //if random is smaller than probability from formula we hit the trace to snowflake
 	{
 		HitInfo.ImpactPoint = new_hitpoint; //assign new hitpoint
-        HitInfo.Component = nullptr; //set component to null if hitpoint is snowflake
 		return true;
 	}
 	else {
