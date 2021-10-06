@@ -10,7 +10,7 @@
 
 #include "Carla/Sensor/PixelReader.h"
 #include "Carla/Sensor/Sensor.h"
-
+#include "Carla/Sensor/SensorEventHandler.h"
 #include "Runtime/RenderCore/Public/RenderCommandFence.h"
 #include "SceneCaptureSensor.generated.h"
 
@@ -56,6 +56,7 @@ public:
     return ImageHeight;
   }
 
+  UFUNCTION(BlueprintCallable)
   bool GetSleetEffect() const
   {
       return cameraSleetEffect;

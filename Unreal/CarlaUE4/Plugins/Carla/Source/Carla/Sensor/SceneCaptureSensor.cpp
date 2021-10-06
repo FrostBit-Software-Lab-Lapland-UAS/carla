@@ -22,6 +22,7 @@
 #include "HighResScreenshot.h"
 #include "Misc/CoreDelegates.h"
 #include "RHICommandList.h"
+#include "Carla/Sensor/SensorEventHandler.h"
 
 static auto SCENE_CAPTURE_COUNTER = 0u;
 
@@ -507,7 +508,11 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
-  // todo implement event here
+
+  //auto a = GetEpisode().GetSensorEventHandler(); // ->CameraAdded.Broadcast();
+  //a->CameraAdded.Broadcast();
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast();
+  UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), (cameraSleetEffect ? TEXT("true") : TEXT("false")));
 
   Super::BeginPlay();
 }

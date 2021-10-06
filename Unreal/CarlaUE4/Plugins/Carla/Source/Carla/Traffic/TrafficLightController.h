@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "Object.h"
+#include "Carla/Actor/CarlaActor.h"
 #include "TrafficLightState.h"
 #include "TrafficLightComponent.h"
 #include "Containers/Map.h"
