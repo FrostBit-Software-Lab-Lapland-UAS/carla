@@ -61,10 +61,9 @@ class CameraManager(object):
             if item[0].startswith('sensor.camera'):
                 bp.set_attribute('image_size_x', str(hud.dim[0]))
                 bp.set_attribute('image_size_y', str(hud.dim[1]))
+
                 if bp.has_attribute('gamma'):
                     bp.set_attribute('gamma', str(gamma_correction))
-                # for attr_name, attr_value in item[3].items():
-                #     bp.set_attribute(attr_name, attr_value)
             elif item[0].startswith('sensor.lidar'):
                 self.lidar_range = 50
 
@@ -109,10 +108,6 @@ class CameraManager(object):
         if notify:
             self.hud.notification(self.sensors[index][2])
         self.index = index
-    
-    def attach_camera(self):
-        print("")
-
 
     def destroy(self):
         '''Destroy current sensor'''

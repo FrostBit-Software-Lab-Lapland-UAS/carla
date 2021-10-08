@@ -61,6 +61,18 @@ public:
   }
 
   UFUNCTION(BlueprintCallable)
+  FString GetSleetEffectRotation() const
+  {
+      return cameraSleetEffectRotation;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  float GetSleetEffectStrength() const
+  {
+      return cameraSleetEffectStrength;
+  }
+
+  UFUNCTION(BlueprintCallable)
   void EnablePostProcessingEffects(bool Enable = true)
   {
     bEnablePostProcessingEffects = Enable;
@@ -89,6 +101,12 @@ public:
 
   UFUNCTION(BlueprintCallable)
   void SetCameraSleetEffect(bool enabled);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffectRotation(FString value);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffectStrength(float value);
 
   UFUNCTION(BlueprintCallable)
   float GetFOVAngle() const;
@@ -351,6 +369,12 @@ protected:
   /// Whether to use camera sleet effect for this camera
   UPROPERTY(EditAnywhere)
   bool cameraSleetEffect = false;
+
+  UPROPERTY(EditAnywhere)
+  FString cameraSleetEffectRotation = "top";
+
+  UPROPERTY(EditAnywhere)
+  float cameraSleetEffectStrength = 1.2f;
 
   FRenderCommandFence RenderFence;
 

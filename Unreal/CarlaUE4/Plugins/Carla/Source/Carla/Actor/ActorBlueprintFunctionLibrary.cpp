@@ -366,8 +366,22 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
   FActorVariation CameraEffect;
   CameraEffect.Id = TEXT("camera_sleet_effect");
   CameraEffect.Type = EActorAttributeType::Bool;
-  CameraEffect.RecommendedValues = { TEXT("True") };
+  CameraEffect.RecommendedValues = { TEXT("False") };
   CameraEffect.bRestrictToRecommended = false;
+
+  // camera lens sleet effect angle
+  FActorVariation CameraEffectRotation;
+  CameraEffectRotation.Id = TEXT("camera_sleet_effect_rotation");
+  CameraEffectRotation.Type = EActorAttributeType::String;
+  CameraEffectRotation.RecommendedValues = { TEXT("up") };
+  CameraEffectRotation.bRestrictToRecommended = false;
+
+  // camera lens sleet effect strength
+  FActorVariation CameraEffectStrength;
+  CameraEffectStrength.Id = TEXT("camera_sleet_effect_strength");
+  CameraEffectStrength.Type = EActorAttributeType::Float;
+  CameraEffectStrength.RecommendedValues = { TEXT("1.2") };
+  CameraEffectStrength.bRestrictToRecommended = false;
 
   Definition.Variations.Append({
       ResX,
@@ -379,7 +393,9 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
       LensKcube,
       LensXSize,
       LensYSize,
-      CameraEffect
+      CameraEffect,
+      CameraEffectRotation,
+      CameraEffectStrength
       });
 
   if (bEnableModifyingPostProcessEffects)
@@ -1430,7 +1446,13 @@ void UActorBlueprintFunctionLibrary::SetCamera(
       RetrieveActorAttributeToFloat("fov", Description.Variations, 90.0f));
 
   Camera->SetCameraSleetEffect(
-      RetrieveActorAttributeToBool("camera_sleet_effect", Description.Variations, true));
+      RetrieveActorAttributeToBool("camera_sleet_effect", Description.Variations, false));
+
+  Camera->SetCameraSleetEffectRotation(
+      RetrieveActorAttributeToString("camera_sleet_effect_rotation", Description.Variations, "top"));
+
+  Camera->SetCameraSleetEffectStrength(
+      RetrieveActorAttributeToFloat("camera_sleet_effect_strength", Description.Variations, 1.2f));
 
   if (Description.Variations.Contains("enable_postprocess_effects"))
   {

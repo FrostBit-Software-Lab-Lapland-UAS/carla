@@ -102,6 +102,16 @@ void ASceneCaptureSensor::SetCameraSleetEffect(const bool enabled)
     cameraSleetEffect = enabled;
 }
 
+void ASceneCaptureSensor::SetCameraSleetEffectRotation(FString value)
+{
+    cameraSleetEffectRotation = value;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffectStrength(float value)
+{
+    cameraSleetEffectStrength = value;
+}
+
 float ASceneCaptureSensor::GetFOVAngle() const
 {
   check(CaptureComponent2D != nullptr);
@@ -508,8 +518,8 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
-  // notify new camera has been added
-  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this);
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
 
   Super::BeginPlay();
 }

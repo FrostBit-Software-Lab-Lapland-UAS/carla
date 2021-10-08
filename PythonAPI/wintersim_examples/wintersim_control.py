@@ -181,8 +181,6 @@ class World(object):
         self.map_name = ""
         self.filtered_map_name = ""
         self.restart()
-        preset = self._weather_presets[0]
-        self.world.set_weather(preset[0])
         self.recording_start = 0
         self.constant_velocity_enabled = False
         self.current_map_layer = 0
@@ -368,16 +366,12 @@ class World(object):
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
-            self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=False, synchronous_mode=True,
-            fixed_delta_seconds=0.05))
+            self.world.apply_settings(carla.WorldSettings(synchronous_mode=True, fixed_delta_seconds=0.05))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
-            self.world.apply_settings(carla.WorldSettings(
-            no_rendering_mode=False, synchronous_mode=False,
-            fixed_delta_seconds=0.00))
+            self.world.apply_settings(carla.WorldSettings(synchronous_mode=False, fixed_delta_seconds=0.00))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(False)
 
