@@ -1,5 +1,7 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
+// 
+// Copyright(c) 2021 FrostBit Software Lab
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -20,6 +22,7 @@
 #include "HighResScreenshot.h"
 #include "Misc/CoreDelegates.h"
 #include "RHICommandList.h"
+#include "Carla/Sensor/SensorEventHandler.h"
 
 static auto SCENE_CAPTURE_COUNTER = 0u;
 
@@ -92,6 +95,21 @@ void ASceneCaptureSensor::SetFOVAngle(const float FOVAngle)
 {
   check(CaptureComponent2D != nullptr);
   CaptureComponent2D->FOVAngle = FOVAngle;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffect(const bool enabled)
+{
+    cameraSleetEffect = enabled;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffectRotation(FString value)
+{
+    cameraSleetEffectRotation = value;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffectStrength(float value)
+{
+    cameraSleetEffectStrength = value;
 }
 
 float ASceneCaptureSensor::GetFOVAngle() const
@@ -500,6 +518,9 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
+
   Super::BeginPlay();
 }
 
@@ -522,6 +543,9 @@ void ASceneCaptureSensor::PostPhysTick(UWorld *World, ELevelTick TickType, float
 
 void ASceneCaptureSensor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+   // notify this camera sensor has been removed
+   GetEpisode().GetSensorEventHandler()->CameraRemoved.Broadcast(this);
+
   Super::EndPlay(EndPlayReason);
   SCENE_CAPTURE_COUNTER = 0u;
 }
