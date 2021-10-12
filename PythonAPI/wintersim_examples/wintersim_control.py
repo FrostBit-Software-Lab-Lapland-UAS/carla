@@ -192,8 +192,6 @@ class World(object):
         if not args.no_server_rendering:
             self.toggle_server_rendering()
 
-        print(args.filter)
-
     def restart(self):
         self.map_name = self.map.name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
@@ -204,7 +202,17 @@ class World(object):
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
         # Get a vehicle according to arg parameter.
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
-        blueprint.set_attribute('role_name', self.actor_role_name)
+
+        # needed for large maps
+        blueprint.set_attribute('role_name', self.actor_role_name) 
+
+        # notify user if streaming distance changed from default value (2000)
+        if self.args.streaming_distance != 2000:
+            print("Large map tile streaming distance is set to: " + str(self.args.streaming_distance))
+
+        settings = self.world.get_settings()
+        settings.tile_stream_distance = self.args.streaming_distance
+        self.world.apply_settings(settings)
 
         # Spawn player
         if self.player is not None:
@@ -215,7 +223,6 @@ class World(object):
             self.destroy()
             self.player = self.world.spawn_actor(blueprint, spawn_point)
         
-        spawn_attempts = 0
         while self.player is None:
             if not self.map.get_spawn_points():
                 print('There are no spawn points available in your map/town.')
@@ -231,12 +238,6 @@ class World(object):
                 spawn_point = spawn_points[self.args.spawnpoint]
 
             self.player = self.world.spawn_actor(blueprint, spawn_point)
-            #self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-
-            if spawn_attempts == 5:
-                print('Tried to spawn vehicle 5 times without success. Something is wrong!')
-                sys.exit(1)
-            spawn_attempts += 1
 
         self.setup_basic_sensors()
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
@@ -676,6 +677,11 @@ def main():
         dest='no_server_rendering', 
         action='store_false',
         help='Disable server rendering on startup')
+    argparser.add_argument(
+        '--streaming_distance',
+        default=2000,
+        type=int,
+        help='Specify tile streaming distance in large maps')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
