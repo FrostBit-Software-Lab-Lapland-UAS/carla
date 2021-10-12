@@ -139,6 +139,7 @@ class World(object):
             print('  The server could not send the OpenDRIVE (.xodr) file:')
             print('  Make sure it exists, has the same name of your town, and is correct.')
             sys.exit(1)
+        self.actor_role_name = args.rolename
         self.fps = 60
         self.client = None
         self.original_settings = None
@@ -203,6 +204,7 @@ class World(object):
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
         # Get a vehicle according to arg parameter.
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
+        blueprint.set_attribute('role_name', self.actor_role_name)
 
         # Spawn player
         if self.player is not None:
