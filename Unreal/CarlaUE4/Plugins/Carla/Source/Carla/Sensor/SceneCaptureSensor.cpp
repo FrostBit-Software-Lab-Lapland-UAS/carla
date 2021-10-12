@@ -514,12 +514,12 @@ void ASceneCaptureSensor::BeginPlay()
   SceneCaptureSensor_local_ns::ConfigureShowFlags(CaptureComponent2D->ShowFlags,
       bEnablePostProcessingEffects);
 
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
+
   // This ensures the camera is always spawning the raindrops in case the
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
-
-  // notify all event subscribers that new camera has been added
-  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
 
   Super::BeginPlay();
 }
