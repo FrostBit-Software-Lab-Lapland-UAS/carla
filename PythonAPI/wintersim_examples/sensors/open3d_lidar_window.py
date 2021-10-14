@@ -81,7 +81,7 @@ class Open3DLidarWindow():
         if semantic:
             lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
         else:
-            lidar_bp = blueprint_library.find('sensor.lidar.ray_cast')
+            lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
             lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
             lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')

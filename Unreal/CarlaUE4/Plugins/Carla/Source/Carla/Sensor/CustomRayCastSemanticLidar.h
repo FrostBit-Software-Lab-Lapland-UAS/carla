@@ -15,26 +15,30 @@
 #include "Carla/Actor/ActorBlueprintFunctionLibrary.h"
 
 #include <compiler/disable-ue4-macros.h>
-#include <carla/sensor/data/SemanticLidarData.h>
+#include <carla/sensor/data/CustomSemanticLidarData.h>
 #include <compiler/enable-ue4-macros.h>
+#include <list>
+#include <iostream>
+#include <fstream>
 
-#include "RayCastSemanticLidar.generated.h"
+#include "CustomRayCastSemanticLidar.generated.h"
+
 
 /// A ray-cast based Lidar sensor.
 UCLASS()
-class CARLA_API ARayCastSemanticLidar : public ASensor
+class CARLA_API ACustomRayCastSemanticLidar : public ASensor
 {
   GENERATED_BODY()
 
 protected:
 
-  using FSemanticLidarData = carla::sensor::data::SemanticLidarData;
-  using FSemanticDetection = carla::sensor::data::SemanticLidarDetection;
+  using FCustomSemanticLidarData = carla::sensor::data::CustomSemanticLidarData;
+  using FCustomSemanticDetection = carla::sensor::data::CustomSemanticLidarDetection;
 
 public:
   static FActorDefinition GetSensorDefinition();
 
-  ARayCastSemanticLidar(const FObjectInitializer &ObjectInitializer);
+  ACustomRayCastSemanticLidar(const FObjectInitializer &ObjectInitializer);
 
   virtual void Set(const FActorDescription &Description) override;
   virtual void Set(const FLidarDescription &LidarDescription);
@@ -49,13 +53,18 @@ protected:
   void SimulateLidar(const float DeltaTime);
 
   /// Shoot a laser ray-trace, return whether the laser hit something.
-  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams) const;
+  bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
+
+  /// Calculate new hitpoint for linetrace if it is snowing
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
+
+  bool CustomDropOff(float rain_amount) const;
 
   /// Method that allow to preprocess if the rays will be traced.
   virtual void PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel);
 
   /// Compute all raw detection information
-  void ComputeRawDetection(const FHitResult &HitInfo, const FTransform &SensorTransf, FSemanticDetection &Detection) const;
+  void ComputeRawDetection(const FHitResult &HitInfo, const FTransform &SensorTransf, FCustomSemanticDetection &Detection) const;
 
   /// Saving the hits the raycast returns per channel
   void WritePointAsync(uint32_t Channel, FHitResult &Detection);
@@ -77,6 +86,6 @@ protected:
   std::vector<uint32_t> PointsPerChannel;
 
 private:
-  FSemanticLidarData SemanticLidarData;
+  FCustomSemanticLidarData CustomSemanticLidarData;
 
 };
