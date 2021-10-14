@@ -156,7 +156,8 @@ class InfoHud(object):
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
         self.temp_slider = Slider(self, "Temp", 0, 40, -40, get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Road iciness", 0, 5, 0, get_slider_offset())
+        #self.ice_slider = Slider(self, "Road iciness", 0, 5, 0, get_slider_offset())
+        self.ice_slider = Slider(self, "Friction", 0, 1, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
         self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
@@ -212,7 +213,8 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Road iciness: {}'.format(self.road_iciness_array[int(hud.ice_slider.val)]),
+            #'Road iciness: {}'.format(self.road_iciness_array[int(hud.ice_slider.val)]),
+            'Friction coefficient: {}'.format(round((1 - hud.ice_slider.val), 1)),
             '',
             'Precipitation: {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
             '',
