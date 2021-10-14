@@ -521,6 +521,9 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
+
   Super::BeginPlay();
 }
 

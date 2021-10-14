@@ -51,6 +51,7 @@ class CameraManager(object):
             ['sensor.camera.semantic_segmentation', cc.CityScapesPalette,
                 'Camera Semantic Segmentation (CityScapes Palette)', {}],
             ['sensor.lidar.ray_cast', None, 'Lidar (Ray-Cast)', {'range': '50'}],
+            ['sensor.lidar.custom_ray_cast', None, 'Wintersim Lidar', {'range': '50'}],
             ['sensor.camera.dvs', cc.Raw, 'Dynamic Vision Sensor', {}],
             ['sensor.camera.optical_flow', cc.Raw, 'Optical Flow', {}]] # this sensor only works in CARLA version 0.9.12 and above
 

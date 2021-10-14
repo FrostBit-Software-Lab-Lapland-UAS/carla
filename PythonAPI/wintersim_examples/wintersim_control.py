@@ -202,6 +202,7 @@ class World(object):
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
         # Get a vehicle according to arg parameter.
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
+        blueprint.set_attribute('role_name', self.actor_role_name)
 
         # needed for large maps
         blueprint.set_attribute('role_name', self.actor_role_name) 

@@ -913,7 +913,7 @@ void UActorBlueprintFunctionLibrary::MakeLidarDefinition(
   StdDevLidar.Type = EActorAttributeType::Float;
   StdDevLidar.RecommendedValues = { TEXT("0.0") };
 
-  if (Id == "ray_cast") {
+  if (Id == "ray_cast" || Id == "custom_ray_cast") {
     Definition.Variations.Append({
       Channels,
       Range,
@@ -929,7 +929,7 @@ void UActorBlueprintFunctionLibrary::MakeLidarDefinition(
       StdDevLidar,
       HorizontalFOV});
   }
-  else if (Id == "ray_cast_semantic") {
+  else if (Id == "ray_cast_semantic" || Id == "custom_ray_cast_semantic") {
     Definition.Variations.Append({
       Channels,
       Range,

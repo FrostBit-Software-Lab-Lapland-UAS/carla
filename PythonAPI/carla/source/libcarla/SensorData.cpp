@@ -16,7 +16,9 @@
 #include <carla/sensor/data/Image.h>
 #include <carla/sensor/data/LaneInvasionEvent.h>
 #include <carla/sensor/data/LidarMeasurement.h>
+#include <carla/sensor/data/CustomLidarMeasurement.h>
 #include <carla/sensor/data/SemanticLidarMeasurement.h>
+#include <carla/sensor/data/CustomSemanticLidarMeasurement.h>
 #include <carla/sensor/data/GnssMeasurement.h>
 #include <carla/sensor/data/RadarMeasurement.h>
 #include <carla/sensor/data/DVSEventArray.h>
@@ -60,12 +62,28 @@ namespace data {
     return out;
   }
 
+  std::ostream& operator<<(std::ostream& out, const CustomLidarMeasurement& meas) {
+      out << "CustomLidarMeasurement(frame=" << std::to_string(meas.GetFrame())
+          << ", timestamp=" << std::to_string(meas.GetTimestamp())
+          << ", number_of_points=" << std::to_string(meas.size())
+          << ')';
+      return out;
+  }
+
   std::ostream &operator<<(std::ostream &out, const SemanticLidarMeasurement &meas) {
     out << "SemanticLidarMeasurement(frame=" << std::to_string(meas.GetFrame())
         << ", timestamp=" << std::to_string(meas.GetTimestamp())
         << ", number_of_points=" << std::to_string(meas.size())
         << ')';
     return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const CustomSemanticLidarMeasurement& meas) {
+      out << "CustomSemanticLidarMeasurement(frame=" << std::to_string(meas.GetFrame())
+          << ", timestamp=" << std::to_string(meas.GetTimestamp())
+          << ", number_of_points=" << std::to_string(meas.size())
+          << ')';
+      return out;
   }
 
   std::ostream &operator<<(std::ostream &out, const CollisionEvent &meas) {
@@ -155,6 +173,15 @@ namespace data {
     return out;
   }
 
+  std::ostream& operator<<(std::ostream& out, const CustomLidarDetection& det) {
+      out << "CustomLidarDetection(x=" << std::to_string(det.point.x)
+          << ", y=" << std::to_string(det.point.y)
+          << ", z=" << std::to_string(det.point.z)
+          << ", intensity=" << std::to_string(det.intensity)
+          << ')';
+      return out;
+  }
+
   std::ostream &operator<<(std::ostream &out, const SemanticLidarDetection &det) {
     out << "SemanticLidarDetection(x=" << std::to_string(det.point.x)
         << ", y=" << std::to_string(det.point.y)
@@ -164,6 +191,17 @@ namespace data {
         << ", object_tag=" << std::to_string(det.object_tag)
         << ')';
     return out;
+  }
+
+  std::ostream& operator<<(std::ostream& out, const CustomSemanticLidarDetection& det) {
+      out << "CustomSemanticLidarDetection(x=" << std::to_string(det.point.x)
+          << ", y=" << std::to_string(det.point.y)
+          << ", z=" << std::to_string(det.point.z)
+          << ", cos_inc_angle=" << std::to_string(det.cos_inc_angle)
+          << ", object_idx=" << std::to_string(det.object_idx)
+          << ", object_tag=" << std::to_string(det.object_tag)
+          << ')';
+      return out;
   }
 
 } // namespace s11n
@@ -439,6 +477,23 @@ void export_sensor_data() {
     .def(self_ns::str(self_ns::self))
   ;
 
+    class_<csd::CustomLidarMeasurement, bases<cs::SensorData>, boost::noncopyable, boost::shared_ptr<csd::CustomLidarMeasurement>>("CustomLidarMeasurement", no_init)
+        .add_property("horizontal_angle", &csd::CustomLidarMeasurement::GetHorizontalAngle)
+        .add_property("channels", &csd::CustomLidarMeasurement::GetChannelCount)
+        .add_property("raw_data", &GetRawDataAsBuffer<csd::CustomLidarMeasurement>)
+        .def("get_point_count", &csd::CustomLidarMeasurement::GetPointCount, (arg("channel")))
+        .def("save_to_disk", &SavePointCloudToDisk<csd::CustomLidarMeasurement>, (arg("path")))
+        .def("__len__", &csd::CustomLidarMeasurement::size)
+        .def("__iter__", iterator<csd::CustomLidarMeasurement>())
+        .def("__getitem__", +[](const csd::CustomLidarMeasurement& self, size_t pos) -> csd::CustomLidarDetection {
+        return self.at(pos);
+    })
+        .def("__setitem__", +[](csd::CustomLidarMeasurement& self, size_t pos, const csd::CustomLidarDetection& detection) {
+        self.at(pos) = detection;
+    })
+        .def(self_ns::str(self_ns::self))
+        ;
+
   class_<csd::SemanticLidarMeasurement, bases<cs::SensorData>, boost::noncopyable, boost::shared_ptr<csd::SemanticLidarMeasurement>>("SemanticLidarMeasurement", no_init)
     .add_property("horizontal_angle", &csd::SemanticLidarMeasurement::GetHorizontalAngle)
     .add_property("channels", &csd::SemanticLidarMeasurement::GetChannelCount)
@@ -455,6 +510,23 @@ void export_sensor_data() {
     })
     .def(self_ns::str(self_ns::self))
   ;
+
+    class_<csd::CustomSemanticLidarMeasurement, bases<cs::SensorData>, boost::noncopyable, boost::shared_ptr<csd::CustomSemanticLidarMeasurement>>("CustomSemanticLidarMeasurement", no_init)
+        .add_property("horizontal_angle", &csd::CustomSemanticLidarMeasurement::GetHorizontalAngle)
+        .add_property("channels", &csd::CustomSemanticLidarMeasurement::GetChannelCount)
+        .add_property("raw_data", &GetRawDataAsBuffer<csd::CustomSemanticLidarMeasurement>)
+        .def("get_point_count", &csd::CustomSemanticLidarMeasurement::GetPointCount, (arg("channel")))
+        .def("save_to_disk", &SavePointCloudToDisk<csd::CustomSemanticLidarMeasurement>, (arg("path")))
+        .def("__len__", &csd::CustomSemanticLidarMeasurement::size)
+        .def("__iter__", iterator<csd::CustomSemanticLidarMeasurement>())
+        .def("__getitem__", +[](const csd::CustomSemanticLidarMeasurement& self, size_t pos) -> csd::CustomSemanticLidarDetection {
+        return self.at(pos);
+    })
+        .def("__setitem__", +[](csd::CustomSemanticLidarMeasurement& self, size_t pos, const csd::CustomSemanticLidarDetection& detection) {
+        self.at(pos) = detection;
+    })
+        .def(self_ns::str(self_ns::self))
+        ;
 
   class_<csd::CollisionEvent, bases<cs::SensorData>, boost::noncopyable, boost::shared_ptr<csd::CollisionEvent>>("CollisionEvent", no_init)
     .add_property("actor", &csd::CollisionEvent::GetActor)
@@ -518,6 +590,12 @@ void export_sensor_data() {
     .def(self_ns::str(self_ns::self))
   ;
 
+  class_<csd::CustomLidarDetection>("CustomLidarDetection")
+      .def_readwrite("point", &csd::CustomLidarDetection::point)
+      .def_readwrite("intensity", &csd::CustomLidarDetection::intensity)
+      .def(self_ns::str(self_ns::self))
+      ;
+
   class_<csd::SemanticLidarDetection>("SemanticLidarDetection")
     .def_readwrite("point", &csd::SemanticLidarDetection::point)
     .def_readwrite("cos_inc_angle", &csd::SemanticLidarDetection::cos_inc_angle)
@@ -525,6 +603,14 @@ void export_sensor_data() {
     .def_readwrite("object_tag", &csd::SemanticLidarDetection::object_tag)
     .def(self_ns::str(self_ns::self))
   ;
+
+  class_<csd::CustomSemanticLidarDetection>("CustomSemanticLidarDetection")
+      .def_readwrite("point", &csd::CustomSemanticLidarDetection::point)
+      .def_readwrite("cos_inc_angle", &csd::CustomSemanticLidarDetection::cos_inc_angle)
+      .def_readwrite("object_idx", &csd::CustomSemanticLidarDetection::object_idx)
+      .def_readwrite("object_tag", &csd::CustomSemanticLidarDetection::object_tag)
+      .def(self_ns::str(self_ns::self))
+      ;
 
   class_<csd::DVSEvent>("DVSEvent")
     .add_property("x", &csd::DVSEvent::x)
