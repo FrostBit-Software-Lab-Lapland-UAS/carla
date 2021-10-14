@@ -61,10 +61,9 @@ class CameraManager(object):
             if item[0].startswith('sensor.camera'):
                 bp.set_attribute('image_size_x', str(hud.dim[0]))
                 bp.set_attribute('image_size_y', str(hud.dim[1]))
+
                 if bp.has_attribute('gamma'):
                     bp.set_attribute('gamma', str(gamma_correction))
-                # for attr_name, attr_value in item[3].items():
-                #     bp.set_attribute(attr_name, attr_value)
             elif item[0].startswith('sensor.lidar'):
                 self.lidar_range = 50
 
@@ -75,6 +74,17 @@ class CameraManager(object):
 
             item.append(bp)
         self.index = None
+
+    def update_parent_actor(self, new_parent):
+        self._parent = new_parent
+
+    def reset_camera(self, parent):
+        self._parent = parent
+        if self.sensor is not None:
+            self.sensor.stop()
+            self.sensor.destroy()
+            self.sensor = None
+        self.set_sensor(0, notify=False, force_respawn=True)
 
     def toggle_camera(self):
         self.transform_index = (self.transform_index + 1) % len(self._camera_transforms)

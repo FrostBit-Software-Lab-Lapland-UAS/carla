@@ -108,7 +108,9 @@ class InfoHud(object):
         self._info_text = []
         self._weather_presets = []
         self.preset_names = []
-
+        self.road_iciness_array = ["good", "fair", "poor", "bad", "very bad", "very bad"]
+        self.muonio = False
+        
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # only get winter presets
@@ -121,13 +123,22 @@ class InfoHud(object):
         self.months = [
             'January','February','March','April','May','June',
             'July','August','September','October','November','December']
-        self.sun_positions = [
-            [12.5, 1.36, -43.6],[12.5, 9.25, -35.11],
+
+        self.muonio_sun_positions = [
+            [12.5, 1.36, -43.6],  [12.5, 9.25, -35.11],
             [12.5, 20.13, -24.24],[12.5, 31.99, -12.37],
-            [12.5, 41.03, -2.74],[12.5, 45.39, 1.60],
-            [12.5, 43.51, 0.05],[12.5, 35.97, -8.07],
+            [12.5, 41.03, -2.74], [12.5, 45.39, 1.60],
+            [12.5, 43.51, 0.05],  [12.5, 35.97, -8.07],
             [12.5, 24.94, -19.04],[12.5, 13.44, -30.56],
-            [12.5, 3.66, -40.75],[12.5, -0.56, -45.32]]
+            [12.5, 3.66, -40.75], [12.5, -0.56, -45.32]]
+
+        self.rovaniemi_sun_positions = [
+            [12.5, 2.37, -44.6],   [12.5, 9.38, -37.29],
+            [12.5, 19.60, -27.48], [12.5, 33.05, -14.16],
+            [12.5, 41.31, -3.84],  [12.5, 46.84, 1.46],
+            [12.5, 45.01, -1.06],  [12.5, 36.14, -9.35],
+            [12.5, 26.32, -19.63], [12.5, 15.62, -30.60],
+            [12.5, 4.56, -42.72],  [12.5, 0.65, -46.77]]
 
         # create checkboxe(s)
         self.boxes = []
@@ -135,12 +146,18 @@ class InfoHud(object):
         self.boxes.append(self.button)
         self.make_sliders()
 
+    def setup(self, preset, map_name):
+        self.update_sliders(preset)
+        self.filtered_map_name = map_name
+        self.muonio = self.filtered_map_name == "Muonio"
+
     def make_sliders(self):
         '''Make sliders and add them in to list'''
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
         self.temp_slider = Slider(self, "Temp", 0, 40, -40, get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Road slipperiness", 0, 5, 0, get_slider_offset())
+        #self.ice_slider = Slider(self, "Road iciness", 0, 5, 0, get_slider_offset())
+        self.ice_slider = Slider(self, "Friction", 0, 1, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
         self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
@@ -168,12 +185,16 @@ class InfoHud(object):
             self.wind_dir_slider.val = preset.wind_direction
         except AttributeError as e:
             print(e, "not implemented")
+            
         if month and clock:
             self.month_slider.val = month
             self.time_slider.val = clock
 
-    def get_month(self, val): 
-        return self.months[val], self.sun_positions[val]
+    def get_month(self, val):
+        if self.muonio:
+            return self.months[val], self.muonio_sun_positions[val]
+        else:
+            return self.months[val], self.rovaniemi_sun_positions[val]
 
     # Update hud text values
     def tick(self, world, clock, hud): 
@@ -192,17 +213,18 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Road slipperiness: {}.00'.format(int(hud.ice_slider.val)),
+            #'Road iciness: {}'.format(self.road_iciness_array[int(hud.ice_slider.val)]),
+            'Friction coefficient: {}'.format(round((1 - hud.ice_slider.val), 1)),
             '',
             'Precipitation: {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
             '',
             'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
-            'Snow particle size: {}mm'.format(round((hud.particle_slider.val), 1)),
+            'Snow particle size: {} mm'.format(round((hud.particle_slider.val), 1)),
             '',
             'Fog: {}%'.format(int(hud.fog_slider.val)),
             'Fog Falloff: {}'.format(round((hud.fog_falloff.val), 1)),
             '',
-            'Wind Intensity: {}m/s'.format(round((hud.wind_slider.val/10), 1)),
+            'Wind Intensity: {} m/s'.format(round((hud.wind_slider.val/10), 1)),
             'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
@@ -213,8 +235,8 @@ class InfoHud(object):
             'Press C to change',
             'weather preset',
             '',
-            'Press R to get real time',
-            'weather from Muonio']
+            'Press B to get real time',
+            'weather']
 
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
@@ -424,10 +446,13 @@ class Weather(object):
         else:
             hud.preset_slider.val = hud.preset_count
 
+        # only update time / month when either of those sliders touched
+        if slider.name == "Time" or slider.name == "Month":
+            month, sundata = hud.get_month(int(hud.month_slider.val))
+            clock = hud.time_slider.val
+            self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
+
         preset = preset[0]
-        month, sundata = hud.get_month(int(hud.month_slider.val))
-        clock = hud.time_slider.val
-        self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
         self.weather.cloudiness = hud.precipitation_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
         self.weather.precipitation_deposits = hud.precipitation_slider.val

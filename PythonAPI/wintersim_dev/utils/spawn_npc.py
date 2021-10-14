@@ -12,7 +12,6 @@
 import glob
 import os
 import sys
-import time
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -25,9 +24,11 @@ except IndexError:
 import carla
 from carla import VehicleLightState as vls
 import logging
-import math
-from numpy import random
-import carla
+
+try:
+    from numpy import random
+except ImportError:
+    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
 class SpawnNPC():
     """Spawn NPCs into the simulation"""
@@ -75,8 +76,6 @@ class SpawnNPC():
         spawn_points = world.get_map().get_spawn_points()
         number_of_spawn_points = len(spawn_points)
 
-        # TODO delete all spawn points that are too close to ego vehicle
-        
         if number_of_vehicles < number_of_spawn_points:
             random.shuffle(spawn_points)
         elif number_of_vehicles > number_of_spawn_points:
@@ -90,9 +89,18 @@ class SpawnNPC():
         SetVehicleLightState = carla.command.SetVehicleLightState
         FutureActor = carla.command.FutureActor
 
-        # --------------
-        # Spawn vehicles
-        # --------------
+        if number_of_vehicles >= 1:
+            self.spawn_vehicles(client, number_of_vehicles, traffic_manager, synchronous_master, 
+            blueprints, spawn_points, SpawnActor, SetAutopilot, SetVehicleLightState, FutureActor)
+
+        if number_of_walkers >= 1:
+            print("spawning npc's too!")
+            self.spawn_walkers(world, client, number_of_walkers, blueprintsWalkers, SpawnActor)
+
+        print('spawned %d vehicles and %d walkers, press F2 to destroy all NPCs' % (len(self.vehicles_list), len(self.walkers_list)))
+
+    def spawn_vehicles(self, client, number_of_vehicles, traffic_manager, synchronous_master, blueprints, spawn_points, SpawnActor, SetAutopilot, SetVehicleLightState, FutureActor):
+        '''Spawn vehicles'''
         batch = []
         for n, transform in enumerate(spawn_points):
             if n >= number_of_vehicles:
@@ -120,6 +128,7 @@ class SpawnNPC():
             else:
                 self.vehicles_list.append(response.actor_id)
 
+    def spawn_walkers(self, world, client, number_of_walkers, blueprintsWalkers, SpawnActor):
         # -------------
         # Spawn Walkers
         # -------------
@@ -186,8 +195,6 @@ class SpawnNPC():
                 self.all_actors[i].set_max_speed(float(self.walker_speed[int(i/2)]))
             except IndexError:
                 pass
-
-        print('spawned %d vehicles and %d walkers, press F2 to destroy all NPCs' % (len(self.vehicles_list), len(self.walkers_list)))
 
     def __init__(self):
         super(SpawnNPC, self).__init__()

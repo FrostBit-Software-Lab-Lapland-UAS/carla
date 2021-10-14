@@ -70,9 +70,23 @@ class World(object):
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
                 self._weather_presets.append(preset)
+        self.set_current_weather()
         self._weather_index = 0
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
+        self.muonio = False
+        self.map_name = self.world.get_map().name
+        self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
+        self.muonio = self.filtered_map_name == "Muonio"
+        
+        # friction coefficient adjustment values
+        self.friction_coefficient_table = [0.42, 0.31, 0.23, 0.18, 0.135, 0.09, 0.0675, 0.0655, 0.0475, 0.0185, 0.0]
+
+    def set_current_weather(self):
+        default_weather = self.world.get_weather()
+        self._weather_index = len(self.hud.preset_names) -1
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(default_weather)
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
@@ -94,10 +108,16 @@ class World(object):
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
-    def muonio_weather(self):
-        '''Get Muonio real time weather data from digitraffic API'''
+    def realtime_weather(self):
+        '''Get real time Muonio or Rovaniemi weather data from digitraffic API'''
         weather = weather_hud.Weather(self.world.get_weather())
-        r = requests.get('https://tie.digitraffic.fi/api/v1/data/weather-data/14047')
+
+        if self.muonio:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14047'   # Muonio
+        else:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14031'   # Rovaniemi
+
+        r = requests.get(url)
         data = r.json()
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
@@ -147,17 +167,24 @@ class World(object):
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
+
+        iciness = float("{:.1f}".format(iciness))           
+        index = int(round(iciness * 10)) 
+        adjust_value = self.friction_coefficient_table[index]
+        new_friction = 1 - (iciness - adjust_value)
+        #print("new iciness: " + str(1- iciness))
+        #print(index)
+        #print(adjust_value)
+        #print(new_friction)
+
         actors = self.world.get_actors()
-        friction = 5
-        friction -= iciness / 100 * 4
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-
+                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                front_right_wheel = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
                 wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
                 physics_control.wheels = wheels
@@ -196,8 +223,8 @@ class World(object):
                     box.checked ^= True
             elif key.char == "c":
                 self.next_weather(reverse=False)
-            elif key.char == "r":
-                self.muonio_weather()
+            elif key.char == "b":
+                self.realtime_weather()
         except:
             pass
 
@@ -246,11 +273,12 @@ class KeyboardControl(object):
 def game_loop(args):
     # position offset for pygame window
     x = 1290
-    y = 100
+    y = 50
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None
+    listener = None
 
     try:
         client = carla.Client(args.host, args.port)
@@ -263,13 +291,13 @@ def game_loop(args):
         hud = weather_hud.InfoHud(args.width, args.height, display)
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
-        weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
-        hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
-        world.next_weather()                                                # change preset on startup
+        current_weather = client.get_world().get_weather()
+        weather = weather_hud.Weather(current_weather)                      # weather object to update carla weather with sliders
+        hud.setup(current_weather, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                         
+        listener.start()               
         
         while True:
             clock.tick_busy_loop(30)
@@ -280,7 +308,8 @@ def game_loop(args):
             pygame.display.flip()
 
     finally:
-        listener.stop()
+        if listener is not None:
+            listener.stop()
         pygame.quit()
 
 # ==============================================================================

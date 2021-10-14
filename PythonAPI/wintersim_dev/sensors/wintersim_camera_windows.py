@@ -41,12 +41,19 @@ class CameraWindows(threading.Thread):
     which are then displayed into separate cv2 windows.
     """
 
-    def camera_blueprint(self):
+    def camera_blueprint(self, camera_effect, rotation, effect_strength):
         """Returns RGB camera blueprint."""
         camera_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         camera_bp.set_attribute('image_size_x', str(VIEW_WIDTH))
         camera_bp.set_attribute('image_size_y', str(VIEW_HEIGHT))
         camera_bp.set_attribute('fov', str(VIEW_FOV))
+
+        # WinterSim added camera attributes, all attributes must be converted to string!
+        if camera_effect:
+            camera_bp.set_attribute('camera_sleet_effect', str(camera_effect))              # Value: boolean, (Default False)
+            camera_bp.set_attribute('camera_sleet_effect_rotation', str(rotation))          # Value: string,  (Default: "up" - values: "up", "right", "left", "down")
+            camera_bp.set_attribute('camera_sleet_effect_strength', str(effect_strength))   # Value: float,   (Default 1.2)
+        
         return camera_bp
 
     def depth_camera_blueprint(self):
@@ -55,25 +62,28 @@ class CameraWindows(threading.Thread):
         depth_camera_bp.set_attribute('image_size_x', str(VIEW_WIDTH))
         depth_camera_bp.set_attribute('image_size_y', str(VIEW_HEIGHT))
         depth_camera_bp.set_attribute('fov', str(VIEW_FOV))
+        
         return depth_camera_bp
 
     def setup_front_rgb_camera(self):
         """Spawn Camera-actor (front RGB camera) to given position and
         setup camera image callback and cv2 window."""
         camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
-        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(), camera_transform, attach_to=self.car)
+        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 21.5), camera_transform, attach_to=self.car)
         weak_rgb_self = weakref.ref(self)
         self.front_rgb_camera.listen(lambda front_rgb_image: weak_rgb_self().set_front_rgb_image(weak_rgb_self, front_rgb_image))
         self.front_rgb_camera_display = cv2.namedWindow('front RGB camera')
+        cv2.moveWindow('front RGB camera', 5, 740)
 
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
         setup camera image callback and cv2 window."""
         camera_transform = carla.Transform(carla.Location(x=-3.5, z=2.0), carla.Rotation(pitch=-10, yaw=180))
-        self.back_rgb_camera = self.world.spawn_actor(self.camera_blueprint(), camera_transform, attach_to=self.car)
+        self.back_rgb_camera = self.world.spawn_actor(self.camera_blueprint(False, None, None), camera_transform, attach_to=self.car)
         weak_back_rgb_self = weakref.ref(self)
         self.back_rgb_camera.listen(lambda back_rgb_image: weak_back_rgb_self().set_back_rgb_image(weak_back_rgb_self, back_rgb_image))
         self.back_rgb_camera_display = cv2.namedWindow('back RGB camera')
+        cv2.moveWindow('back RGB camera', 610, 740)
 
     def setup_front_depth_camera(self):
         """Spawn Camera-actor (front depth camera) to given position and
@@ -83,7 +93,7 @@ class CameraWindows(threading.Thread):
         weak_depth_self = weakref.ref(self)
         self.depth_camera.listen(lambda front_depth_image: weak_depth_self().set_front_depth_image(weak_depth_self, front_depth_image))
         self.front_depth_display = cv2.namedWindow('front_depth_image')
-
+       
     @staticmethod
     def set_front_rgb_image(weak_self, img):
         """Sets image coming from front RGB camera sensor."""
@@ -140,12 +150,15 @@ class CameraWindows(threading.Thread):
         self.stop()
 
         if self.front_rgb_camera is not None:
+            self.front_rgb_camera.stop()
             self.front_rgb_camera.destroy()
 
         if self.back_rgb_camera is not None:
+            self.back_rgb_camera.stop()
             self.back_rgb_camera.destroy()
 
         if self.front_depth_camera is not None:
+            self.front_depth_camera.stop()
             self.front_depth_camera.destroy()
 
         cv2.destroyAllWindows()
