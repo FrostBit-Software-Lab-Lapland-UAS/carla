@@ -147,7 +147,7 @@ class World(object):
         self.args = args
         self.multiple_windows_enabled = args.camerawindows
         self.multi_sensor_view_enabled = False
-        self.server_rendering = True
+        self.no_server_rendering = False
         self.cv2_windows = None
         self.open3d_lidar = None
         self.multi_sensor_view = None
@@ -348,11 +348,13 @@ class World(object):
             self.world.tick()
 
     def toggle_server_rendering(self):
-        settings = self.world.get_settings()
-        settings.no_rendering_mode = not settings.no_rendering_mode
-        self.server_rendering = settings.no_rendering_mode
-        self.world.apply_settings(settings)
-        text = "Server rendering disabled" if settings.no_rendering_mode else "Server rendering enabled"
+        '''Move server camera out of view so rendering load can be reduced. 
+        It's recommend to use this over CARLA default no-server-rendering mode because otherwise 
+        snowfall effect will stop due UE4 automatically stopping all Niagara particle systems
+        if there's no camera.'''
+        self.no_server_rendering ^= True
+        self.world.toggle_camera()
+        text = "Server rendering disabled" if self.no_server_rendering else "Server rendering enabled"
         self.hud_wintersim.notification(text)
 
     def toggle_camera_windows(self):
@@ -500,6 +502,10 @@ class World(object):
 
     def destroy(self):
         '''Destroy all current sensors on quit'''
+
+        if self.no_server_rendering:
+            self.toggle_server_rendering()
+
         if not self.static_tiretracks_enabled:
             self.toggle_static_tiretracks(force_toggle=True)
 
