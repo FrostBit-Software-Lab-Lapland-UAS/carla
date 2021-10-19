@@ -78,9 +78,6 @@ class World(object):
         self.map_name = self.world.get_map().name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.muonio = self.filtered_map_name == "Muonio"
-        
-        # friction coefficient adjustment values
-        self.friction_coefficient_table = [0.42, 0.31, 0.23, 0.18, 0.135, 0.09, 0.0675, 0.0655, 0.0475, 0.0185, 0.0]
 
     def set_current_weather(self):
         default_weather = self.world.get_weather()
@@ -167,24 +164,17 @@ class World(object):
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
-
-        iciness = float("{:.1f}".format(iciness))           
-        index = int(round(iciness * 10)) 
-        adjust_value = self.friction_coefficient_table[index]
-        new_friction = 1 - (iciness - adjust_value)
-        #print("new iciness: " + str(1- iciness))
-        #print(index)
-        #print(adjust_value)
-        #print(new_friction)
-
         actors = self.world.get_actors()
+        friction = 5
+        friction -= iciness / 100 * 4
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=new_friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+
                 wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
                 physics_control.wheels = wheels

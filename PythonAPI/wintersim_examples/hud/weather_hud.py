@@ -108,7 +108,6 @@ class InfoHud(object):
         self._info_text = []
         self._weather_presets = []
         self.preset_names = []
-        self.road_iciness_array = ["good", "fair", "poor", "bad", "very bad", "very bad"]
         self.muonio = False
         
         self._weather_presets_all = find_weather_presets()
@@ -156,13 +155,13 @@ class InfoHud(object):
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
         self.temp_slider = Slider(self, "Temp", 0, 40, -40, get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Friction", 0, 1, 0, get_slider_offset())
+        self.ice_slider = Slider(self, "Friction", 0, 5, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
         self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
         self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, get_slider_offset())
-        self.wind_slider = Slider(self, "Wind intensity", 0, 100, 0, get_slider_offset())
+        self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, get_slider_offset())
         self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
         self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
@@ -212,9 +211,9 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Friction coefficient: {}'.format(round((1 - hud.ice_slider.val), 1)),
+            'Friction: {}.00'.format(int(hud.ice_slider.val)),
             '',
-            'Precipitation: {} mm'.format(round((hud.precipitation_slider.val/10), 1)),
+            'Precipitation: {}%'.format(round((hud.precipitation_slider.val), 1)),
             '',
             'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
             'Snow particle size: {} mm'.format(round((hud.particle_slider.val), 1)),
