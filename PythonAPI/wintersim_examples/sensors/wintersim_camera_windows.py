@@ -69,7 +69,7 @@ class CameraWindows(threading.Thread):
         """Spawn Camera-actor (front RGB camera) to given position and
         setup camera image callback and cv2 window."""
         camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
-        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 21.5), camera_transform, attach_to=self.car)
+        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 1.2), camera_transform, attach_to=self.car)
         weak_rgb_self = weakref.ref(self)
         self.front_rgb_camera.listen(lambda front_rgb_image: weak_rgb_self().set_front_rgb_image(weak_rgb_self, front_rgb_image))
         self.front_rgb_camera_display = cv2.namedWindow('front RGB camera')
