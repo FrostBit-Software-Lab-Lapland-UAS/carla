@@ -37,7 +37,6 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
-    F2           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks on snowy roads
@@ -87,7 +86,6 @@ from sensors.wintersim_camera_manager import CameraManager
 from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
-from utils.spawn_npc import SpawnNPC
 import time
 
 try:
@@ -166,7 +164,6 @@ class World(object):
         self.gnss_sensor = None
         self.imu_sensor = None
         self.radar_sensor = None
-        self.spawn_npc = None
         self.camera_manager = None
         self.sensors = []
         self.wintersim_vehicles = ['pickup', 'wagon', 'van']
@@ -417,17 +414,7 @@ class World(object):
 
         text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
         self.hud_wintersim.notification(text)
-
-    def toggle_npcs(self):
-        if self.spawn_npc is None:
-            self.spawn_npc = SpawnNPC()
-            self.spawn_npc.spawn_npc(self.world, self.client, self.player, 10, 10)
-            self.hud_wintersim.notification('Spawned NPCs, Press F3 to destroy all NPCs', 6)
-        else:
-            self.spawn_npc.destroy_all_npcs()
-            self.spawn_npc = None
-            self.hud_wintersim.notification('Destroyed all NPCs')
-
+        
     def take_fullscreen_screenshot(self):
         '''Take fullscreen screenshot of window and save it as png. 
         This should not be called every frame.'''
@@ -508,9 +495,6 @@ class World(object):
 
         if not self.static_tiretracks_enabled:
             self.toggle_static_tiretracks(force_toggle=True)
-
-        if self.spawn_npc is not None:
-            self.toggle_npcs()
 
         if self.open3d_lidar_enabled:
             self.world.apply_settings(carla.WorldSettings(
