@@ -115,7 +115,6 @@ def main():
         if args.seed is not None:
             traffic_manager.set_random_device_seed(args.seed)
 
-
         if args.sync:
             settings = world.get_settings()
             traffic_manager.set_synchronous_mode(True)
@@ -176,6 +175,8 @@ def main():
             if args.car_lights_on:
                 light_state = vls.Position | vls.LowBeam | vls.LowBeam
 
+            #blueprint.
+
             # spawn the cars and set their autopilot and light state all together
             batch.append(SpawnActor(blueprint, transform)
                 .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
@@ -186,6 +187,28 @@ def main():
                 logging.error(response.error)
             else:
                 vehicles_list.append(response.actor_id)
+
+        # Set NPC's tire friction
+        # otherwise NPC's can't go straight for some reason.
+        actors = world.get_actors()
+        for actor in actors:
+            if 'vehicle' in actor.type_id:
+                role_name = actor.attributes['role_name']
+                #print(role_name)
+                if role_name == "hero" or role_name == "ego_vehicle":
+                    continue
+
+                vehicle = actor
+                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=1.0, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                front_right_wheel = carla.WheelPhysicsControl(tire_friction=1.0, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=1.0, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=1.0, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+
+                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
+                physics_control = vehicle.get_physics_control()
+                physics_control.wheels = wheels
+
+                vehicle.apply_physics_control(physics_control)
 
         # -------------
         # Spawn Walkers
