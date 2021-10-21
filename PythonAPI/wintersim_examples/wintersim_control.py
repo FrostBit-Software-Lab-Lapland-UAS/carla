@@ -166,7 +166,7 @@ class World(object):
         self.radar_sensor = None
         self.camera_manager = None
         self.sensors = []
-        self.wintersim_vehicles = ['pickup', 'wagon', 'van']
+        self.wintersim_vehicles = ['pickup', 'wagon', 'van', 'bus']
         self.current_vehicle_index = 0
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
@@ -237,8 +237,8 @@ class World(object):
 
             self.player = self.world.spawn_actor(blueprint, spawn_point)
 
-        self.setup_basic_sensors()
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
+        self.setup_basic_sensors()
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
@@ -251,6 +251,8 @@ class World(object):
         self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
         self.gnss_sensor = wintersim_sensors.GnssSensor(self.player)
         self.imu_sensor = wintersim_sensors.IMUSensor(self.player)
+        self.camera_manager.update_parent_actor(self.player)
+        self.sensors.clear()
         self.sensors.extend((self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,self.imu_sensor.sensor))
             
@@ -317,7 +319,7 @@ class World(object):
             self.cv2_windows.resume()
             
         if not self.multiple_window_setup and self.multiple_windows_enabled:
-            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world)
+            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world, self._actor_filter)
             self.multiple_window_setup = True
             self.cv2_windows.start()
             self.cv2_windows.pause()
@@ -368,7 +370,7 @@ class World(object):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
-            self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
+            self.open3d_lidar.setup(self.world, self.player, True, self._actor_filter, semantic=False)
             self.world.apply_settings(carla.WorldSettings(synchronous_mode=True, fixed_delta_seconds=0.05))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
@@ -476,15 +478,18 @@ class World(object):
         # spawn new vehicle and reset camera
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
         self.player = self.world.spawn_actor(blueprint, current_location)
+
+        copy = self.sensors.copy()
+
+        self.setup_basic_sensors()
         self.camera_manager.reset_camera(self.player)
 
-        # destroy and respawn basic sensors
-        for sensor in self.sensors:
+        for sensor in copy:
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
                 sensor = None
-        self.setup_basic_sensors()
+
         self.hud_wintersim.notification('Changed vehicle to: ' + str(self.wintersim_vehicles[self.current_vehicle_index]))
 
     def destroy(self):

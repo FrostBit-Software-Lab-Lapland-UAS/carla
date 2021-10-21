@@ -190,12 +190,18 @@ class Open3DLidarWindow():
             self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, semantic = True):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, y=0.0, z=2))
+        lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
+
+        # adjust lidar Z position if vehicle is bus
+        if vehicle_name == "bus":
+            lidar_position = carla.Location(x=-0.0, y=0.0, z=3.3)
+
+        lidar_transform = carla.Transform(lidar_position)
         self.lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
 
         self.point_list = o3d.geometry.PointCloud()
