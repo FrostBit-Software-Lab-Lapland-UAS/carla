@@ -69,6 +69,9 @@ class CameraWindows(threading.Thread):
         """Spawn Camera-actor (front RGB camera) to given position and
         setup camera image callback and cv2 window."""
         camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
+        if self.actor_name == "bus":
+            camera_transform = carla.Transform(carla.Location(x=6.0, y=0.4, z=3.0), carla.Rotation(pitch=0))
+
         self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 1.2), camera_transform, attach_to=self.car)
         weak_rgb_self = weakref.ref(self)
         self.front_rgb_camera.listen(lambda front_rgb_image: weak_rgb_self().set_front_rgb_image(weak_rgb_self, front_rgb_image))
@@ -78,7 +81,10 @@ class CameraWindows(threading.Thread):
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
         setup camera image callback and cv2 window."""
-        camera_transform = carla.Transform(carla.Location(x=-3.5, z=2.0), carla.Rotation(pitch=-10, yaw=180))
+        camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
+        if self.actor_name == "bus":
+            camera_transform = carla.Transform(carla.Location(x=-6.7, y=0.4, z=3.0), carla.Rotation(pitch=-10, yaw=180))
+
         self.back_rgb_camera = self.world.spawn_actor(self.camera_blueprint(False, None, None), camera_transform, attach_to=self.car)
         weak_back_rgb_self = weakref.ref(self)
         self.back_rgb_camera.listen(lambda back_rgb_image: weak_back_rgb_self().set_back_rgb_image(weak_back_rgb_self, back_rgb_image))
@@ -163,7 +169,7 @@ class CameraWindows(threading.Thread):
 
         cv2.destroyAllWindows()
 
-    def __init__(self, ego_vehicle, camera, world):
+    def __init__(self, ego_vehicle, camera, world, actor_name):
         super(CameraWindows, self).__init__()
         self.__flag = threading.Event()             # The flag used to pause the thread
         self.__flag.set()                           # Set to True
@@ -173,6 +179,7 @@ class CameraWindows(threading.Thread):
         self.camera = camera
         self.world = world
         self.car = ego_vehicle
+        self.actor_name = actor_name
 
         self.front_rgb_camera_display = None
         self.front_rgb_camera = None

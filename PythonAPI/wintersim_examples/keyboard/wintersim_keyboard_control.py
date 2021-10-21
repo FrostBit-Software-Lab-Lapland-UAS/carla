@@ -22,7 +22,6 @@ try:
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_BACKSPACE
     from pygame.locals import K_F1
-    from pygame.locals import K_F3
     from pygame.locals import K_F4
     from pygame.locals import K_F5
     from pygame.locals import K_F6
@@ -78,8 +77,6 @@ class KeyboardControl(object):
                     return True
                 elif event.key == K_F1:
                     world.hud_wintersim.toggle_info()
-                elif event.key == K_F3:
-                    world.toggle_npcs()
                 elif event.key == K_F4:
                     world.toggle_multi_sensor_view()
                 elif event.key == K_F5:

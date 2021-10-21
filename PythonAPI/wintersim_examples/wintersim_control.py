@@ -37,7 +37,6 @@ Use ARROWS or WASD keys for control.
     R            : toggle recording images to disk
 
     F1           : toggle HUD
-    F2           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks on snowy roads
@@ -87,7 +86,6 @@ from sensors.wintersim_camera_manager import CameraManager
 from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
-from utils.spawn_npc import SpawnNPC
 import time
 
 try:
@@ -166,10 +164,9 @@ class World(object):
         self.gnss_sensor = None
         self.imu_sensor = None
         self.radar_sensor = None
-        self.spawn_npc = None
         self.camera_manager = None
         self.sensors = []
-        self.wintersim_vehicles = ['pickup', 'wagon', 'van']
+        self.wintersim_vehicles = ['pickup', 'wagon', 'van', 'bus']
         self.current_vehicle_index = 0
         self._weather_presets = []
         self._weather_presets_all = find_weather_presets()
@@ -240,8 +237,8 @@ class World(object):
 
             self.player = self.world.spawn_actor(blueprint, spawn_point)
 
-        self.setup_basic_sensors()
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
+        self.setup_basic_sensors()
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
@@ -254,6 +251,8 @@ class World(object):
         self.lane_invasion_sensor = wintersim_sensors.LaneInvasionSensor(self.player, self.hud_wintersim)
         self.gnss_sensor = wintersim_sensors.GnssSensor(self.player)
         self.imu_sensor = wintersim_sensors.IMUSensor(self.player)
+        self.camera_manager.update_parent_actor(self.player)
+        self.sensors.clear()
         self.sensors.extend((self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
             self.gnss_sensor.sensor,self.imu_sensor.sensor))
             
@@ -320,7 +319,7 @@ class World(object):
             self.cv2_windows.resume()
             
         if not self.multiple_window_setup and self.multiple_windows_enabled:
-            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world)
+            self.cv2_windows = CameraWindows(self.player, self.camera_manager.sensor, self.world, self._actor_filter)
             self.multiple_window_setup = True
             self.cv2_windows.start()
             self.cv2_windows.pause()
@@ -371,7 +370,7 @@ class World(object):
         '''toggle separate open3d lidar window'''
         if not self.open3d_lidar_enabled:
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
-            self.open3d_lidar.setup(self.world, self.player, True, semantic=False)
+            self.open3d_lidar.setup(self.world, self.player, True, self._actor_filter, semantic=False)
             self.world.apply_settings(carla.WorldSettings(synchronous_mode=True, fixed_delta_seconds=0.05))
             traffic_manager = self.client.get_trafficmanager(8000)
             traffic_manager.set_synchronous_mode(True)
@@ -417,17 +416,7 @@ class World(object):
 
         text = "Radar visualization enabled"  if self.radar_sensor != None else "Radar visualization disabled"
         self.hud_wintersim.notification(text)
-
-    def toggle_npcs(self):
-        if self.spawn_npc is None:
-            self.spawn_npc = SpawnNPC()
-            self.spawn_npc.spawn_npc(self.world, self.client, self.player, 10, 10)
-            self.hud_wintersim.notification('Spawned NPCs, Press F3 to destroy all NPCs', 6)
-        else:
-            self.spawn_npc.destroy_all_npcs()
-            self.spawn_npc = None
-            self.hud_wintersim.notification('Destroyed all NPCs')
-
+        
     def take_fullscreen_screenshot(self):
         '''Take fullscreen screenshot of window and save it as png. 
         This should not be called every frame.'''
@@ -489,15 +478,18 @@ class World(object):
         # spawn new vehicle and reset camera
         blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
         self.player = self.world.spawn_actor(blueprint, current_location)
+
+        copy = self.sensors.copy()
+
+        self.setup_basic_sensors()
         self.camera_manager.reset_camera(self.player)
 
-        # destroy and respawn basic sensors
-        for sensor in self.sensors:
+        for sensor in copy:
             if sensor is not None:
                 sensor.stop()
                 sensor.destroy()
                 sensor = None
-        self.setup_basic_sensors()
+
         self.hud_wintersim.notification('Changed vehicle to: ' + str(self.wintersim_vehicles[self.current_vehicle_index]))
 
     def destroy(self):
@@ -508,9 +500,6 @@ class World(object):
 
         if not self.static_tiretracks_enabled:
             self.toggle_static_tiretracks(force_toggle=True)
-
-        if self.spawn_npc is not None:
-            self.toggle_npcs()
 
         if self.open3d_lidar_enabled:
             self.world.apply_settings(carla.WorldSettings(
