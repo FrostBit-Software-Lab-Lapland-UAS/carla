@@ -211,7 +211,7 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Friction: {}.00'.format(int(hud.ice_slider.val)),
+            'Friction level: {}'.format(int(hud.ice_slider.val)),
             '',
             'Precipitation: {}%'.format(round((hud.precipitation_slider.val), 1)),
             '',
