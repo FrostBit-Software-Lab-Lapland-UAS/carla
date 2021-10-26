@@ -382,7 +382,7 @@ class World(object):
 
         self.open3d_lidar_enabled ^= True
         self.sync_mode ^= True
-        self.fps = 30 if self.open3d_lidar_enabled else 60
+        self.fps = 20 if self.open3d_lidar_enabled else 60
         text = "Open3D Lidar disabled" if not self.open3d_lidar_enabled else "Open3D Lidar enabled"
         self.hud_wintersim.notification(text, 6)
         
