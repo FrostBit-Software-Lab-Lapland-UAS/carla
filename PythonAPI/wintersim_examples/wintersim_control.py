@@ -333,15 +333,15 @@ class World(object):
         '''Render everything to screen'''
         self.render_camera_windows()
 
+        if self.open3d_lidar_enabled:
+            self.open3d_lidar.render()
+
         if not self.multi_sensor_view_enabled:
             self.camera_manager.render(display)
         else:
             self.multi_sensor_view.render()
 
         self.hud_wintersim.render(display)
-
-        if self.open3d_lidar_enabled:
-            self.open3d_lidar.render()
 
         if self.sync_mode:
             self.world.tick()

@@ -170,16 +170,17 @@ class Open3DLidarWindow():
 
     def render(self):
         """Render lidar to open3d window"""
-        if self.frame == 2:                         # every second frame add new geometry
-            self.vis.add_geometry(self.point_list)
 
+        if self.frame == 2:                         # wait few frames before initializing
+            self.vis.add_geometry(self.point_list)
             if not self.startup_done:               # initialize startup position, must be called after add_geometry()
                 self.startup_done = True
                 self.load_default_open3d_position()
 
         self.vis.update_geometry(self.point_list)
-        self.vis.poll_events()
+        
         self.vis.update_renderer()
+        self.vis.poll_events()
         self.frame += 1
 
     def destroy(self):
@@ -242,7 +243,7 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 700000
+        self.points_per_second = 300000
         self.upper_fov = 15.0
         self.lower_fov = -24.9
         self.channels = 32.0
