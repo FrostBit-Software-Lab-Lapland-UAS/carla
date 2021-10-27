@@ -25,12 +25,16 @@ namespace rpc {
         << ", fog_distance=" << std::to_string(weather.fog_distance)
         << ", fog_falloff=" << std::to_string(weather.fog_falloff)
         << ", wetness=" << std::to_string(weather.wetness)
+        << ", scattering_intensity=" << std::to_string(weather.scattering_intensity)
+        << ", mie_scattering_scale=" << std::to_string(weather.mie_scattering_scale)
+        << ", rayleigh_scattering_scale=" << std::to_string(weather.rayleigh_scattering_scale)
         << ", snow_amount=" << std::to_string(weather.snow_amount)
         << ", temperature=" << std::to_string(weather.temperature)
         << ", ice_amount=" << std::to_string(weather.ice_amount)
 		<< ", particle_size=" << std::to_string(weather.particle_size)
 		<< ", relative_humidity=" << std::to_string(weather.relative_humidity)
-		<< ", dewpoint=" << std::to_string(weather.dewpoint) << ')';
+		<< ", dewpoint=" << std::to_string(weather.dewpoint)
+        << ", wind_direction=" << std::to_string(weather.wind_direction) << ')';
     return out;
   }
 
@@ -55,6 +59,9 @@ void export_weather() {
          arg("fog_distance")=0.0f,
          arg("fog_falloff")=0.0f,
          arg("wetness")=0.0f,
+         arg("scattering_intensity")=0.0f,
+         arg("mie_scattering_scale")=0.0f,
+         arg("rayleigh_scattering_scale")=0.0331f,
          arg("snow_amount")=0.0f,
          arg("temperature")=0.0f,
          arg("ice_amount")=0.0f,
@@ -69,12 +76,16 @@ void export_weather() {
     .def_readwrite("fog_distance", &cr::WeatherParameters::fog_distance)
     .def_readwrite("fog_falloff", &cr::WeatherParameters::fog_falloff)
     .def_readwrite("wetness", &cr::WeatherParameters::wetness)
+    .def_readwrite("scattering_intensity", &cr::WeatherParameters::scattering_intensity)
+    .def_readwrite("mie_scattering_scale", &cr::WeatherParameters::mie_scattering_scale)
+    .def_readwrite("rayleigh_scattering_scale", &cr::WeatherParameters::rayleigh_scattering_scale)
     .def_readwrite("snow_amount", &cr::WeatherParameters::snow_amount)
     .def_readwrite("temperature", &cr::WeatherParameters::temperature)
     .def_readwrite("ice_amount", &cr::WeatherParameters::ice_amount)
     .def_readwrite("particle_size", &cr::WeatherParameters::particle_size)
 	.def_readwrite("relative_humidity", &cr::WeatherParameters::relative_humidity)
 	.def_readwrite("dewpoint", &cr::WeatherParameters::dewpoint)
+    .def_readwrite("wind_direction", &cr::WeatherParameters::wind_direction)
     .def("__eq__", &cr::WeatherParameters::operator==)
     .def("__ne__", &cr::WeatherParameters::operator!=)
     .def(self_ns::str(self_ns::self));

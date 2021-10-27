@@ -31,6 +31,7 @@
 #include "carla/rpc/WeatherParameters.h"
 #include "carla/rpc/OpendriveGenerationParameters.h"
 #include "carla/rpc/VehicleLightStateList.h"
+#include "carla/rpc/VehicleWheels.h"
 
 #include <functional>
 #include <memory>
@@ -97,6 +98,10 @@ namespace detail {
 
 	void SetStaticTiretracks(bool enabled) const;
 
+    void ClearDynamicTiretracks() const;
+
+    void ToggleCamera() const;
+
     void LoadLevelLayer(rpc::MapLayer map_layer) const;
 
     void UnloadLevelLayer(rpc::MapLayer map_layer) const;
@@ -109,6 +114,16 @@ namespace detail {
     rpc::MapInfo GetMapInfo();
 
     std::vector<uint8_t> GetNavigationMesh() const;
+
+    bool SetFilesBaseFolder(const std::string &path);
+
+    std::vector<std::string> GetRequiredFiles(const std::string &folder = "", const bool download = true) const;
+
+    std::string GetMapData() const;
+
+    void RequestFile(const std::string &name) const;
+
+    std::vector<uint8_t> GetCacheFile(const std::string &name, const bool request_otherwise = true) const;
 
     std::vector<std::string> GetAvailableMaps();
 
@@ -211,6 +226,10 @@ namespace detail {
         rpc::ActorId vehicle,
         bool enabled);
 
+    void ShowVehicleDebugTelemetry(
+        rpc::ActorId vehicle,
+        bool enabled);
+
     void ApplyControlToVehicle(
         rpc::ActorId vehicle,
         const rpc::VehicleControl &control);
@@ -223,10 +242,25 @@ namespace detail {
         rpc::ActorId vehicle,
         bool enabled);
 
+    void SetWheelSteerDirection(
+        rpc::ActorId vehicle,
+        rpc::VehicleWheelLocation vehicle_wheel,
+        float angle_in_deg
+    );
+
+    float GetWheelSteerAngle(
+        rpc::ActorId vehicle,
+        rpc::VehicleWheelLocation wheel_location
+    );
+
     void EnableChronoPhysics(
         rpc::ActorId vehicle,
         uint64_t MaxSubsteps,
-        float MaxSubstepDeltaTime);
+        float MaxSubstepDeltaTime,
+        std::string VehicleJSON,
+        std::string PowertrainJSON,
+        std::string TireJSON,
+        std::string BaseJSONPath);
 
     void ApplyControlToWalker(
         rpc::ActorId walker,
@@ -263,6 +297,9 @@ namespace detail {
 
     void FreezeAllTrafficLights(bool frozen);
 
+    std::vector<geom::BoundingBox> GetLightBoxes(
+        rpc::ActorId traffic_light) const;
+
     /// Returns a list of pairs where the firts element is the vehicle ID
     /// and the second one is the light state
     rpc::VehicleLightStateList GetVehiclesLightStates();
@@ -280,7 +317,8 @@ namespace detail {
 
     std::string ShowRecorderActorsBlocked(std::string name, double min_time, double min_distance);
 
-    std::string ReplayFile(std::string name, double start, double duration, uint32_t follow_id);
+    std::string ReplayFile(std::string name, double start, double duration,
+        uint32_t follow_id, bool replay_sensors);
 
     void SetReplayerTimeFactor(double time_factor);
 

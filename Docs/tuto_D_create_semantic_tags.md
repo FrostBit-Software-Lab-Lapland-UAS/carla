@@ -61,14 +61,14 @@ The new semantic tag is ready to be used. Only the meshes stored inside the UE f
 
 This step is not directly related with semantic segmentation. However, these tags can be used to filter the bounding box query in [carla.World](python_api.md#carla.World). In order to do this, the tag must be added to the [carla.CityObjectLabel](python_api.md#carla.CityObjectLabel) enum in the PythonAPI.  
 
-__Open `World.cpp`__ in `carla/PythonAPI/carla/sourc/libcarla` and add the new tag by the end of the enum.  
+__Open `World.cpp`__ in `carla/PythonAPI/carla/source/libcarla` and add the new tag by the end of the enum.  
 
 ![city_object_label](img/tuto_D_create_semantic_tags/06_city_object_label.jpg)
 
 
 ---
 
-Read the **[F.A.Q.](build_faq.md)** page or post in the [CARLA forum](https://forum.carla.org/c/installation-issues/linux) for any issues, doubts or suggestions.  
+Read the **[F.A.Q.](build_faq.md)** page or post in the [CARLA forum](https://github.com/carla-simulator/carla/discussions) for any issues, doubts or suggestions.  
 
 <p style="font-size: 20px">What's next?</p>
 

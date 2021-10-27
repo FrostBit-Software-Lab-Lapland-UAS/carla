@@ -46,6 +46,15 @@ struct CARLA_API FWeatherParameters
   float Wetness = 0.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float ScatteringIntensity = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "5.0", UIMin = "0.0", UIMax = "5.0"))
+  float MieScatteringScale = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "2.0", UIMin = "0.0", UIMax = "2.0"))
+  float RayleighScatteringScale = 0.0331f;
+  
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float SnowAmount = 0.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "-40.0", ClampMax = "40.0", UIMin = "-40.0", UIMax = "40.0"))
@@ -62,4 +71,8 @@ struct CARLA_API FWeatherParameters
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float Dewpoint = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-360.0", ClampMax = "360.0", UIMin = "-360.0", UIMax = "360.0"))
+  float WindDirection = 0.0f;
+
 };

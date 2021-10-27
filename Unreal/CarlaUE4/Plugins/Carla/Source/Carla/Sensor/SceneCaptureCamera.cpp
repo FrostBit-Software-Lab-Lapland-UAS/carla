@@ -20,11 +20,13 @@ FActorDefinition ASceneCaptureCamera::GetSensorDefinition()
 ASceneCaptureCamera::ASceneCaptureCamera(const FObjectInitializer &ObjectInitializer)
   : Super(ObjectInitializer)
 {
-  AddPostProcessingMaterial(
+ AddPostProcessingMaterial(
       TEXT("Material'/Carla/PostProcessingMaterials/PhysicLensDistortion.PhysicLensDistortion'"));
+
 }
 
 void ASceneCaptureCamera::PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaSeconds)
 {
+  TRACE_CPUPROFILER_EVENT_SCOPE(ASceneCaptureCamera::PostPhysTick);
   FPixelReader::SendPixelsInRenderThread(*this);
 }

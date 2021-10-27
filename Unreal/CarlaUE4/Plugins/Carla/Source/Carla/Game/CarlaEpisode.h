@@ -13,6 +13,7 @@
 #include "Carla/Settings/EpisodeSettings.h"
 #include "Carla/Util/ActorAttacher.h"
 #include "Carla/Weather/Weather.h"
+#include "Carla/ToggleServerCamera/ToggleServerCamera.h"
 
 #include "GameFramework/Pawn.h"
 
@@ -47,13 +48,11 @@ public:
   // -- Load a new episode -----------------------------------------------------
   // ===========================================================================
 
-public:
-
   /// Load a new map and start a new episode.
   ///
   /// If @a MapString is empty, the current map is reloaded.
   UFUNCTION(BlueprintCallable)
-  bool LoadNewEpisode(const FString &MapString, bool reset_settings = true);
+  bool LoadNewEpisode(const FString &MapString, bool ResetSettings = true);
 
   /// Load a new map generating the mesh from OpenDRIVE data and
   /// start a new episode.
@@ -67,8 +66,6 @@ public:
   // -- Episode settings -------------------------------------------------------
   // ===========================================================================
 
-public:
-
   UFUNCTION(BlueprintCallable)
   const FEpisodeSettings &GetSettings() const
   {
@@ -81,8 +78,6 @@ public:
   // ===========================================================================
   // -- Retrieve info about this episode ---------------------------------------
   // ===========================================================================
-
-public:
 
   /// Return the unique id of this episode.
   auto GetId() const
@@ -125,8 +120,6 @@ public:
   // -- Retrieve special actors ------------------------------------------------
   // ===========================================================================
 
-public:
-
   UFUNCTION(BlueprintCallable)
   APawn *GetSpectatorPawn() const
   {
@@ -139,7 +132,24 @@ public:
     return Weather;
   }
 
+  UFUNCTION(BlueprintCallable)
+  AToggleServerCamera *GetToggleServerCamera() const
+  {
+    return ToggleServerCamera;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  ASensorEventHandler *GetSensorEventHandler() const
+  {
+      return SensorEventHandler;
+  }
+
   const FActorRegistry &GetActorRegistry() const
+  {
+    return ActorDispatcher->GetActorRegistry();
+  }
+
+  FActorRegistry &GetActorRegistry()
   {
     return ActorDispatcher->GetActorRegistry();
   }
@@ -148,41 +158,27 @@ public:
   // -- Actor look up methods --------------------------------------------------
   // ===========================================================================
 
-public:
-
   /// Find a Carla actor by id.
   ///
   /// If the actor is not found or is pending kill, the returned view is
   /// invalid.
-  FActorView FindActor(FActorView::IdType ActorId) const
+  FCarlaActor* FindCarlaActor(FCarlaActor::IdType ActorId)
   {
-    return ActorDispatcher->GetActorRegistry().Find(ActorId);
+    return ActorDispatcher->GetActorRegistry().FindCarlaActor(ActorId);
   }
 
   /// Find the actor view of @a Actor.
   ///
   /// If the actor is not found or is pending kill, the returned view is
   /// invalid.
-  FActorView FindActor(AActor *Actor) const
+  FCarlaActor* FindCarlaActor(AActor *Actor) const
   {
-    return ActorDispatcher->GetActorRegistry().Find(Actor);
-  }
-
-  /// Find the actor view of @a Actor. If the actor is not found, a "fake" view
-  /// is returned emulating an existing Carla actor. Use this to return views
-  /// over static actors present in the map.
-  ///
-  /// If the actor is pending kill, the returned view is invalid.
-  FActorView FindOrFakeActor(AActor *Actor) const
-  {
-    return ActorDispatcher->GetActorRegistry().FindOrFake(Actor);
+    return ActorDispatcher->GetActorRegistry().FindCarlaActor(Actor);
   }
 
   // ===========================================================================
   // -- Actor handling methods -------------------------------------------------
   // ===========================================================================
-
-public:
 
   /// Spawns an actor based on @a ActorDescription at @a Transform. To properly
   /// despawn an actor created with this function call DestroyActor.
@@ -190,23 +186,23 @@ public:
   /// @return A pair containing the result of the spawn function and a view over
   /// the actor and its properties. If the status is different of Success the
   /// view is invalid.
-  TPair<EActorSpawnResultStatus, FActorView> SpawnActorWithInfo(
+  TPair<EActorSpawnResultStatus, FCarlaActor*> SpawnActorWithInfo(
       const FTransform &Transform,
       FActorDescription thisActorDescription,
-      FActorView::IdType DesiredId = 0)
+      FCarlaActor::IdType DesiredId = 0);
+
+  /// Spawns an actor based on @a ActorDescription at @a Transform.
+  ///
+  /// @return the actor to be spawned
+  AActor* ReSpawnActorWithInfo(
+      const FTransform &Transform,
+      FActorDescription thisActorDescription)
   {
-    auto result = ActorDispatcher->SpawnActor(Transform, thisActorDescription, DesiredId);
+    FTransform NewTransform = Transform;
+    auto result = ActorDispatcher->ReSpawnActor(NewTransform, thisActorDescription);
     if (Recorder->IsEnabled())
     {
-      if (result.Key == EActorSpawnResultStatus::Success)
-      {
-        Recorder->CreateRecorderEventAdd(
-          result.Value.GetActorId(),
-          static_cast<uint8_t>(result.Value.GetActorType()),
-          Transform,
-          std::move(thisActorDescription)
-        );
-      }
+      // do something?
     }
 
     return result;
@@ -223,7 +219,7 @@ public:
       const FTransform &Transform,
       FActorDescription ActorDescription)
   {
-    return SpawnActorWithInfo(Transform, std::move(ActorDescription)).Value.GetActor();
+    return SpawnActorWithInfo(Transform, std::move(ActorDescription)).Value->GetActor();
   }
 
   /// Attach @a Child to @a Parent.
@@ -239,27 +235,47 @@ public:
   UFUNCTION(BlueprintCallable)
   bool DestroyActor(AActor *Actor)
   {
-      if (Recorder->IsEnabled())
-      {
-        // recorder event
-        CarlaRecorderEventDel RecEvent
-        {
-          GetActorRegistry().Find(Actor).GetActorId()
-        };
-        Recorder->AddEvent(std::move(RecEvent));
-      }
+    FCarlaActor* CarlaActor = FindCarlaActor(Actor);
+    if (CarlaActor)
+    {
+      carla::rpc::ActorId ActorId = CarlaActor->GetActorId();
+      return DestroyActor(ActorId);
+    }
+    return false;
+  }
 
-    return ActorDispatcher->DestroyActor(Actor);
+  bool DestroyActor(carla::rpc::ActorId ActorId)
+  {
+    if (Recorder->IsEnabled())
+    {
+      // recorder event
+      CarlaRecorderEventDel RecEvent{ActorId};
+      Recorder->AddEvent(std::move(RecEvent));
+    }
+
+    return ActorDispatcher->DestroyActor(ActorId);
+  }
+
+  void PutActorToSleep(carla::rpc::ActorId ActorId)
+  {
+    ActorDispatcher->PutActorToSleep(ActorId, this);
+  }
+
+  void WakeActorUp(carla::rpc::ActorId ActorId)
+  {
+    ActorDispatcher->WakeActorUp(ActorId, this);
   }
 
   // ===========================================================================
   // -- Other methods ----------------------------------------------------------
   // ===========================================================================
 
-public:
+  /// Create a serializable object describing the actor.
+  carla::rpc::Actor SerializeActor(FCarlaActor* CarlaActor) const;
 
   /// Create a serializable object describing the actor.
-  carla::rpc::Actor SerializeActor(FActorView ActorView) const;
+  /// Can be used to serialized actors that are not in the registry
+  carla::rpc::Actor SerializeActor(AActor* Actor) const;
 
   // ===========================================================================
   // -- Private methods and members --------------------------------------------
@@ -282,6 +298,10 @@ public:
 
   std::string StartRecorder(std::string name, bool AdditionalData);
 
+  FIntVector GetCurrentMapOrigin() const { return CurrentMapOrigin; }
+
+  void SetCurrentMapOrigin(const FIntVector& NewOrigin) { CurrentMapOrigin = NewOrigin; }
+
 private:
 
   friend class ACarlaGameModeBase;
@@ -296,13 +316,13 @@ private:
     ActorDispatcher->Bind(ActorFactory);
   }
 
-  std::pair<int, FActorView&> TryToCreateReplayerActor(
+  std::pair<int, FCarlaActor&> TryToCreateReplayerActor(
     FVector &Location,
     FVector &Rotation,
     FActorDescription &ActorDesc,
     unsigned int desiredId);
 
-  bool SetActorSimulatePhysics(FActorView &ActorView, bool bEnabled);
+  bool SetActorSimulatePhysics(FCarlaActor &CarlaActor, bool bEnabled);
 
   void TickTimers(float DeltaSeconds)
   {
@@ -328,7 +348,15 @@ private:
   UPROPERTY(VisibleAnywhere)
   AWeather *Weather = nullptr;
 
+  UPROPERTY(VisibleAnywhere)
+  AToggleServerCamera *ToggleServerCamera = nullptr;
+
+  UPROPERTY(VisibleAnywhere)
+  ASensorEventHandler* SensorEventHandler = nullptr;
+
   ACarlaRecorder *Recorder = nullptr;
 
   carla::geom::GeoLocation MapGeoReference;
+
+  FIntVector CurrentMapOrigin;
 };

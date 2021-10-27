@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -8,7 +10,7 @@
 
 #include "Carla/Sensor/PixelReader.h"
 #include "Carla/Sensor/Sensor.h"
-
+#include "Carla/Sensor/SensorEventHandler.h"
 #include "Runtime/RenderCore/Public/RenderCommandFence.h"
 #include "SceneCaptureSensor.generated.h"
 
@@ -16,6 +18,7 @@ class UDrawFrustumComponent;
 class USceneCaptureComponent2D;
 class UStaticMeshComponent;
 class UTextureRenderTarget2D;
+
 
 /// Base class for sensors using a USceneCaptureComponent2D for rendering the
 /// scene. This class does not capture data, use
@@ -52,6 +55,24 @@ public:
   }
 
   UFUNCTION(BlueprintCallable)
+  bool GetSleetEffect() const
+  {
+      return cameraSleetEffect;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  FString GetSleetEffectRotation() const
+  {
+      return cameraSleetEffectRotation;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  float GetSleetEffectStrength() const
+  {
+      return cameraSleetEffectStrength;
+  }
+
+  UFUNCTION(BlueprintCallable)
   void EnablePostProcessingEffects(bool Enable = true)
   {
     bEnablePostProcessingEffects = Enable;
@@ -64,7 +85,28 @@ public:
   }
 
   UFUNCTION(BlueprintCallable)
+  void Enable16BitFormat(bool Enable = false)
+  {
+    bEnable16BitFormat = Enable;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  bool Is16BitFormatEnabled() const
+  {
+    return bEnable16BitFormat;
+  }
+
+  UFUNCTION(BlueprintCallable)
   void SetFOVAngle(float FOVAngle);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffect(bool enabled);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffectRotation(FString value);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraSleetEffectStrength(float value);
 
   UFUNCTION(BlueprintCallable)
   float GetFOVAngle() const;
@@ -282,7 +324,8 @@ public:
 
   /// Blocks until the render thread has finished all it's tasks.
   void WaitForRenderThreadToFinsih() {
-    FlushRenderingCommands();
+    TRACE_CPUPROFILER_EVENT_SCOPE(ASceneCaptureSensor::WaitForRenderThreadToFinsih);
+    // FlushRenderingCommands();
   }
 
 protected:
@@ -318,6 +361,20 @@ protected:
   /// Whether to render the post-processing effects present in the scene.
   UPROPERTY(EditAnywhere)
   bool bEnablePostProcessingEffects = true;
+
+  /// Whether to change render target format to PF_A16B16G16R16, offering 16bit / channel
+  UPROPERTY(EditAnywhere)
+  bool bEnable16BitFormat = false;
+
+  /// Whether to use camera sleet effect for this camera
+  UPROPERTY(EditAnywhere)
+  bool cameraSleetEffect = false;
+
+  UPROPERTY(EditAnywhere)
+  FString cameraSleetEffectRotation = "top";
+
+  UPROPERTY(EditAnywhere)
+  float cameraSleetEffectStrength = 1.2f;
 
   FRenderCommandFence RenderFence;
 

@@ -70,22 +70,51 @@ class World(object):
         for preset in self._weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
                 self._weather_presets.append(preset)
+        self.set_current_weather()
         self._weather_index = 0
         self._gamma = args.gamma
         self.static_tiretracks_enabled = True
+        self.muonio = False
+        self.map_name = self.world.get_map().name
+        self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
+        self.muonio = self.filtered_map_name == "Muonio"
+
+    def set_current_weather(self):
+        default_weather = self.world.get_weather()
+        self._weather_index = len(self.hud.preset_names) -1
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(default_weather)
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self._weather_presets)
         self.preset = self._weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
-    def muonio_weather(self):
-        '''Get Muonio real time weather data from digitraffic API'''
+    def set_weather(self, index):
+        if not index < len(self._weather_presets):
+            return
+
+        self._weather_index = index
+        self.preset = self._weather_presets[self._weather_index]
+        self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.preset_slider.val = self._weather_index
+        self.hud.update_sliders(self.preset[0])
+        self.world.set_weather(self.preset[0])
+
+    def realtime_weather(self):
+        '''Get real time Muonio or Rovaniemi weather data from digitraffic API'''
         weather = weather_hud.Weather(self.world.get_weather())
-        r = requests.get('https://tie.digitraffic.fi/api/v1/data/weather-data/14047')
+
+        if self.muonio:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14047'   # Muonio
+        else:
+            url = 'https://tie.digitraffic.fi/api/v1/data/weather-data/14031'   # Rovaniemi
+
+        r = requests.get(url)
         data = r.json()
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
@@ -101,13 +130,15 @@ class World(object):
         clock[0] = str(clock[0])
         clock.pop(2)
         clock = float(".".join(clock))
-        
+
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
 
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
         wind *= 10 # Multiply wind by 10 to get it into range of 0-100
+
+        wind_direction = data['weatherStations'][0]['sensorValues'][13]['sensorValue'] / 2
 
         humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
         humidity = 100 if humidity > 100 else humidity
@@ -121,17 +152,20 @@ class World(object):
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
+
+        weather_values = [ temp, precipitation, wind,
+            0.5, 0, snow, humidity, wind_direction,
+            clock, month]
         
-        weather.set_weather_manually(self.hud, temp, precipitation, wind, 0.5, 0, snow, humidity, clock, month)     # update weather object with our new data
+        weather.set_weather_manually(self.hud, weather_values)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)                                          # update sliders positions
-        self.world.set_weather(weather.weather)                                                                     # update weather
+        self.hud.update_sliders(weather.weather, month=month, clock=clock)
+        self.world.set_weather(weather.weather)
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
-        friction = 5
-        friction -= iciness / 100 * 4
+        friction = 1 - iciness / 5
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
@@ -149,18 +183,8 @@ class World(object):
     def tick(self, clock, hud):
         self.hud.tick(self, clock, hud)
 
-    def render(self, world, client, hud, display, weather):
-        self.hud.render(display)
-        self.render_sliders(world, client, hud, display, weather)
-
-    def render_sliders(self, world, client, hud, display, weather):
-        for slider in hud.sliders:
-                if slider.hit:                                      # if slider is being touched
-                    slider.move()                                   # move slider
-                    weather.tick(hud, world._weather_presets[0], slider)    # update weather object
-                    client.get_world().set_weather(weather.weather) # send weather to server
-        for slider in hud.sliders:
-            slider.draw(display, slider)                            # move sliders
+    def render(self, world, display, weather):
+        self.hud.render(world, display, weather)
 
     def toggle_static_tiretracks(self):
         '''Toggle static tiretracks on snowy roads on/off
@@ -188,8 +212,8 @@ class World(object):
                     box.checked ^= True
             elif key.char == "c":
                 self.next_weather(reverse=False)
-            elif key.char == "r":
-                self.muonio_weather()
+            elif key.char == "b":
+                self.realtime_weather()
         except:
             pass
 
@@ -238,11 +262,12 @@ class KeyboardControl(object):
 def game_loop(args):
     # position offset for pygame window
     x = 1290
-    y = 100
+    y = 50
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
     world = None
+    listener = None
 
     try:
         client = carla.Client(args.host, args.port)
@@ -253,27 +278,27 @@ def game_loop(args):
         pygame.display.flip()
 
         hud = weather_hud.InfoHud(args.width, args.height, display)
-        hud.make_sliders()                                                  # create sliders
         world = World(client.get_world(), hud, args)                        # instantiate our world object
         controller = KeyboardControl()                                      # controller for changing weather presets
-        weather = weather_hud.Weather(client.get_world().get_weather())     # weather object to update carla weather with sliders
-        hud.update_sliders(weather.weather)                                 # update sliders according to preset parameters
-        world.next_weather()                                                # change preset on startup
+        current_weather = client.get_world().get_weather()
+        weather = weather_hud.Weather(current_weather)                      # weather object to update carla weather with sliders
+        hud.setup(current_weather, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()                                         
+        listener.start()               
         
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):
                 return
             world.tick(clock, hud)
-            world.render(world, client, hud, display, weather)
+            world.render(world, display, weather)
             pygame.display.flip()
 
     finally:
-        listener.stop()
+        if listener is not None:
+            listener.stop()
         pygame.quit()
 
 # ==============================================================================
@@ -297,8 +322,8 @@ def main():
     argparser.add_argument(
         '--res',
         metavar='WIDTHxHEIGHT',
-        default='550x720',
-        help='window resolution (default: 1280x720)')
+        default='620x720',
+        help='window resolution (default: 620x720)') # note. UI does not scale properly with resolution!
     argparser.add_argument(
         '--gamma',
         default=2.2,

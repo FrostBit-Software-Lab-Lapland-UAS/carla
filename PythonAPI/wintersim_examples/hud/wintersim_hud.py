@@ -10,36 +10,36 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
 """
-Use ARROWS or WASD keys for control.
+Use ARROW or WASD keys for control.
 
     W            : throttle
+    A/D          : steer left / right
     S            : brake
-    A/D          : steer left/right
-    Q            : toggle reverse
     Space        : hand-brake
+    R            : respawn vehicle
+    Backspace    : change vehicle
+    C            : change weather preset
+  
     P            : toggle autopilot
-    M            : toggle manual transmission
-    ,/.          : gear up/down
+    TAB          : change camera position
+    N            : next sensor
+    [1-9]        : change to sensor [1-9]
+    G            : toggle radar visualization
+    T            : toggle telemetry info
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
     Z/X          : toggle right/left blinker
-    I            : toggle interior light
-
-    TAB          : change sensor position
-    N            : next sensor
-    [1-9]        : change to sensor [1-9]
-    G            : toggle radar visualization
-    C            : change weather (Shift+C reverse)
-
-    R            : toggle recording images to disk
 
     F1           : toggle HUD
-    F2           : toggle NPC's
+    F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
-    F8           : toggle separate front and back RGB camera windows
-    F9           : toggle separate Open3D lidar window
+    F6           : clear all dynamic tiretracks
+    F8           : toggle RGB camera windows
+    F9           : toggle Open3D Lidar window
+    F11          : take screenshot
     F12          : toggle server window rendering
+    
     H            : toggle help
     ESC          : quit;
 """
@@ -47,9 +47,6 @@ Use ARROWS or WASD keys for control.
 import glob
 import os
 import sys
-import re
-import time
-import numpy as np
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -102,6 +99,16 @@ class WinterSimHud(object):
         self.frames = 0
         self.vehicles = [1]
         self.walkers = []
+        self.world = None
+        self.actor_name = None
+
+    def setup(self, world):
+        self.world = world
+        self.on_actor_change()
+
+    def on_actor_change(self):
+        '''Store actor name'''
+        self.actor_name = get_actor_display_name(self.world.player, truncate=20)
 
     def on_world_tick(self, timestamp):
         self._server_clock.tick()
@@ -109,8 +116,9 @@ class WinterSimHud(object):
         self.frame = timestamp.frame
         self.simulation_time = timestamp.elapsed_seconds
 
-    def tick(self, world, clock, hud_wintersim):
+    def tick(self, world, clock):
         '''Tick WinterSim hud'''
+        
         self._notifications.tick(world, clock)
 
         if not self.is_hud:
@@ -141,8 +149,8 @@ class WinterSimHud(object):
             'Server:  % 16.0f FPS' % self.server_fps,
             'Client:  % 16.0f FPS' % clock.get_fps(),
             '',
-            'Vehicle: % 20s' % get_actor_display_name(world.player, truncate=20),
-            'Map:     % 20s' % world.map.name,
+            'Vehicle: % 20s' % self.actor_name,
+            'Map:     % 20s' % world.filtered_map_name,
             'Simulation time: % 12s' % datetime.timedelta(seconds=int(self.simulation_time)),
             '',
             'Speed:   % 15.0f km/h' % (3.6 * math.sqrt(v.x**2 + v.y**2 + v.z**2)),
@@ -183,13 +191,26 @@ class WinterSimHud(object):
                 vehicle_type = get_actor_display_name(vehicle, truncate=22)
                 self._info_text.append('% 4dm %s' % (d, vehicle_type))
 
+    def toggle_info(self):
+        '''Toggle HUD and infotext on/off'''
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
+        self.is_hud ^= True
+
+    def set_hud(self, enabled):
+        '''Set HUD on/off'''
+        self.is_hud = enabled
+        if self.is_hud and self.help_text.visible:
+            self.help_text.toggle()
+
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):
         self._notifications.set_text('Error: %s' % text, (255, 0, 0))
 
-    def render(self, display, world):
+    def render(self, display):
+        '''Render hud to pygame window'''
         if self.is_hud:
             display_rect = display.get_rect()
             self.logo_rect.topright = tuple(map(lambda i, j: i - j, display_rect.topright, (5,-5))) 

@@ -15,10 +15,10 @@ import sys
 import glob
 import os
 import sys
+import time
 from datetime import datetime
 import numpy as np
 from matplotlib import cm
-import open3d as o3d
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -31,6 +31,11 @@ except IndexError:
 import carla
 
 try:
+    import open3d as o3d
+except ImportError:
+    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
+
+try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
@@ -39,7 +44,6 @@ VIRIDIS = np.array(cm.get_cmap('plasma').colors)
 VID_RANGE = np.linspace(0.0, 1.0, VIRIDIS.shape[0])
 LABEL_COLORS = np.array([
     (255, 255, 255), # None
-    #(145, 170, 100), # None
     (70, 70, 70),    # Building
     (100, 40, 40),   # Fences
     (55, 90, 80),    # Other
@@ -77,7 +81,7 @@ class Open3DLidarWindow():
         if semantic:
             lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
         else:
-            lidar_bp = blueprint_library.find('sensor.lidar.ray_cast')
+            lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
             lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
             lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
@@ -111,11 +115,6 @@ class Open3DLidarWindow():
         # what we see in Unreal since Open3D uses a right-handed coordinate system
         points[:, :1] = -points[:, :1]
 
-        # # An example of converting points from sensor to vehicle space if we had
-        # # a carla.Transform variable named "tran":
-        # points = np.append(points, np.ones((points.shape[0], 1)), axis=1)
-        # points = np.dot(tran.get_matrix(), points.T).T
-        # points = points[:, :-1]
         self.point_list.points = o3d.utility.Vector3dVector(points)
         self.point_list.colors = o3d.utility.Vector3dVector(int_color)
 
@@ -169,31 +168,41 @@ class Open3DLidarWindow():
         parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
         ctrl.convert_from_pinhole_camera_parameters(parameters)
 
-    def render_open3d_lidar(self):
+    def render(self):
         """Render lidar to open3d window"""
-        if self.frame == 2:                         # every second frame add new geometry
-            self.vis.add_geometry(self.point_list)
 
-            if not self.startup_done:               # initlize startup position, must be called after add_geometry()
+        if self.frame == 2:                         # wait few frames before initializing
+            self.vis.add_geometry(self.point_list)
+            if not self.startup_done:               # initialize startup position, must be called after add_geometry()
                 self.startup_done = True
                 self.load_default_open3d_position()
 
         self.vis.update_geometry(self.point_list)
-        self.vis.poll_events()
+        
         self.vis.update_renderer()
+        self.vis.poll_events()
         self.frame += 1
 
     def destroy(self):
         """Destroy lidar and open3d window"""
-        self.lidar.destroy()
+        if self.lidar is not None:
+            self.lidar.stop()
+            self.lidar.destroy()
+            self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, semantic):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, y=0.0, z=0.23899))
+        lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
+
+        # adjust lidar Z position if vehicle is bus
+        if vehicle_name == "bus":
+            lidar_position = carla.Location(x=-0.0, y=0.0, z=3.3)
+
+        lidar_transform = carla.Transform(lidar_position)
         self.lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
 
         self.point_list = o3d.geometry.PointCloud()
@@ -206,13 +215,21 @@ class Open3DLidarWindow():
         self.vis.create_window(
             window_name='Carla Lidar',
             width=860, height=540,
-            left=480, top=270)
+            left=600, top=600)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
         self.vis.get_render_option().point_size = 1
         self.vis.get_render_option().show_coordinate_frame = True
 
         if show_axis:
             self.add_open3d_axis()
+
+    def take_screenshot(self):
+        '''Take screenshot of Open3D window. 
+        This should not be called every frame because this is quite slow.'''
+        if self.vis is not None:
+            date = str(int(time.time()))
+            filename = "open3d_" + date + ".png"
+            self.vis.capture_screen_image(filename)
 
     def __init__(self):
         super(Open3DLidarWindow, self).__init__()
@@ -226,7 +243,7 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 700000
+        self.points_per_second = 300000
         self.upper_fov = 15.0
         self.lower_fov = -24.9
         self.channels = 32.0

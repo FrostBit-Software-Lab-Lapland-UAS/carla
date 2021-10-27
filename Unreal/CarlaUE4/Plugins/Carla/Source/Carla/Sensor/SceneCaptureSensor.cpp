@@ -1,5 +1,7 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
+// 
+// Copyright(c) 2021 FrostBit Software Lab
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -20,6 +22,7 @@
 #include "HighResScreenshot.h"
 #include "Misc/CoreDelegates.h"
 #include "RHICommandList.h"
+#include "Carla/Sensor/SensorEventHandler.h"
 
 static auto SCENE_CAPTURE_COUNTER = 0u;
 
@@ -94,6 +97,21 @@ void ASceneCaptureSensor::SetFOVAngle(const float FOVAngle)
   CaptureComponent2D->FOVAngle = FOVAngle;
 }
 
+void ASceneCaptureSensor::SetCameraSleetEffect(const bool enabled)
+{
+    cameraSleetEffect = enabled;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffectRotation(FString value)
+{
+    cameraSleetEffectRotation = value;
+}
+
+void ASceneCaptureSensor::SetCameraSleetEffectStrength(float value)
+{
+    cameraSleetEffectStrength = value;
+}
+
 float ASceneCaptureSensor::GetFOVAngle() const
 {
   check(CaptureComponent2D != nullptr);
@@ -118,7 +136,7 @@ void ASceneCaptureSensor::SetExposureCompensation(float Compensation)
 #if PLATFORM_LINUX
   // Looks like Windows and Linux have different outputs with the
   // same exposure compensation, this fixes it.
-  CaptureComponent2D->PostProcessSettings.AutoExposureBias = Compensation - 1.5f;
+  CaptureComponent2D->PostProcessSettings.AutoExposureBias = Compensation + 0.75f;
 #else
   CaptureComponent2D->PostProcessSettings.AutoExposureBias = Compensation;
 #endif
@@ -455,6 +473,7 @@ float ASceneCaptureSensor::GetChromAberrOffset() const
 }
 
 void ASceneCaptureSensor::EnqueueRenderSceneImmediate() {
+  TRACE_CPUPROFILER_EVENT_SCOPE(ASceneCaptureSensor::EnqueueRenderSceneImmediate);
   // Creates an snapshot of the scene, requieres bCaptureEveryFrame = false.
   CaptureComponent2D->CaptureScene();
 }
@@ -466,7 +485,8 @@ void ASceneCaptureSensor::BeginPlay()
   // Determine the gamma of the player.
   const bool bInForceLinearGamma = !bEnablePostProcessingEffects;
 
-  CaptureRenderTarget->InitCustomFormat(ImageWidth, ImageHeight, PF_B8G8R8A8, bInForceLinearGamma);
+  CaptureRenderTarget->InitCustomFormat(ImageWidth, ImageHeight, bEnable16BitFormat ? PF_FloatRGBA : PF_B8G8R8A8,
+                                        bInForceLinearGamma);
 
   if (bEnablePostProcessingEffects)
   {
@@ -498,6 +518,9 @@ void ASceneCaptureSensor::BeginPlay()
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
+
   Super::BeginPlay();
 }
 
@@ -520,6 +543,9 @@ void ASceneCaptureSensor::PostPhysTick(UWorld *World, ELevelTick TickType, float
 
 void ASceneCaptureSensor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+   // notify this camera sensor has been removed
+   GetEpisode().GetSensorEventHandler()->CameraRemoved.Broadcast(this);
+
   Super::EndPlay(EndPlayReason);
   SCENE_CAPTURE_COUNTER = 0u;
 }
@@ -543,10 +569,10 @@ namespace SceneCaptureSensor_local_ns {
     PostProcessSettings.bOverride_AutoExposureSpeedUp = true;
     PostProcessSettings.bOverride_AutoExposureSpeedDown = true;
     PostProcessSettings.bOverride_AutoExposureCalibrationConstant_DEPRECATED = true;
-    PostProcessSettings.bOverride_HistogramLogMin = true;
-    PostProcessSettings.HistogramLogMin = 1.0f;
-    PostProcessSettings.bOverride_HistogramLogMax = true;
-    PostProcessSettings.HistogramLogMax = 12.0f;
+    //PostProcessSettings.bOverride_HistogramLogMin = true;
+    //PostProcessSettings.HistogramLogMin = 0.0f;
+    //PostProcessSettings.bOverride_HistogramLogMax = true;
+    //PostProcessSettings.HistogramLogMax = 12.0f;
 
     // Camera
     PostProcessSettings.bOverride_CameraShutterSpeed = true;

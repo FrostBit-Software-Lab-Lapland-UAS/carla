@@ -12,6 +12,8 @@ Plugins
 /Import/*
 !/Import/README.md
 /PythonAPI/WinterSim
+/PythonAPI/wintersim_examples/*.png
+/PythonAPI/wintersim_examples/*.jpg
 
 *.VC.db
 *.VC.opendb

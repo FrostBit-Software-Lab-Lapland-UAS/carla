@@ -1,6 +1,8 @@
 // Copyright (c) 2019 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
 //
+// Copyright(c) 2021 FrostBit Software Lab
+//
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
@@ -360,6 +362,27 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
   LensYSize.RecommendedValues = { TEXT("0.08") };
   LensYSize.bRestrictToRecommended = false;
 
+  // camera lens sleet effect
+  FActorVariation CameraEffect;
+  CameraEffect.Id = TEXT("camera_sleet_effect");
+  CameraEffect.Type = EActorAttributeType::Bool;
+  CameraEffect.RecommendedValues = { TEXT("False") };
+  CameraEffect.bRestrictToRecommended = false;
+
+  // camera lens sleet effect angle
+  FActorVariation CameraEffectRotation;
+  CameraEffectRotation.Id = TEXT("camera_sleet_effect_rotation");
+  CameraEffectRotation.Type = EActorAttributeType::String;
+  CameraEffectRotation.RecommendedValues = { TEXT("up") };
+  CameraEffectRotation.bRestrictToRecommended = false;
+
+  // camera lens sleet effect strength
+  FActorVariation CameraEffectStrength;
+  CameraEffectStrength.Id = TEXT("camera_sleet_effect_strength");
+  CameraEffectStrength.Type = EActorAttributeType::Float;
+  CameraEffectStrength.RecommendedValues = { TEXT("1.2") };
+  CameraEffectStrength.bRestrictToRecommended = false;
+
   Definition.Variations.Append({
       ResX,
       ResY,
@@ -369,7 +392,11 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
       LensK,
       LensKcube,
       LensXSize,
-      LensYSize});
+      LensYSize,
+      CameraEffect,
+      CameraEffectRotation,
+      CameraEffectStrength
+      });
 
   if (bEnableModifyingPostProcessEffects)
   {
@@ -478,7 +505,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMinBright;
     ExposureMinBright.Id = TEXT("exposure_min_bright");
     ExposureMinBright.Type = EActorAttributeType::Float;
-    ExposureMinBright.RecommendedValues = { TEXT("10.0") };
+    ExposureMinBright.RecommendedValues = { TEXT("2.0") };
     ExposureMinBright.bRestrictToRecommended = false;
 
     // The maximum brightness for auto exposure that limits the upper
@@ -486,7 +513,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMaxBright;
     ExposureMaxBright.Id = TEXT("exposure_max_bright");
     ExposureMaxBright.Type = EActorAttributeType::Float;
-    ExposureMaxBright.RecommendedValues = { TEXT("12.0") };
+    ExposureMaxBright.RecommendedValues = { TEXT("14.5") };
     ExposureMaxBright.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a dark environment
@@ -494,7 +521,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureSpeedUp;
     ExposureSpeedUp.Id = TEXT("exposure_speed_up");
     ExposureSpeedUp.Type = EActorAttributeType::Float;
-    ExposureSpeedUp.RecommendedValues = { TEXT("3.0") };
+    ExposureSpeedUp.RecommendedValues = { TEXT("20.0") };
     ExposureSpeedUp.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a bright environment
@@ -502,7 +529,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureSpeedDown;
     ExposureSpeedDown.Id = TEXT("exposure_speed_down");
     ExposureSpeedDown.Type = EActorAttributeType::Float;
-    ExposureSpeedDown.RecommendedValues = { TEXT("1.0") };
+    ExposureSpeedDown.RecommendedValues = { TEXT("20.0") };
     ExposureSpeedDown.bRestrictToRecommended = false;
 
     // Calibration constant for 18% Albedo.
@@ -886,7 +913,7 @@ void UActorBlueprintFunctionLibrary::MakeLidarDefinition(
   StdDevLidar.Type = EActorAttributeType::Float;
   StdDevLidar.RecommendedValues = { TEXT("0.0") };
 
-  if (Id == "ray_cast") {
+  if (Id == "ray_cast" || Id == "custom_ray_cast") {
     Definition.Variations.Append({
       Channels,
       Range,
@@ -902,7 +929,7 @@ void UActorBlueprintFunctionLibrary::MakeLidarDefinition(
       StdDevLidar,
       HorizontalFOV});
   }
-  else if (Id == "ray_cast_semantic") {
+  else if (Id == "ray_cast_semantic" || Id == "custom_ray_cast_semantic") {
     Definition.Variations.Append({
       Channels,
       Range,
@@ -1044,6 +1071,12 @@ void UActorBlueprintFunctionLibrary::MakeVehicleDefinition(
     EActorAttributeType::Int,
     FString::FromInt(Parameters.NumberOfWheels)});
   Success = CheckActorDefinition(Definition);
+
+  Definition.Attributes.Emplace(FActorAttribute{
+    TEXT("generation"),
+    EActorAttributeType::Int,
+    FString::FromInt(Parameters.Generation)});
+  Success = CheckActorDefinition(Definition);
 }
 
 template <typename T, typename Functor>
@@ -1104,6 +1137,11 @@ void UActorBlueprintFunctionLibrary::MakePedestrianDefinition(
     TEXT("gender"),
     EActorAttributeType::String,
     GetGender(Parameters.Gender)});
+
+  Definition.Attributes.Emplace(FActorAttribute{
+    TEXT("generation"),
+    EActorAttributeType::Int,
+    FString::FromInt(Parameters.Generation)});
 
   Definition.Attributes.Emplace(FActorAttribute{
     TEXT("age"),
@@ -1406,6 +1444,16 @@ void UActorBlueprintFunctionLibrary::SetCamera(
       RetrieveActorAttributeToInt("image_size_y", Description.Variations, 600));
   Camera->SetFOVAngle(
       RetrieveActorAttributeToFloat("fov", Description.Variations, 90.0f));
+
+  Camera->SetCameraSleetEffect(
+      RetrieveActorAttributeToBool("camera_sleet_effect", Description.Variations, false));
+
+  Camera->SetCameraSleetEffectRotation(
+      RetrieveActorAttributeToString("camera_sleet_effect_rotation", Description.Variations, "top"));
+
+  Camera->SetCameraSleetEffectStrength(
+      RetrieveActorAttributeToFloat("camera_sleet_effect_strength", Description.Variations, 1.2f));
+
   if (Description.Variations.Contains("enable_postprocess_effects"))
   {
     Camera->EnablePostProcessingEffects(
