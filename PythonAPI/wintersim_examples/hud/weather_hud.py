@@ -176,7 +176,11 @@ class InfoHud(object):
             self.precipitation_slider.val = preset.precipitation
             self.fog_slider.val = preset.fog_density
             self.fog_falloff.val = preset.fog_falloff
+
             self.wind_slider.val = preset.wind_intensity * 100.0
+            if self.wind_slider.val >= 70.0:
+                self.wind_slider.val = 70.0
+            
             self.particle_slider.val = preset.particle_size
             self.humidity = preset.relative_humidity
             self.dewpoint_slider.val = preset.dewpoint
