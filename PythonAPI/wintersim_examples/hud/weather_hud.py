@@ -153,7 +153,7 @@ class InfoHud(object):
     def make_sliders(self):
         '''Make sliders and add them in to list'''
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
-        self.temp_slider = Slider(self, "Temp", 0, 40, -40, get_slider_offset())
+        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
         self.ice_slider = Slider(self, "Friction", 0, 4, 0, get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
@@ -211,7 +211,7 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Friction: {}.00'.format(int(hud.ice_slider.val)),
+            'Friction level: {}'.format(int(hud.ice_slider.val)),
             '',
             'Precipitation: {}%'.format(round((hud.precipitation_slider.val), 1)),
             '',

@@ -333,15 +333,15 @@ class World(object):
         '''Render everything to screen'''
         self.render_camera_windows()
 
+        if self.open3d_lidar_enabled:
+            self.open3d_lidar.render()
+
         if not self.multi_sensor_view_enabled:
             self.camera_manager.render(display)
         else:
             self.multi_sensor_view.render()
 
         self.hud_wintersim.render(display)
-
-        if self.open3d_lidar_enabled:
-            self.open3d_lidar.render()
 
         if self.sync_mode:
             self.world.tick()
@@ -382,7 +382,7 @@ class World(object):
 
         self.open3d_lidar_enabled ^= True
         self.sync_mode ^= True
-        self.fps = 30 if self.open3d_lidar_enabled else 60
+        self.fps = 20 if self.open3d_lidar_enabled else 60
         text = "Open3D Lidar disabled" if not self.open3d_lidar_enabled else "Open3D Lidar enabled"
         self.hud_wintersim.notification(text, 6)
         

@@ -208,7 +208,7 @@ class MultiSensorView():
         left_cam_loc = carla.Location(0.0, 0.0, 2.4)
         back_cam_loc = carla.Location(0.0, 0.0, 2.4)
 
-        # adjust sensor locations depending on the vehicle.
+        # adjust sensor locations depending on the vehicle (WinterSim vehicles only)
         if vehicle_name == "pickup":
             lidar_location = carla.Location(0.0, 0.0, 2.4)
             right_cam_loc = carla.Location(0.0, 0.0, 2.4)
@@ -228,7 +228,7 @@ class MultiSensorView():
             left_cam_loc = carla.Location(-1.0, 0.0, 2.4)
             back_cam_loc = carla.Location(-1.0, 0.0, 2.4)
         elif vehicle_name == "bus":
-            lidar_location = carla.Location(0.0, 0.0, 4.0)
+            lidar_location = carla.Location(0.0, 0.0, 4.2)
             right_cam_loc = carla.Location(-1.0, -1.5, 3.4)
             front_cam_loc = carla.Location(9.5, 0.0, 0.8)
             left_cam_loc = carla.Location(-1.0, 1.5, 3.4)
