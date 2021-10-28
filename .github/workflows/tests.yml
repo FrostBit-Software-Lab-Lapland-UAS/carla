@@ -68,7 +68,7 @@ jobs:
             pip2 install -q --user -r PythonAPI/util/requirements.txt
             pip2 install -q --user -r PythonAPI/examples/requirements.txt
             shopt -s globstar
-            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/*.py         
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/**/*.py        
             
         - name: Pylint3_Carla
           run: |
@@ -102,5 +102,5 @@ jobs:
             pip3 install -q --user -r PythonAPI/util/requirements.txt
             pip3 install -q --user -r Util/Docker/requirements.txt
             shopt -s globstar
-            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/*.py           
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/**/*.py         
       
