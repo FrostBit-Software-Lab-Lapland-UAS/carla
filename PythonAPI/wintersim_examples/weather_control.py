@@ -24,7 +24,6 @@ except IndexError:
 
 import carla
 import requests
-from fmiopendata.wfs import download_stored_query
 
 try:
     import pygame

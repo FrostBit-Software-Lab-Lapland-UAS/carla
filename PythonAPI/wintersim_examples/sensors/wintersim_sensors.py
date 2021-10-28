@@ -16,8 +16,6 @@
 import glob
 import os
 import sys
-from queue import Queue
-import numpy as np
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -27,17 +25,10 @@ try:
 except IndexError:
     pass
 
-import argparse
 import collections
-import datetime
-import logging
 import math
-import random
-import re
 import weakref
 import carla
-from carla import ColorConverter as cc
-import time
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------

@@ -60,7 +60,6 @@ import os
 import re
 import sys
 import subprocess
-from numpy.core.numeric import True_
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -76,7 +75,6 @@ import random
 import re
 
 import carla
-from carla import ColorConverter as cc
 
 # WinterSim imports
 from hud import wintersim_hud
@@ -92,16 +90,6 @@ try:
     import pygame
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
-try:
-    import open3d as o3d
-except ImportError:
-    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
 
 import glob
 import os
