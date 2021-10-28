@@ -35,28 +35,42 @@ jobs:
             pip3 install -q --user -r PythonAPI/test/requirements.txt
             pip3 install -q --user -r PythonAPI/carla/requirements.txt  
             
-        - name: Test Make
+        - name: Make
           run: |
             while sleep 2m; do echo "still building..."; done &
             make setup
             make PythonAPI
             make examples
             
-        - name: Pylint 2 
+        - name: Pylint2_Carla
           run: |
-            pip install --upgrade pip
-            pip install --user setuptools
-            pip install --user distro
-            pip install --user wheel
-            pip install -q --user pylint
-            pip install -q --user -r PythonAPI/carla/requirements.txt
-            pip install -q --user -r PythonAPI/test/requirements.txt
-            pip install -q --user -r PythonAPI/util/requirements.txt
-            pip install -q --user -r PythonAPI/examples/requirements.txt
+            pip2 install --upgrade pip
+            pip2 install --user setuptools
+            pip2 install --user distro
+            pip2 install --user wheel
+            pip2 install -q --user pylint
+            pip2 install -q --user -r PythonAPI/carla/requirements.txt
+            pip2 install -q --user -r PythonAPI/test/requirements.txt
+            pip2 install -q --user -r PythonAPI/util/requirements.txt
+            pip2 install -q --user -r PythonAPI/examples/requirements.txt
             shopt -s globstar
             pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/**/*.py Util/BuildTools/*.py
+
+        - name: Pylint2_WinterSim
+          run: |
+            pip2 install --upgrade pip
+            pip2 install --user setuptools
+            pip2 install --user distro
+            pip2 install --user wheel
+            pip2 install -q --user pylint
+            pip2 install -q --user -r PythonAPI/carla/requirements.txt
+            pip2 install -q --user -r PythonAPI/test/requirements.txt
+            pip2 install -q --user -r PythonAPI/util/requirements.txt
+            pip2 install -q --user -r PythonAPI/examples/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/*.py         
             
-        - name: Pylint 3
+        - name: Pylint3_Carla
           run: |
             pip3 install --upgrade pip
             pip3 install --user -Iv setuptools==47.3.1
@@ -72,4 +86,21 @@ jobs:
             pip3 install -q --user -r Util/Docker/requirements.txt
             shopt -s globstar
             pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/**/*.py Util/Docker/*.py Util/BuildTools/*.py
+
+        - name: Pylint3_WinterSim
+          run: |
+            pip3 install --upgrade pip
+            pip3 install --user -Iv setuptools==47.3.1
+            pip3 install --user distro &&
+            pip3 install --user wheel auditwheel
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q astroid==2.2.5 pylint==2.3.1
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q --user -r PythonAPI/examples/requirements.txt
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/util/requirements.txt
+            pip3 install -q --user -r Util/Docker/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/*.py           
       
