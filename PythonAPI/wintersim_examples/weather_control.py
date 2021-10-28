@@ -166,13 +166,19 @@ class World(object):
         '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
         friction = 1 - iciness / 5
+
+        # When friction level is 0 (1.0) change it to 2.0 
+        # which is default Carla friction value
+        if friction == 1.0:
+            friction = 2.0
+
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=70.0, radius=20.0)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, damping_rate=1.3, max_steer_angle=0.0,  radius=20.0)
+                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
+                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
 
                 wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
