@@ -35,6 +35,9 @@ WHITE = (255, 255, 255)
 GREY = (75, 75, 75)
 BLUE = (0, 0, 255)
 
+DIR_ARR = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]
+DIR_ARR2 = ["North","Nort-East", "East", "South-East", "South","South-West", "West","North-West"]
+
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
@@ -69,6 +72,14 @@ def find_weather_presets():
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
     return [(getattr(carla.WeatherParameters, x), name(x)) for x in presets]
+
+def degrees_to_compass_names(num):
+    val=int((num/22.5)+.5)
+    return DIR_ARR[(val % 16)]
+
+def degrees_to_compass_names_simple(angle):
+    index = round((angle + 360 if angle % 360 else angle) / 45) % 8
+    return DIR_ARR2[index]
 
 # ==============================================================================
 # -- INFO_HUD -------------------------------------------------------------
@@ -109,6 +120,7 @@ class InfoHud(object):
         self._weather_presets = []
         self.preset_names = []
         self.muonio = False
+        self.current_direction = "N"
         
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
@@ -139,7 +151,7 @@ class InfoHud(object):
             [12.5, 26.32, -19.63], [12.5, 15.62, -30.60],
             [12.5, 4.56, -42.72],  [12.5, 0.65, -46.77]]
 
-        # create checkboxe(s)
+        # create checkb
         self.boxes = []
         self.button = Checkbox(self.screen, 20, 650, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
@@ -162,12 +174,12 @@ class InfoHud(object):
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
         self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, get_slider_offset())
         self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, get_slider_offset())
-        self.wind_dir_slider = Slider(self, "Wind direction", 0, 179, -179, get_slider_offset())
+        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, get_slider_offset())
         self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
         self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
         
     def update_sliders(self, preset, month=None, clock=None):
-        '''Update slider positions if weather is changed without moving sliders
+        '''Update slider positions if weather preset is changed
         wrapped in try-expect block just in-case preset doesn't have certain weather parameter'''
         try:
             self.snow_amount_slider.val = preset.snow_amount
@@ -185,23 +197,26 @@ class InfoHud(object):
             self.humidity = preset.relative_humidity
             self.dewpoint_slider.val = preset.dewpoint
             self.wind_dir_slider.val = preset.wind_direction
+
+            self.current_direction = degrees_to_compass_names_simple(self.wind_dir_slider.val)
+
+            if month and clock:
+                self.month_slider.val = month
+                self.time_slider.val = clock
+
         except AttributeError as e:
             print(e, "not implemented")
-            
-        if month and clock:
-            self.month_slider.val = month
-            self.time_slider.val = clock
 
-    def get_month(self, val):
+    def get_month_sundata(self, val):
         if self.muonio:
             return self.months[val], self.muonio_sun_positions[val]
         else:
             return self.months[val], self.rovaniemi_sun_positions[val]
 
     # Update hud text values
-    def tick(self, world, clock, hud): 
+    def tick(self, world, clock, hud):
         self._notifications.tick(world, clock)
-        month, sundata = self.get_month(int(hud.month_slider.val))
+        month, sundata = self.get_month_sundata(int(hud.month_slider.val))
         preset = hud.preset_names[int(hud.preset_slider.val)]
         self._info_text = [
             '      Weather Control',
@@ -226,7 +241,8 @@ class InfoHud(object):
             'Fog Falloff: {}'.format(round((hud.fog_falloff.val), 1)),
             '',
             'Wind Intensity: {} m/s'.format(round((hud.wind_slider.val/10), 1)),
-            'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
+            #'Wind Direction: {}°'.format(round((hud.wind_dir_slider.val), 1)),
+            'Wind Direction: {}'.format(self.current_direction),
             '',
             'Time: {}:00'.format(int(hud.time_slider.val)),
             'Month: {}'.format(month),
@@ -449,7 +465,7 @@ class Weather(object):
 
         # only update time / month when either of those sliders touched
         if slider.name == "Time" or slider.name == "Month":
-            month, sundata = hud.get_month(int(hud.month_slider.val))
+            month, sundata = hud.get_month_sundata(int(hud.month_slider.val))
             clock = hud.time_slider.val
             self.sun.SetSun(sundata[0],sundata[1],sundata[2], clock)
 
@@ -469,6 +485,8 @@ class Weather(object):
         self.weather.particle_size = hud.particle_slider.val
         self.weather.humidity = hud.humidity
         self.weather.dewpoint = hud.dewpoint_slider.val
+
+        hud.current_direction = degrees_to_compass_names_simple(hud.wind_dir_slider.val)
         self.weather.wind_direction = hud.wind_dir_slider.val
 
         # Adjust humidity correctly when either 
@@ -491,7 +509,7 @@ class Weather(object):
         self.weather.snow_amount = weather_values[5]
         self.weather.humidity = weather_values[6]
         self.weather.wind_direction = weather_values[7]
-        month, sundata = hud.get_month(weather_values[9])
+        month, sundata = hud.get_month_sundata(weather_values[9])
         self.sun.SetSun(sundata[0],sundata[1],sundata[2], weather_values[8])
         self.weather.wetness = 0
         self.weather.sun_azimuth_angle = self.sun.azimuth
