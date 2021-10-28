@@ -526,7 +526,7 @@ if ${USE_CHRONO} ; then
     pushd ${CHRONO_SRC_DIR}/build >/dev/null
 
     cmake -G "Ninja" \
-        -DCMAKE_CXX_FLAGS="--fPIC -nostdinc++ -std=c++14 -stdlib=libc++ -I${LLVM_INCLUDE} -L${LLVM_LIBPATH} -Wno-unused-command-line-argument" \
+        -DCMAKE_CXX_FLAGS="-fPIC -nostdinc++ -std=c++14 -stdlib=libc++ -I${LLVM_INCLUDE} -L${LLVM_LIBPATH} -Wno-unused-command-line-argument" \
         -DEIGEN3_INCLUDE_DIR="../../${EIGEN_INCLUDE}" \
         -DCMAKE_INSTALL_PREFIX="../../${CHRONO_INSTALL_DIR}" \
         -DCMAKE_BUILD_TYPE=Release \

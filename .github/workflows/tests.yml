@@ -39,10 +39,8 @@ jobs:
           run: |
             while sleep 2m; do echo "still building..."; done &
             make setup
-            make LibCarla
             make PythonAPI
             make examples
-            make check ARGS="--all --gtest_args=--gtest_filter=-*_mt"
             
         - name: Pylint 2 
           run: |
