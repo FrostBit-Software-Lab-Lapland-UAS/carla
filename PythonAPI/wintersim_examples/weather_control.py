@@ -177,8 +177,8 @@ class World(object):
                 vehicle = actor
                 front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
                 front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
+                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
+                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
 
                 wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
