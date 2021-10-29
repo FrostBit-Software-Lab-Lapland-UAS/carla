@@ -118,7 +118,7 @@ class CameraWindows(threading.Thread):
         self = weak_depth_self()
         self.front_depth_image = depth_img
 
-    def render_front_depth(self, front_depth_display):
+    def render_front_depth(self):
         """Render front depth camera."""
         if self.front_depth_image is not None:
             image = np.asarray(self.front_depth_image.raw_data)
@@ -127,7 +127,7 @@ class CameraWindows(threading.Thread):
             cv2.imshow("front_depth_image", image)
             self.front_depth_image = None
 
-    def render_front_rgb_camera(self, rgb_display):
+    def render_front_rgb_camera(self):
         """Render front RGB camera."""
         if self.front_rgb_image is not None:
             image = np.asarray(self.front_rgb_image.raw_data)
@@ -136,7 +136,7 @@ class CameraWindows(threading.Thread):
             cv2.imshow("front RGB camera", image)
             self.front_rgb_image = None
 
-    def render_back_rgb_camera(self, rgb_display):
+    def render_back_rgb_camera(self):
         """Render back RGB camera."""
         if self.back_rgb_image is not None:
             image = np.asarray(self.back_rgb_image.raw_data)
@@ -147,9 +147,9 @@ class CameraWindows(threading.Thread):
 
     def render_all_windows(self):
         """Render all separate cameras to CV2 windows"""
-        self.render_front_rgb_camera(self.front_rgb_camera_display)
-        self.render_back_rgb_camera(self.back_rgb_camera_display)
-        #self.render_front_depth(self.front_depth_display)
+        self.render_front_rgb_camera()
+        self.render_back_rgb_camera()
+        #self.render_front_depth()
        
     def destroy(self):
         """Destroy all spawned camera-actors and cv2 windows."""
