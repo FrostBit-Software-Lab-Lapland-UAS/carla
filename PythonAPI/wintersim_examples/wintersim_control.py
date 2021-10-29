@@ -72,7 +72,6 @@ except IndexError:
 import argparse
 import logging
 import random
-import re
 
 import carla
 
@@ -90,12 +89,6 @@ try:
     import pygame
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
-
-import glob
-import os
-import sys
-import argparse
-import random
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------

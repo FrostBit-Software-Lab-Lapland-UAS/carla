@@ -12,12 +12,7 @@
 import glob
 import os
 import sys
-import glob
-import os
-import sys
 import time
-from datetime import datetime
-import numpy as np
 from matplotlib import cm
 
 try:
