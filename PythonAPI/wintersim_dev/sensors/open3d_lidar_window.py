@@ -12,12 +12,7 @@
 import glob
 import os
 import sys
-import glob
-import os
-import sys
 import time
-from datetime import datetime
-import numpy as np
 from matplotlib import cm
 
 try:
@@ -81,7 +76,7 @@ class Open3DLidarWindow():
         if semantic:
             lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
         else:
-            lidar_bp = blueprint_library.find('sensor.lidar.ray_cast')
+            lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
             lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
             lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
@@ -170,16 +165,17 @@ class Open3DLidarWindow():
 
     def render(self):
         """Render lidar to open3d window"""
-        if self.frame == 2:                         # every second frame add new geometry
-            self.vis.add_geometry(self.point_list)
 
+        if self.frame == 2:                         # wait few frames before initializing
+            self.vis.add_geometry(self.point_list)
             if not self.startup_done:               # initialize startup position, must be called after add_geometry()
                 self.startup_done = True
                 self.load_default_open3d_position()
 
         self.vis.update_geometry(self.point_list)
-        self.vis.poll_events()
+        
         self.vis.update_renderer()
+        self.vis.poll_events()
         self.frame += 1
 
     def destroy(self):
@@ -190,12 +186,18 @@ class Open3DLidarWindow():
             self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, semantic = True):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
-        lidar_transform = carla.Transform(carla.Location(x=-0.5, y=0.0, z=2))
+        lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
+
+        # adjust lidar Z position if vehicle is bus
+        if vehicle_name == "bus":
+            lidar_position = carla.Location(x=-0.0, y=0.0, z=3.3)
+
+        lidar_transform = carla.Transform(lidar_position)
         self.lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
 
         self.point_list = o3d.geometry.PointCloud()
@@ -236,7 +238,7 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 700000
+        self.points_per_second = 300000
         self.upper_fov = 15.0
         self.lower_fov = -24.9
         self.channels = 32.0

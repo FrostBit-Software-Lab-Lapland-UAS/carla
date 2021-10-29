@@ -208,6 +208,7 @@ class MultiSensorView():
         left_cam_loc = carla.Location(0.0, 0.0, 2.4)
         back_cam_loc = carla.Location(0.0, 0.0, 2.4)
 
+        # adjust sensor locations depending on the vehicle (WinterSim vehicles only)
         if vehicle_name == "pickup":
             lidar_location = carla.Location(0.0, 0.0, 2.4)
             right_cam_loc = carla.Location(0.0, 0.0, 2.4)
@@ -226,19 +227,26 @@ class MultiSensorView():
             front_cam_loc = carla.Location(2.5, 0.0, 0.8)
             left_cam_loc = carla.Location(-1.0, 0.0, 2.4)
             back_cam_loc = carla.Location(-1.0, 0.0, 2.4)
+        elif vehicle_name == "bus":
+            lidar_location = carla.Location(0.0, 0.0, 4.2)
+            right_cam_loc = carla.Location(-1.0, -1.5, 3.4)
+            front_cam_loc = carla.Location(9.5, 0.0, 0.8)
+            left_cam_loc = carla.Location(-1.0, 1.5, 3.4)
+            back_cam_loc = carla.Location(-7.0, 0.0, 2.4)
         else:
             lidar_location = carla.Location(0.0, 0.0, 2.4)
             right_cam_loc = carla.Location(0.0, 0.0, 2.4)
             front_cam_loc = carla.Location(0.0, 0.0, 2.4)
             left_cam_loc = carla.Location(0.0, 0.0, 2.4)
             back_cam_loc = carla.Location(0.0, 0.0, 2.4)
-          
+        
+        # spawn camera sensors
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[0, 2])
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 1])
             
-        # spawn lidars
+        # spawn lidar sensors
         SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
         SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
 

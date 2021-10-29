@@ -22,7 +22,6 @@ try:
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_BACKSPACE
     from pygame.locals import K_F1
-    from pygame.locals import K_F3
     from pygame.locals import K_F4
     from pygame.locals import K_F5
     from pygame.locals import K_F6
@@ -57,12 +56,6 @@ except ImportError:
 class KeyboardControl(object):
     """Class that handles keyboard input."""
     def __init__(self, world, start_in_autopilot):
-
-        self.measure_breaking_distance = False
-        self.start_speed = None
-        self.start_pos = None
-        
-
         self._autopilot_enabled = start_in_autopilot
         if isinstance(world.player, carla.Vehicle):
             self._control = carla.VehicleControl()
@@ -84,8 +77,6 @@ class KeyboardControl(object):
                     return True
                 elif event.key == K_F1:
                     world.hud_wintersim.toggle_info()
-                elif event.key == K_F3:
-                    world.toggle_npcs()
                 elif event.key == K_F4:
                     world.toggle_multi_sensor_view()
                 elif event.key == K_F5:
@@ -99,7 +90,7 @@ class KeyboardControl(object):
                 elif event.key == K_F11:
                     world.take_fullscreen_screenshot()
                 elif event.key == K_F12:
-                    world.world.toggle_camera()
+                    world.toggle_server_rendering()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
                 elif event.key == K_TAB:
@@ -188,52 +179,17 @@ class KeyboardControl(object):
             self._control.throttle = 0.0
 
         if keys[K_DOWN] or keys[K_s]:
-
-            if not self.measure_breaking_distance:
-                self.start_pos = world.player.get_transform()
-                v = world.player.get_velocity()
-                kmh = (3.6 * math.sqrt(v.x**2 + v.y**2 + v.z**2))
-                self.start_speed = kmh
-                self.measure_breaking_distance = True
-
             if(int(round(speed)) <= 0 or self._control.reverse):
                 self._control.brake = 0
                 if self._control.gear != -1:
                     self._control.gear = -1
-                # self._control.throttle = min(self._control.throttle + 0.01, 1)
-                # self._control.reverse = True
+                self._control.throttle = min(self._control.throttle + 0.01, 1)
+                self._control.reverse = True
             elif not self._control.reverse:
                 self._control.brake = min(self._control.brake + 0.2, 1)
         else:
             self._control.gear = 1
             self._control.brake = 0
-
-            if self.measure_breaking_distance:
-                print("\n")
-                print("start position: " + str(self.start_pos))
-                print("End position:" + str(world.player.get_transform()))
-
-                kmh_string = str(round(self.start_speed, 2))
-                metres_second_string = str(round(self.start_speed / 3.6, 2))
-                print("start speed: " + kmh_string + " km/h " + metres_second_string + " m/s \n")
-                # a really bad way to calculate distance.. but it works for this use case
-                self.vehicles = world.world.get_actors().filter('vehicle.*')
-                t = self.start_pos
-                distance = lambda l: math.sqrt((l.x - t.location.x)**2 + (l.y - t.location.y)**2 + (l.z - t.location.z)**2)
-                vehicles = [(distance(x.get_location()), x) for x in self.vehicles]
-                dist = 0
-                for d, vehicle in sorted(vehicles, key=lambda vehicles: vehicles[0]):
-                    print("Distance travelled: " + str(d))
-                    dist = d
-                ms = (self.start_speed / 3.6)
-
-                # I couldn't find a way to get current friction value so it needs to be manually inserted
-                # so if you are testing this change to value to correct value!
-                friction = 0.9 
-                ss = ms ** 2 / (2 * friction * 9.82)
-                print("Expected travelled distance: " + str(ss))
-                print("difference: " + str(dist - ss))
-                self.measure_breaking_distance = False
 
         steer_increment = 5e-4 * milliseconds
         if keys[K_LEFT] or keys[K_a]:

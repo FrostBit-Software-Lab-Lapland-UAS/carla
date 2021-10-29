@@ -25,13 +25,13 @@ Use ARROW or WASD keys for control.
     N            : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
+    T            : toggle telemetry info
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
     Z/X          : toggle right/left blinker
 
     F1           : toggle HUD
-    F3           : toggle NPC's
     F4           : toggle multi sensor view
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks

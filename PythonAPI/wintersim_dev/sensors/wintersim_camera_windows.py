@@ -69,7 +69,10 @@ class CameraWindows(threading.Thread):
         """Spawn Camera-actor (front RGB camera) to given position and
         setup camera image callback and cv2 window."""
         camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
-        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 21.5), camera_transform, attach_to=self.car)
+        if self.actor_name == "bus":
+            camera_transform = carla.Transform(carla.Location(x=6.0, y=0.4, z=3.0), carla.Rotation(pitch=0))
+
+        self.front_rgb_camera = self.world.spawn_actor(self.camera_blueprint(True, "up", 1.2), camera_transform, attach_to=self.car)
         weak_rgb_self = weakref.ref(self)
         self.front_rgb_camera.listen(lambda front_rgb_image: weak_rgb_self().set_front_rgb_image(weak_rgb_self, front_rgb_image))
         self.front_rgb_camera_display = cv2.namedWindow('front RGB camera')
@@ -78,7 +81,10 @@ class CameraWindows(threading.Thread):
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
         setup camera image callback and cv2 window."""
-        camera_transform = carla.Transform(carla.Location(x=-3.5, z=2.0), carla.Rotation(pitch=-10, yaw=180))
+        camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
+        if self.actor_name == "bus":
+            camera_transform = carla.Transform(carla.Location(x=-6.7, y=0.4, z=3.0), carla.Rotation(pitch=-10, yaw=180))
+
         self.back_rgb_camera = self.world.spawn_actor(self.camera_blueprint(False, None, None), camera_transform, attach_to=self.car)
         weak_back_rgb_self = weakref.ref(self)
         self.back_rgb_camera.listen(lambda back_rgb_image: weak_back_rgb_self().set_back_rgb_image(weak_back_rgb_self, back_rgb_image))
@@ -112,7 +118,7 @@ class CameraWindows(threading.Thread):
         self = weak_depth_self()
         self.front_depth_image = depth_img
 
-    def render_front_depth(self, front_depth_display):
+    def render_front_depth(self):
         """Render front depth camera."""
         if self.front_depth_image is not None:
             image = np.asarray(self.front_depth_image.raw_data)
@@ -121,7 +127,7 @@ class CameraWindows(threading.Thread):
             cv2.imshow("front_depth_image", image)
             self.front_depth_image = None
 
-    def render_front_rgb_camera(self, rgb_display):
+    def render_front_rgb_camera(self):
         """Render front RGB camera."""
         if self.front_rgb_image is not None:
             image = np.asarray(self.front_rgb_image.raw_data)
@@ -130,7 +136,7 @@ class CameraWindows(threading.Thread):
             cv2.imshow("front RGB camera", image)
             self.front_rgb_image = None
 
-    def render_back_rgb_camera(self, rgb_display):
+    def render_back_rgb_camera(self):
         """Render back RGB camera."""
         if self.back_rgb_image is not None:
             image = np.asarray(self.back_rgb_image.raw_data)
@@ -141,9 +147,9 @@ class CameraWindows(threading.Thread):
 
     def render_all_windows(self):
         """Render all separate cameras to CV2 windows"""
-        self.render_front_rgb_camera(self.front_rgb_camera_display)
-        self.render_back_rgb_camera(self.back_rgb_camera_display)
-        #self.render_front_depth(self.front_depth_display)
+        self.render_front_rgb_camera()
+        self.render_back_rgb_camera()
+        #self.render_front_depth()
        
     def destroy(self):
         """Destroy all spawned camera-actors and cv2 windows."""
@@ -163,7 +169,7 @@ class CameraWindows(threading.Thread):
 
         cv2.destroyAllWindows()
 
-    def __init__(self, ego_vehicle, camera, world):
+    def __init__(self, ego_vehicle, camera, world, actor_name):
         super(CameraWindows, self).__init__()
         self.__flag = threading.Event()             # The flag used to pause the thread
         self.__flag.set()                           # Set to True
@@ -173,6 +179,7 @@ class CameraWindows(threading.Thread):
         self.camera = camera
         self.world = world
         self.car = ego_vehicle
+        self.actor_name = actor_name
 
         self.front_rgb_camera_display = None
         self.front_rgb_camera = None
