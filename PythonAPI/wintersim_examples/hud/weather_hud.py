@@ -180,32 +180,39 @@ class InfoHud(object):
         
     def update_sliders(self, preset, month=None, clock=None):
         '''Update slider positions if weather preset is changed
-        wrapped in try-expect block just in-case preset doesn't have certain weather parameter'''
+        wrapped in try-expect block just in-case preset doesn't have certain weather parameters'''
         try:
-            self.snow_amount_slider.val = preset.snow_amount
-            self.ice_slider.val = preset.ice_amount
+
             self.temp_slider.val = preset.temperature
+            self.humidity = preset.relative_humidity
+            self.dewpoint_slider.val = preset.dewpoint
+            self.ice_slider.val = preset.ice_amount
             self.precipitation_slider.val = preset.precipitation
+            self.snow_amount_slider.val = preset.snow_amount
+            self.particle_slider.val = preset.particle_size
             self.fog_slider.val = preset.fog_density
             self.fog_falloff.val = preset.fog_falloff
 
             self.wind_slider.val = preset.wind_intensity * 100.0
             if self.wind_slider.val >= 70.0:
                 self.wind_slider.val = 70.0
-            
-            self.particle_slider.val = preset.particle_size
-            self.humidity = preset.relative_humidity
-            self.dewpoint_slider.val = preset.dewpoint
-            self.wind_dir_slider.val = preset.wind_direction
 
+            self.wind_dir_slider.val = preset.wind_direction
             self.current_direction = degrees_to_compass_names_simple(self.wind_dir_slider.val)
+
+            # update humidity based on temperature and dewpoint
+            val = get_approx_relative_humidity(self.temp_slider.val, self.dewpoint_slider.val)
+            print(val)
+            if val > 100.0:
+                val = 100
+            self.humidity = val
 
             if month and clock:
                 self.month_slider.val = month
                 self.time_slider.val = clock
 
         except AttributeError as e:
-            print(e, "not implemented")
+            print(e)
 
     def get_month_sundata(self, val):
         if self.muonio:
