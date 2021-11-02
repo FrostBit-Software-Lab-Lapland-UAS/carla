@@ -188,28 +188,10 @@ class World(object):
         for slider in sliders:
             data.update({slider.name: slider.val})
 
-        # old
-        # data = {
-        #     "Preset": self.hud.preset_slider.val,
-        #     "Temperature": self.hud.temp_slider.val,
-        #     "Dewpoint": self.hud.dewpoint_slider.val,
-        #     "Friction": self.hud.ice_slider.val,
-        #     "Precipitation": self.hud.precipitation_slider.val,
-        #     "SnowAmount": self.hud.snow_amount_slider.val,
-        #     "snowParticleSize": self.hud.particle_slider.val,
-        #     "Fog": self.hud.fog_slider.val,
-        #     "FogFallOff": self.hud.fog_falloff.val,
-        #     "WindIntensity": self.hud.wind_slider.val,
-        #     "WindDirection": self.hud.wind_dir_slider.val,
-        #     "Time": self.hud.time_slider.val,
-        #     "Month": self.hud.month_slider.val,
-        # }
-
-
         script_path = os.path.dirname(os.path.realpath(__file__))
         timestamp = str(int(time.time()))
         file_name = script_path + "/weather_" + timestamp + ".json"
-        print(file_name)
+        print("Exported weather data: " + str(file_name))
         with open(file_name, 'w') as jsonfile:
             json.dump(data, jsonfile, indent=4)
 
@@ -217,8 +199,7 @@ class World(object):
         root = Tk()
         file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
         root.destroy()
-        print(file)
-
+        
         if not os.path.exists(file):
             return
 
@@ -232,23 +213,8 @@ class World(object):
                 if slider.name == d:
                     slider.val = data[d]
 
+        print("Imported weather data: " + str(file))
         self.hud.force_tick_next_frame()
-
-        # old
-        # self.hud.preset_slider.val = data["Preset"]
-        # self.hud.temp_slider.val = data["Temperature"]
-        # self.hud.dewpoint_slider.val = data["Dewpoint"]
-        # self.hud.ice_slider.val = data["Friction"]
-        # self.hud.precipitation_slider.val = data["Precipitation"]
-        # self.hud.snow_amount_slider.val = data["SnowAmount"]
-        # self.hud.particle_slider.val = data["snowParticleSize"]
-        # self.hud.fog_slider.val = data["Fog"]
-        # self.hud.fog_falloff.val = data["FogFallOff"]
-        # self.hud.wind_slider.val = data["WindIntensity"]
-        # self.hud.wind_dir_slider.val = data["WindDirection"]
-        # self.hud.time_slider.val = data["Time"]
-        # self.hud.month_slider.val = data["Month"]
-        #self.hud.force_tick_next_frame()
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
