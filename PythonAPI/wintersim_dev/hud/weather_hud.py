@@ -25,7 +25,6 @@ import re
 # Slider constants
 SLIDER_RIGHT_OFFSET = 120
 SLIDER_SIZE = 120
-SLIDER_GAP = 90
 SLIDER_Y = 15
 
 # Color constants
@@ -60,12 +59,6 @@ def get_approx_relative_humidity(T, TD):
 def get_approx_temp(TD, RH):
     t = 243.04*(((17.625*TD)/(243.04+TD))-math.log(RH/100))/(17.625+math.log(RH/100)-((17.625*TD)/(243.04+TD)))
     return t
-
-def get_slider_offset(offset=40):
-    '''Return offset between each slider'''
-    global SLIDER_GAP
-    SLIDER_GAP += offset
-    return SLIDER_GAP
 
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
@@ -122,6 +115,7 @@ class InfoHud(object):
         self.muonio = False
         self.current_direction = "N"
         self.force_tick = False
+        self.gap = 90
         
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
@@ -163,22 +157,27 @@ class InfoHud(object):
         self.filtered_map_name = map_name
         self.muonio = self.filtered_map_name == "Muonio"
 
+    def get_slider_offset(self, offset=40):
+        '''Return offset between each slider'''
+        self.gap += offset
+        return self.gap
+
     def make_sliders(self):
         '''Make sliders and add them in to list'''
-        self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
-        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, get_slider_offset())
-        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Friction", 0, 4, 0, get_slider_offset())
-        self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
-        self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
-        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
-        self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
-        self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, get_slider_offset())
-        self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, get_slider_offset())
-        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, get_slider_offset())
-        self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
-        self.month_slider = Slider(self, "Month", 0, 11, 0, get_slider_offset())
-        
+        self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, self.gap)
+        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, self.get_slider_offset())
+        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
+        self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
+        self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
+        self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
+        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, self.get_slider_offset())
+        self.fog_slider = Slider(self, "Fog", 0, 100, 0, self.get_slider_offset())
+        self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, self.get_slider_offset())
+        self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, self.get_slider_offset())
+        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, self.get_slider_offset())
+        self.time_slider = Slider(self, "Time", 10, 24, 0, self.get_slider_offset())
+        self.month_slider = Slider(self, "Month", 0, 11, 0, self.get_slider_offset())
+
     def update_sliders(self, preset, month=None, clock=None):
         '''Update slider positions if weather preset is changed
         wrapped in try-expect block just in-case preset doesn't have certain weather parameter'''
