@@ -45,11 +45,6 @@ except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
 try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
-try:
    from pynput import keyboard
 except ImportError:
     raise RuntimeError('cannot import pynput, make sure pynput package is installed')
