@@ -121,6 +121,7 @@ class InfoHud(object):
         self.preset_names = []
         self.muonio = False
         self.current_direction = "N"
+        self.force_tick = False
         
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
@@ -258,6 +259,9 @@ class InfoHud(object):
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
+    def force_tick_next_frame(self):
+        self.force_tick = True
+
     def render(self, world, display, weather):
         """Render hud texts into pygame window"""
 
@@ -279,6 +283,14 @@ class InfoHud(object):
         # render checkboxes to pygame window
         for box in self.boxes:
             box.render_checkbox()
+
+        # render sliders to pygame window
+
+        if self.force_tick:
+            for slider in self.sliders:
+                weather.tick(self, world, world._weather_presets[0], slider)
+                self.force_tick = False
+            world.world.set_weather(weather.weather)
 
         # render sliders to pygame window
         for slider in self.sliders:

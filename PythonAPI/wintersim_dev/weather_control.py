@@ -7,12 +7,16 @@
 
 from __future__ import print_function
 import glob
+from itertools import combinations
 import os
 import sys
 import re
 import argparse
 import math
 from hud import weather_hud
+import json
+import time
+import subprocess
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -25,6 +29,9 @@ except IndexError:
 import carla
 import requests
 
+from tkinter import *
+from tkinter.filedialog import askopenfilename 
+
 try:
     import pygame
     from pygame.locals import KMOD_CTRL
@@ -32,6 +39,8 @@ try:
     from pygame.locals import K_q
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
+    from pygame.locals import K_o
+    from pygame.locals import K_l
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
@@ -44,6 +53,16 @@ try:
    from pynput import keyboard
 except ImportError:
     raise RuntimeError('cannot import pynput, make sure pynput package is installed')
+
+
+# The key combination to check
+COMBINATIONS = [
+    {keyboard.Key.shift, keyboard.KeyCode(char='a')},
+    {keyboard.Key.shift, keyboard.KeyCode(char='A')}
+]
+
+# The currently active modifiers
+current = set()
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -77,6 +96,7 @@ class World(object):
         self.map_name = self.world.get_map().name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.muonio = self.filtered_map_name == "Muonio"
+        self.weather = None
 
     def set_current_weather(self):
         default_weather = self.world.get_weather()
@@ -161,6 +181,75 @@ class World(object):
         self.hud.update_sliders(weather.weather, month=month, clock=clock)
         self.world.set_weather(weather.weather)
 
+    def export_json(self):
+
+        data = dict()
+        sliders = self.hud.sliders
+        for slider in sliders:
+            data.update({slider.name: slider.val})
+
+        # old
+        # data = {
+        #     "Preset": self.hud.preset_slider.val,
+        #     "Temperature": self.hud.temp_slider.val,
+        #     "Dewpoint": self.hud.dewpoint_slider.val,
+        #     "Friction": self.hud.ice_slider.val,
+        #     "Precipitation": self.hud.precipitation_slider.val,
+        #     "SnowAmount": self.hud.snow_amount_slider.val,
+        #     "snowParticleSize": self.hud.particle_slider.val,
+        #     "Fog": self.hud.fog_slider.val,
+        #     "FogFallOff": self.hud.fog_falloff.val,
+        #     "WindIntensity": self.hud.wind_slider.val,
+        #     "WindDirection": self.hud.wind_dir_slider.val,
+        #     "Time": self.hud.time_slider.val,
+        #     "Month": self.hud.month_slider.val,
+        # }
+
+
+        script_path = os.path.dirname(os.path.realpath(__file__))
+        timestamp = str(int(time.time()))
+        file_name = script_path + "/weather_" + timestamp + ".json"
+        print(file_name)
+        with open(file_name, 'w') as jsonfile:
+            json.dump(data, jsonfile, indent=4)
+
+    def import_json(self):
+        root = Tk()
+        file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
+        root.destroy()
+        print(file)
+
+        if not os.path.exists(file):
+            return
+
+        f = open(file,)
+        data = json.load(f)
+
+        sliders = self.hud.sliders
+
+        for slider in sliders:
+            for d in data:
+                if slider.name == d:
+                    slider.val = data[d]
+
+        self.hud.force_tick_next_frame()
+
+        # old
+        # self.hud.preset_slider.val = data["Preset"]
+        # self.hud.temp_slider.val = data["Temperature"]
+        # self.hud.dewpoint_slider.val = data["Dewpoint"]
+        # self.hud.ice_slider.val = data["Friction"]
+        # self.hud.precipitation_slider.val = data["Precipitation"]
+        # self.hud.snow_amount_slider.val = data["SnowAmount"]
+        # self.hud.particle_slider.val = data["snowParticleSize"]
+        # self.hud.fog_slider.val = data["Fog"]
+        # self.hud.fog_falloff.val = data["FogFallOff"]
+        # self.hud.wind_slider.val = data["WindIntensity"]
+        # self.hud.wind_dir_slider.val = data["WindDirection"]
+        # self.hud.time_slider.val = data["Time"]
+        # self.hud.month_slider.val = data["Month"]
+        #self.hud.force_tick_next_frame()
+
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
@@ -219,8 +308,13 @@ class World(object):
                 self.next_weather(reverse=False)
             elif key.char == "b":
                 self.realtime_weather()
+            elif key.char == "x":
+                self.export_json()
+            elif key.char == "f":
+                self.import_json()
         except:
             pass
+
 
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
@@ -255,6 +349,10 @@ class KeyboardControl(object):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(reverse=True)
+                elif event.key == K_o and pygame.key.get_mods() & KMOD_CTRL:
+                    world.import_json()
+                elif event.key == K_l and pygame.key.get_mods() & KMOD_CTRL:
+                    world.export_json()
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -287,12 +385,13 @@ def game_loop(args):
         controller = KeyboardControl()                                      # controller for changing weather presets
         current_weather = client.get_world().get_weather()
         weather = weather_hud.Weather(current_weather)                      # weather object to update carla weather with sliders
+        world.weather = weather
         hud.setup(current_weather, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()               
-        
+        listener.start()
+
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):

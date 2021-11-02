@@ -14,6 +14,8 @@ Plugins
 /PythonAPI/WinterSim
 /PythonAPI/wintersim_examples/*.png
 /PythonAPI/wintersim_examples/*.jpg
+/PythonAPI/wintersim_examples/*.json
+/PythonAPI/wintersim_dev/*.json
 
 *.VC.db
 *.VC.opendb
