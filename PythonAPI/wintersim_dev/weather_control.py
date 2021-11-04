@@ -40,7 +40,7 @@ try:
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
     from pygame.locals import K_o
-    from pygame.locals import K_l
+    from pygame.locals import K_s
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
@@ -177,7 +177,7 @@ class World(object):
         self.world.set_weather(weather.weather)
 
     def export_json(self):
-
+        '''Export current weather parameters to json file'''
         data = dict()
         sliders = self.hud.sliders
         for slider in sliders:
@@ -186,11 +186,12 @@ class World(object):
         script_path = os.path.dirname(os.path.realpath(__file__))
         timestamp = str(int(time.time()))
         file_name = script_path + "/weather_" + timestamp + ".json"
-        print("Exported weather data: " + str(file_name))
+        print("Exported weather data to json file. Path: " + str(file_name))
         with open(file_name, 'w') as jsonfile:
             json.dump(data, jsonfile, indent=4)
 
     def import_json(self):
+        '''Import weather json file'''
         root = Tk()
         file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
         root.destroy()
@@ -269,10 +270,6 @@ class World(object):
                 self.next_weather(reverse=False)
             elif key.char == "b":
                 self.realtime_weather()
-            elif key.char == "x":
-                self.export_json()
-            elif key.char == "f":
-                self.import_json()
         except:
             pass
 
@@ -312,7 +309,7 @@ class KeyboardControl(object):
                     world.next_weather(reverse=True)
                 elif event.key == K_o and pygame.key.get_mods() & KMOD_CTRL:
                     world.import_json()
-                elif event.key == K_l and pygame.key.get_mods() & KMOD_CTRL:
+                elif event.key == K_s and pygame.key.get_mods() & KMOD_CTRL:
                     world.export_json()
 
     @staticmethod
