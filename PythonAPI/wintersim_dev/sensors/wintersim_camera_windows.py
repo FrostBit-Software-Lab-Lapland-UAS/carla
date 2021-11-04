@@ -15,7 +15,6 @@ import sys
 import threading
 import weakref
 import carla
-import cv2
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -29,6 +28,11 @@ try:
     import numpy as np
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
+
+try:
+    import cv2
+except ImportError:
+    raise RuntimeError('cannot import cv2, make sure cv2 package is installed')
 
 # Camera cv2 window width, height and camera fov
 VIEW_WIDTH = 608
