@@ -16,6 +16,8 @@ import threading
 import weakref
 import carla
 
+from wintersim_object_detection import WinterSimObjectDetection
+
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
         sys.version_info.major,
@@ -137,6 +139,7 @@ class CameraWindows(threading.Thread):
             image = np.asarray(self.front_rgb_image.raw_data)
             image = image.reshape((VIEW_HEIGHT, VIEW_WIDTH, 4))
             image = image[:, :, :3]
+            image = self.object_detection.Detect(image)
             cv2.imshow("front RGB camera", image)
             self.front_rgb_image = None
 
@@ -200,6 +203,9 @@ class CameraWindows(threading.Thread):
         self.setup_back_rgb_camera()
         self.setup_front_rgb_camera()
         #self.setup_front_depth_camera()
+
+        # self.object_detection = None
+        self.object_detection = WinterSimObjectDetection()
 
     def run(self):
         while self.__running.isSet():
