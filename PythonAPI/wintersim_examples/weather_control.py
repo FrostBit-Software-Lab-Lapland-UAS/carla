@@ -120,9 +120,9 @@ class World(object):
 
         date = x[0].split("-")
 
-        #year = int(date[0])
+        year = int(date[0])
         month = int(date[1]) - 1        
-        #day = int(date[2])
+        day = int(date[2])
 
         clock = x[1].split(":")
         clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
@@ -152,14 +152,22 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
 
-        weather_values = [ temp, precipitation, wind,
-            0.5, 0, snow, humidity, wind_direction,
-            clock, month]
+        weather.precipitation = precipitation
+        weather.precipitation_deposits = precipitation
+        weather.wind_intensity = wind / 100
+        weather.wind_direction = wind_direction
+        weather.fog_density = 0
+        weather.snow_amount = snow
+        weather.temperature = temp
+        weather.particle_size = 0.5
+        weather.humidity = humidity
+        weather.month = month
+        weather.day = day
+        weather.time = float(clock)
         
-        weather.set_weather_manually(self.hud, weather_values)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)
-        self.world.set_weather(weather.weather)
+        self.hud.update_sliders(weather)
+        self.world.set_weather(weather)
 
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
