@@ -75,4 +75,25 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "360.0", UIMin = "0.0", UIMax = "360.0"))
   float WindDirection = 0.0f;
 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-100.0", ClampMax = "100.0", UIMin = "-100.0", UIMax = "100.0"))
+  float Latitude = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-100", ClampMax = "100.0", UIMin = "-100", UIMax = "100.0"))
+  float Longitude = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-10", ClampMax = "10", UIMin = "-10", UIMax = "10"))
+  float Timezone = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float RoadSnowiness = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "12.0", UIMin = "0.0", UIMax = "12.0"))
+  float Month = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "31.0", UIMin = "0.0", UIMax = "31.0"))
+  float Day = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "24", UIMin = "0.0", UIMax = "24.0"))
+  float Time = 0.0f;
+
 };

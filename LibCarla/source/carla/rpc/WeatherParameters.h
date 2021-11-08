@@ -81,7 +81,14 @@ namespace rpc {
         float in_particle_size,
 		float in_relative_humidity,
 		float in_dewpoint,
-        float in_wind_direction)
+        float in_wind_direction,
+        float in_latitude,
+        float in_longitude,
+        float in_timezone,
+        float in_road_snowiness,
+        float in_month,
+        float in_day,
+        float in_time)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -101,7 +108,14 @@ namespace rpc {
         particle_size(in_particle_size),
 		relative_humidity(in_relative_humidity),
 		dewpoint(in_dewpoint),
-        wind_direction(in_wind_direction) {}
+        wind_direction(in_wind_direction),
+        latitude(in_latitude),
+        longitude(in_longitude),
+        timezone(in_timezone),
+        road_snowiness(in_road_snowiness),
+        month(in_month),
+        day(in_day),
+        time(in_time) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -123,6 +137,13 @@ namespace rpc {
 	float relative_humidity = 0.0f;
 	float dewpoint = 0.0f;
     float wind_direction = 0.0f;
+    float latitude = 0.0f;
+    float longitude = 0.0f;
+    float timezone = 0.0f;
+    float road_snowiness = 0.0f;
+    float month = 0.0f;
+    float day = 0.0f;
+    float time = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -146,7 +167,14 @@ namespace rpc {
         particle_size(Weather.ParticleSize),
 		relative_humidity(Weather.RelativeHumidity),
 		dewpoint(Weather.Dewpoint),
-        wind_direction(Weather.WindDirection) {}
+        wind_direction(Weather.WindDirection),
+        latitude(Weather.Latitude),
+        longitude(Weather.Longitude),
+        timezone(Weather.Timezone),
+        road_snowiness(Weather.RoadSnowiness),
+        month(Weather.Month),
+        day(Weather.Day),
+        time(Weather.Time) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -170,6 +198,13 @@ namespace rpc {
 	  Weather.RelativeHumidity = relative_humidity;
 	  Weather.Dewpoint = dewpoint;
       Weather.WindDirection = wind_direction;
+      Weather.Latitude = latitude;
+      Weather.Longitude = longitude;
+      Weather.Timezone = timezone;
+      Weather.RoadSnowiness = road_snowiness;
+      Weather.Month = month;
+      Weather.Day = day;
+      Weather.Time = time;
       return Weather;
     }
 
@@ -196,7 +231,14 @@ namespace rpc {
 			particle_size != rhs.particle_size ||
 			relative_humidity != rhs.relative_humidity ||
 			dewpoint != rhs.dewpoint ||
-            wind_direction != rhs.wind_direction;
+            wind_direction != rhs.wind_direction ||
+            latitude != rhs.latitude ||
+            longitude != rhs.longitude ||
+            timezone != rhs.timezone ||
+            road_snowiness != rhs.road_snowiness ||
+            month != rhs.month ||
+            day != rhs.day ||
+            time != rhs.time;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -223,7 +265,14 @@ namespace rpc {
         particle_size,
 		relative_humidity,
 		dewpoint,
-        wind_direction);
+        wind_direction,
+        latitude,
+        longitude,
+        timezone,
+        road_snowiness,
+        month,
+        day,
+        time);
   };
 
 } // namespace rpc

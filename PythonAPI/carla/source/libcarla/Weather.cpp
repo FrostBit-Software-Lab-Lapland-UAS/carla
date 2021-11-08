@@ -34,7 +34,14 @@ namespace rpc {
 		<< ", particle_size=" << std::to_string(weather.particle_size)
 		<< ", relative_humidity=" << std::to_string(weather.relative_humidity)
 		<< ", dewpoint=" << std::to_string(weather.dewpoint)
-        << ", wind_direction=" << std::to_string(weather.wind_direction) << ')';
+        << ", wind_direction=" << std::to_string(weather.wind_direction)
+        << ", latitude=" << std::to_string(weather.latitude)
+        << ", longitude=" << std::to_string(weather.longitude)
+        << ", timezone=" << std::to_string(weather.timezone)
+        << ", road_snowiness=" << std::to_string(weather.road_snowiness)
+        << ", month=" << std::to_string(weather.month)
+        << ", day=" << std::to_string(weather.day)
+        << ", time=" << std::to_string(weather.time) << ')';
     return out;
   }
 
@@ -86,6 +93,13 @@ void export_weather() {
 	.def_readwrite("relative_humidity", &cr::WeatherParameters::relative_humidity)
 	.def_readwrite("dewpoint", &cr::WeatherParameters::dewpoint)
     .def_readwrite("wind_direction", &cr::WeatherParameters::wind_direction)
+    .def_readwrite("latitude", &cr::WeatherParameters::latitude)
+    .def_readwrite("longitude", &cr::WeatherParameters::longitude)
+    .def_readwrite("timezone", &cr::WeatherParameters::timezone)
+    .def_readwrite("road_snowiness", &cr::WeatherParameters::road_snowiness)
+    .def_readwrite("month", &cr::WeatherParameters::month)
+    .def_readwrite("day", &cr::WeatherParameters::day)
+    .def_readwrite("time", &cr::WeatherParameters::time)
     .def("__eq__", &cr::WeatherParameters::operator==)
     .def("__ne__", &cr::WeatherParameters::operator!=)
     .def(self_ns::str(self_ns::self));
