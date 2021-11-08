@@ -87,7 +87,7 @@ class CameraWindows(threading.Thread):
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
         setup camera image callback and cv2 window."""
-        camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
+        camera_transform = carla.Transform(carla.Location(x=-3.5, z=2.0), carla.Rotation(pitch=-10, yaw=180))
         if self.actor_name == "bus":
             camera_transform = carla.Transform(carla.Location(x=-6.7, y=0.4, z=3.0), carla.Rotation(pitch=-10, yaw=180))
 
