@@ -12,6 +12,8 @@ import sys
 import re
 import argparse
 import math
+import json
+import time
 from hud import weather_hud
 
 try:
@@ -25,6 +27,9 @@ except IndexError:
 import carla
 import requests
 
+from tkinter import *
+from tkinter.filedialog import askopenfilename 
+
 try:
     import pygame
     from pygame.locals import KMOD_CTRL
@@ -32,6 +37,8 @@ try:
     from pygame.locals import K_q
     from pygame.locals import KMOD_SHIFT
     from pygame.locals import K_c
+    from pygame.locals import K_o
+    from pygame.locals import K_s
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
@@ -164,6 +171,42 @@ class World(object):
         self.hud.update_sliders(weather)
         self.world.set_weather(weather)
 
+    def export_json(self):
+        '''Export current weather parameters to json file'''
+        data = dict()
+        sliders = self.hud.sliders
+        for slider in sliders:
+            data.update({slider.name: slider.val})
+
+        script_path = os.path.dirname(os.path.realpath(__file__))
+        timestamp = str(int(time.time()))
+        file_name = script_path + "/weather_" + timestamp + ".json"
+        print("Exported weather data to json file. Path: " + str(file_name))
+        with open(file_name, 'w') as jsonfile:
+            json.dump(data, jsonfile, indent=4)
+
+    def import_json(self):
+        '''Import weather json file'''
+        root = Tk()
+        file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
+        root.destroy()
+        
+        if not os.path.exists(file):
+            return
+
+        f = open(file,)
+        data = json.load(f)
+
+        sliders = self.hud.sliders
+
+        for slider in sliders:
+            for d in data:
+                if slider.name == d:
+                    slider.val = data[d]
+
+        print("Imported weather data: " + str(file))
+        self.hud.force_tick_next_frame()
+
     def update_friction(self, iciness):
         '''Update all vehicle tire friction values'''
         actors = self.world.get_actors()
@@ -258,6 +301,10 @@ class KeyboardControl(object):
                     return True
                 if event.key == K_c and pygame.key.get_mods() & KMOD_SHIFT:
                     world.next_weather(reverse=True)
+                elif event.key == K_o and pygame.key.get_mods() & KMOD_CTRL:
+                    world.import_json()
+                elif event.key == K_s and pygame.key.get_mods() & KMOD_CTRL:
+                    world.export_json()
 
     @staticmethod
     def _is_quit_shortcut(key):

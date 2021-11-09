@@ -65,7 +65,7 @@ LABEL_COLORS = np.array([
 ]) / 255.0 # normalize each channel [0-1] since is what Open3D uses
 
 class Open3DLidarWindow():
-    ''' Class for handling Open3DLidar in separate window.
+    ''' Class for handling Open3DLidar in separate window. 
     This is similiar to CARLA examples/open3d_lidar.py but 
     instead of spawning NPC and lidar, 
     this spawns lidar to ego vehicle and separate window from the simulation view 
@@ -74,7 +74,7 @@ class Open3DLidarWindow():
     def generate_lidar_bp(self, semantic, world, blueprint_library, delta):
         """Generates a CARLA blueprint based on the script parameters"""
         if semantic:
-            lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
+            lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
         else:
             lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
