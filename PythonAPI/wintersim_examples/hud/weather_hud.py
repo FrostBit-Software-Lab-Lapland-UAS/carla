@@ -61,12 +61,6 @@ def get_approx_temp(TD, RH):
     t = 243.04*(((17.625*TD)/(243.04+TD))-math.log(RH/100))/(17.625+math.log(RH/100)-((17.625*TD)/(243.04+TD)))
     return t
 
-def get_slider_offset(offset=40):
-    '''Return offset between each slider'''
-    global SLIDER_GAP
-    SLIDER_GAP += offset
-    return SLIDER_GAP
-
 def find_weather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
@@ -123,6 +117,8 @@ class InfoHud(object):
         self.preset_names = []
         self.muonio = False
         self.current_direction = "N"
+        self.gap = 90
+        self.force_tick = False
         
         self._weather_presets_all = find_weather_presets()
         for preset in self._weather_presets_all:
@@ -148,23 +144,28 @@ class InfoHud(object):
         self.filtered_map_name = map_name
         self.muonio = self.filtered_map_name == "Muonio"
 
+    def get_slider_offset(self, offset=40):
+        '''Return offset between each slider'''
+        self.gap += offset
+        return self.gap
+
     def make_sliders(self):
         '''Make sliders and add them in to list'''
-        self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, SLIDER_GAP)
-        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, get_slider_offset())
-        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, get_slider_offset())
-        self.ice_slider = Slider(self, "Friction", 0, 4, 0, get_slider_offset())
-        self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, get_slider_offset())
-        self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, get_slider_offset())
-        self.road_snowiness_slider = Slider(self, "Road snowiness", 0, 100, 0, get_slider_offset())
-        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, get_slider_offset())
-        self.fog_slider = Slider(self, "Fog", 0, 100, 0, get_slider_offset())
-        self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, get_slider_offset())
-        self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, get_slider_offset())
-        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, get_slider_offset())
-        self.time_slider = Slider(self, "Time", 10, 24, 0, get_slider_offset())
-        self.day_slider = Slider(self, "Day", 4, 31, 1, get_slider_offset())
-        self.month_slider = Slider(self, "Month", 1, 12, 1, get_slider_offset())
+        self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, self.gap)
+        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, self.get_slider_offset())
+        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
+        self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
+        self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
+        self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
+        self.road_snowiness_slider = Slider(self, "Road snowiness", 0, 100, 0, self.get_slider_offset())
+        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, self.get_slider_offset())
+        self.fog_slider = Slider(self, "Fog", 0, 100, 0, self.get_slider_offset())
+        self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, self.get_slider_offset())
+        self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, self.get_slider_offset())
+        self.wind_dir_slider = Slider(self, "Wind direction", 0, 360, 0, self.get_slider_offset())
+        self.time_slider = Slider(self, "Time", 10, 24, 0, self.get_slider_offset())
+        self.day_slider = Slider(self, "Day", 4, 31, 1, self.get_slider_offset())
+        self.month_slider = Slider(self, "Month", 1, 12, 1, self.get_slider_offset())
         
     def update_sliders(self, preset):
         '''Update slider positions if weather preset is changed
@@ -249,6 +250,9 @@ class InfoHud(object):
     def notification(self, text, seconds=2.0):
         self._notifications.set_text(text, seconds=seconds)
 
+    def force_tick_next_frame(self):
+        self.force_tick = True
+
     def render(self, world, display, weather):
         """Render hud texts into pygame window"""
 
@@ -267,9 +271,16 @@ class InfoHud(object):
             v_offset += 18
         self._notifications.render(display)
 
-        # render checkboxes to pygame window
+         # render checkboxes to pygame window
         for box in self.boxes:
             box.render_checkbox()
+
+        # render sliders to pygame window
+        if self.force_tick:
+            for slider in self.sliders:
+                weather.tick(self, world, world._weather_presets[0], slider)
+                self.force_tick = False
+            world.world.set_weather(weather.weather)
 
         # render sliders to pygame window
         for slider in self.sliders:

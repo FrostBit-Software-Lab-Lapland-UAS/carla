@@ -57,7 +57,6 @@ except IndexError:
     pass
 
 import pygame
-import os
 import math
 import datetime
 import carla

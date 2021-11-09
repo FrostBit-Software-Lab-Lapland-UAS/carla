@@ -15,7 +15,6 @@ import sys
 import threading
 import weakref
 import carla
-import cv2
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -30,10 +29,10 @@ try:
 except ImportError:
     raise RuntimeError('cannot import numpy, make sure numpy package is installed')
 
-# Camera cv2 window width, height and camera fov
-VIEW_WIDTH = 608
-VIEW_HEIGHT = 384
-VIEW_FOV = 70
+try:
+    import cv2
+except ImportError:
+    raise RuntimeError('cannot import cv2, make sure cv2 package is installed')
 
 class CameraWindows(threading.Thread):
     """This class handles Wintersim separate camera views.
@@ -44,9 +43,9 @@ class CameraWindows(threading.Thread):
     def camera_blueprint(self, camera_effect, rotation, effect_strength):
         """Returns RGB camera blueprint."""
         camera_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
-        camera_bp.set_attribute('image_size_x', str(VIEW_WIDTH))
-        camera_bp.set_attribute('image_size_y', str(VIEW_HEIGHT))
-        camera_bp.set_attribute('fov', str(VIEW_FOV))
+        camera_bp.set_attribute('image_size_x', str(self.view_width))
+        camera_bp.set_attribute('image_size_y', str(self.view_height))
+        camera_bp.set_attribute('fov', str(self.view_fov))
 
         # WinterSim added camera attributes, all attributes must be converted to string!
         if camera_effect:
@@ -59,9 +58,9 @@ class CameraWindows(threading.Thread):
     def depth_camera_blueprint(self):
         """Returns depth camera blueprint."""
         depth_camera_bp = self.world.get_blueprint_library().find('sensor.camera.depth')
-        depth_camera_bp.set_attribute('image_size_x', str(VIEW_WIDTH))
-        depth_camera_bp.set_attribute('image_size_y', str(VIEW_HEIGHT))
-        depth_camera_bp.set_attribute('fov', str(VIEW_FOV))
+        depth_camera_bp.set_attribute('image_size_x', str(self.view_width))
+        depth_camera_bp.set_attribute('image_size_y', str(self.view_height))
+        depth_camera_bp.set_attribute('fov', str(self.view_fov))
         
         return depth_camera_bp
 
@@ -122,7 +121,7 @@ class CameraWindows(threading.Thread):
         """Render front depth camera."""
         if self.front_depth_image is not None:
             image = np.asarray(self.front_depth_image.raw_data)
-            image = image.reshape((VIEW_HEIGHT, VIEW_WIDTH, 4))
+            image = image.reshape((self.view_height, self.view_width, 4))
             image = image[:, :, :3]
             cv2.imshow("front_depth_image", image)
             self.front_depth_image = None
@@ -131,7 +130,7 @@ class CameraWindows(threading.Thread):
         """Render front RGB camera."""
         if self.front_rgb_image is not None:
             image = np.asarray(self.front_rgb_image.raw_data)
-            image = image.reshape((VIEW_HEIGHT, VIEW_WIDTH, 4))
+            image = image.reshape((self.view_height, self.view_width, 4))
             image = image[:, :, :3]
             cv2.imshow("front RGB camera", image)
             self.front_rgb_image = None
@@ -140,7 +139,7 @@ class CameraWindows(threading.Thread):
         """Render back RGB camera."""
         if self.back_rgb_image is not None:
             image = np.asarray(self.back_rgb_image.raw_data)
-            image = image.reshape((VIEW_HEIGHT, VIEW_WIDTH, 4))
+            image = image.reshape((self.view_height, self.view_width, 4))
             image = image[:, :, :3]
             cv2.imshow("back RGB camera", image)
             self.back_rgb_image = None
@@ -175,6 +174,11 @@ class CameraWindows(threading.Thread):
         self.__flag.set()                           # Set to True
         self.__running = threading.Event()          # Used to stop the thread identification
         self.__running.set()                        # Set running to True
+
+        # Camera window width, height and camera fov
+        self.view_width = 608
+        self.view_height = 384
+        self.view_fov = 70
         
         self.camera = camera
         self.world = world
