@@ -95,7 +95,7 @@ class SensorManager:
             return camera
 
         elif sensor_type == 'LiDAR':
-            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast')
+            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('range', '100')
             lidar_bp.set_attribute('dropoff_general_rate', lidar_bp.get_attribute('dropoff_general_rate').recommended_values[0])
             lidar_bp.set_attribute('dropoff_intensity_limit', lidar_bp.get_attribute('dropoff_intensity_limit').recommended_values[0])
@@ -107,7 +107,7 @@ class SensorManager:
             return lidar
         
         elif sensor_type == 'SemanticLiDAR':
-            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
             lidar_bp.set_attribute('range', '100')
             for key in sensor_options:
                 lidar_bp.set_attribute(key, sensor_options[key])
