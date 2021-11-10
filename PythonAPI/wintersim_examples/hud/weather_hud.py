@@ -293,7 +293,7 @@ class InfoHud(object):
                 slider.move()
                 weather.tick(self, world, world._weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
-            slider.render(display, slider)
+            slider.render(display)
 
 # ==============================================================================
 # -- Checkbox ----------------------------------------------------------------
@@ -399,8 +399,8 @@ class Slider():
 
         self.hud.sliders.append(self)
 
-    def render(self, screen, slider):
-        """Draw sliders"""
+    def render(self, screen):
+        """Render slider"""
         surf = self.surf.copy()
         pos = (SLIDER_RIGHT_OFFSET+int((self.val-self.mini) / (self.maxi-self.mini) * SLIDER_SIZE), 29)
         self.button_rect = self.button_surf.get_rect(center=pos)
