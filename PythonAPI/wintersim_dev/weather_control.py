@@ -7,16 +7,14 @@
 
 from __future__ import print_function
 import glob
-from itertools import combinations
 import os
 import sys
 import re
 import argparse
 import math
-from hud import weather_hud
 import json
 import time
-import subprocess
+from hud import weather_hud
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -48,16 +46,6 @@ try:
    from pynput import keyboard
 except ImportError:
     raise RuntimeError('cannot import pynput, make sure pynput package is installed')
-
-
-# The key combination to check
-COMBINATIONS = [
-    {keyboard.Key.shift, keyboard.KeyCode(char='a')},
-    {keyboard.Key.shift, keyboard.KeyCode(char='A')}
-]
-
-# The currently active modifiers
-current = set()
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -91,7 +79,6 @@ class World(object):
         self.map_name = self.world.get_map().name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
         self.muonio = self.filtered_map_name == "Muonio"
-        self.weather = None
 
     def set_current_weather(self):
         default_weather = self.world.get_weather()
@@ -135,9 +122,9 @@ class World(object):
 
         date = x[0].split("-")
 
-        #year = int(date[0])
+        year = int(date[0])
         month = int(date[1]) - 1        
-        #day = int(date[2])
+        day = int(date[2])
 
         clock = x[1].split(":")
         clock[0] = int(clock[0]) + 3 # add 3 hours to get correct timezone
@@ -167,14 +154,22 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
 
-        weather_values = [ temp, precipitation, wind,
-            0.5, 0, snow, humidity, wind_direction,
-            clock, month]
+        weather.precipitation = precipitation
+        weather.precipitation_deposits = precipitation
+        weather.wind_intensity = wind / 100
+        weather.wind_direction = wind_direction
+        weather.fog_density = 0
+        weather.snow_amount = snow
+        weather.temperature = temp
+        weather.particle_size = 0.5
+        weather.humidity = humidity
+        weather.month = month
+        weather.day = day
+        weather.time = float(clock)
         
-        weather.set_weather_manually(self.hud, weather_values)
         self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather.weather, month=month, clock=clock)
-        self.world.set_weather(weather.weather)
+        self.hud.update_sliders(weather)
+        self.world.set_weather(weather)
 
     def export_json(self):
         '''Export current weather parameters to json file'''
@@ -273,7 +268,6 @@ class World(object):
         except:
             pass
 
-
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
 # ==============================================================================
@@ -343,13 +337,12 @@ def game_loop(args):
         controller = KeyboardControl()                                      # controller for changing weather presets
         current_weather = client.get_world().get_weather()
         weather = weather_hud.Weather(current_weather)                      # weather object to update carla weather with sliders
-        world.weather = weather
         hud.setup(current_weather, world.filtered_map_name)
         clock = pygame.time.Clock()
 
         listener = keyboard.Listener(on_press=world.on_press)               # start listening keyboard inputs
-        listener.start()
-
+        listener.start()               
+        
         while True:
             clock.tick_busy_loop(30)
             if controller.parse_events(world, hud):
