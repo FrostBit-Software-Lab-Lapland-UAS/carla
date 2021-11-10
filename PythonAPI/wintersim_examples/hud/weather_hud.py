@@ -448,6 +448,7 @@ class Weather(object):
         self.weather.dewpoint = hud.dewpoint_slider.val
         self.weather.road_snowiness = hud.road_snowiness_slider.val
         self.weather.month = hud.month_slider.val
+        self.weather.day = hud.day_slider.val
         self.weather.time = hud.time_slider.val
 
         hud.current_direction = degrees_to_compass_names_simple(hud.wind_dir_slider.val)

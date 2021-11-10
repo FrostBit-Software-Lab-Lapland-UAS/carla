@@ -122,6 +122,7 @@ void export_weather() {
 
   cls.attr("WinterMorning") = cr::WeatherParameters::WinterMorning;
   cls.attr("WinterNoon") = cr::WeatherParameters::WinterNoon;
+  cls.attr("WinterWetNoon") = cr::WeatherParameters::WinterWetNoon;
   cls.attr("WinterCloudyNoon") = cr::WeatherParameters::WinterCloudyNoon;
   cls.attr("WinterNight") = cr::WeatherParameters::WinterNight;
   cls.attr("SoftSnowNoon") = cr::WeatherParameters::SoftSnowNoon;
