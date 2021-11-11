@@ -97,7 +97,9 @@ class InfoHud(object):
         self.snow_amount_slider = Slider
         self.road_snowiness_slider = Slider
         self.ice_slider = Slider
+        self.cloudiness_slider = Slider
         self.precipitation_slider = Slider
+        self.cloudiness_slider = Slider
         self.fog_slider = Slider
         self.fog_falloff = Slider
         self.wind_slider = Slider
@@ -117,7 +119,7 @@ class InfoHud(object):
         self.preset_names = []
         self.muonio = False
         self.current_direction = "N"
-        self.gap = 90
+        self.gap = 70
         self.force_tick = False
         
         self._weather_presets_all = find_weather_presets()
@@ -135,7 +137,7 @@ class InfoHud(object):
 
         # create checkb
         self.boxes = []
-        self.button = Checkbox(self.screen, 20, 650, 0, caption='Static Tiretracks (F5)')
+        self.button = Checkbox(self.screen, 20, 690, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
         self.make_sliders()
 
@@ -155,6 +157,7 @@ class InfoHud(object):
         self.temp_slider = Slider(self, "Temperature", 0, 40, -40, self.get_slider_offset())
         self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
         self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
+        self.cloudiness_slider = Slider(self, "Cloudiness", 0, 100, 0, self.get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
         self.road_snowiness_slider = Slider(self, "Road snowiness", 0, 100, 0, self.get_slider_offset())
@@ -175,6 +178,7 @@ class InfoHud(object):
             self.road_snowiness_slider.val = preset.road_snowiness
             self.ice_slider.val = preset.ice_amount
             self.temp_slider.val = preset.temperature
+            self.cloudiness_slider.val = preset.cloudiness
             self.precipitation_slider.val = preset.precipitation
             self.fog_slider.val = preset.fog_density
             self.fog_falloff.val = preset.fog_falloff
@@ -222,6 +226,7 @@ class InfoHud(object):
             '',
             'Friction level: {}'.format(int(hud.ice_slider.val)),
             '',
+            'Cloudiness: {}%'.format(round((hud.cloudiness_slider.val), 1)),
             'Precipitation: {}%'.format(round((hud.precipitation_slider.val), 1)),
             '',
             'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
@@ -288,7 +293,7 @@ class InfoHud(object):
                 slider.move()
                 weather.tick(self, world, world._weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
-            slider.render(display, slider)
+            slider.render(display)
 
 # ==============================================================================
 # -- Checkbox ----------------------------------------------------------------
@@ -394,8 +399,8 @@ class Slider():
 
         self.hud.sliders.append(self)
 
-    def render(self, screen, slider):
-        """Draw sliders"""
+    def render(self, screen):
+        """Render slider"""
         surf = self.surf.copy()
         pos = (SLIDER_RIGHT_OFFSET+int((self.val-self.mini) / (self.maxi-self.mini) * SLIDER_SIZE), 29)
         self.button_rect = self.button_surf.get_rect(center=pos)
@@ -430,8 +435,20 @@ class Weather(object):
         else:
             hud.preset_slider.val = hud.preset_count
 
+        # if precipitation slider is the on being moved and its value is BIGGER than
+        # cloudiness -> set cloudiness value to same as precipitation
+        if slider.name == 'Precipitation':
+            if slider.val > hud.cloudiness_slider.val:
+                hud.cloudiness_slider.val = slider.val
+
+        # if cloudiness slider is the one being moved and its value is SMALLER than 
+        # precipitation -> set precipitation value to same as cloudiness
+        if slider.name == 'Cloudiness':
+            if slider.val < hud.precipitation_slider.val:
+                hud.precipitation_slider.val = slider.val
+
         preset = preset[0]
-        self.weather.cloudiness = hud.precipitation_slider.val
+        self.weather.cloudiness = hud.cloudiness_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
         self.weather.precipitation_deposits = hud.precipitation_slider.val
         self.weather.wind_intensity = hud.wind_slider.val / 100.0

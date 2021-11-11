@@ -85,7 +85,7 @@ class WinterSimHud(object):
         mono = pygame.font.match_font(mono)
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height, self)
+        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height)
         self.server_fps = 0
         self.frame = 0
         self.simulation_time = 0
@@ -283,7 +283,7 @@ class FadingText(object):
 
 class HelpText(object):
     """Helper class to handle text output using pygame"""
-    def __init__(self, font, width, height, hud):
+    def __init__(self, font, width, height):
         lines = __doc__.split('\n')
         self.font = font
         self.line_space = 18
