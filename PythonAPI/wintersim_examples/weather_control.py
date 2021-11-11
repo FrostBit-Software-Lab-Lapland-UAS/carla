@@ -43,7 +43,7 @@ except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
 try:
-   from pynput import keyboard
+    from pynput import keyboard
 except ImportError:
     raise RuntimeError('cannot import pynput, make sure pynput package is installed')
 
@@ -209,15 +209,17 @@ class World(object):
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
-
-                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
-                physics_control.wheels = wheels
 
+                # loop through all vehicle wheels and set new tire_friction value
+                wheel_count = len(physics_control.wheels)
+                wheels = []
+                for i in range(wheel_count):
+                    wheel = physics_control.wheels[i]
+                    wheel.tire_friction = friction
+                    wheels.append(wheel)
+
+                physics_control.wheels = wheels
                 vehicle.apply_physics_control(physics_control)
 
     def tick(self, clock, hud):
