@@ -1,0 +1,11 @@
+C:/Users/anarkila/Desktop/yolov5/videos/test.mp4
+
+python track.py --source C:/Users/anarkila/Desktop/yolov5/videos/test.mp4 --yolo_weights yolov5s.pt --img 640 --show-vid
+
+python track.py --source C:/Users/anarkila/Desktop/yolov5/videos/video_1.mkv --yolo_weights yolov5s.pt --img 640 --show-vid --save-vid
+
+python track.py --source C:/Users/anarkila/Desktop/yolov5/yolov5_deepsort/Yolov5_DeepSort_Pytorch/test.jpg --yolo_weights yolov5s.pt --img 640 --show-vid
+
+
+
+python cv_direct.py --source C:/Users/anarkila/Desktop/yolov5/yolov5_deepsort/Yolov5_DeepSort_Pytorch/test.jpg --yolo_weights yolov5s.pt --img 640 --show-vid

@@ -16,7 +16,6 @@ Plugins
 /PythonAPI/wintersim_examples/*.jpg
 /PythonAPI/wintersim_examples/*.json
 /PythonAPI/wintersim_dev/*.json
-/PythonAPI/object_detection
 
 *.VC.db
 *.VC.opendb
