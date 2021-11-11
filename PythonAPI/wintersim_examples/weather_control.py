@@ -119,11 +119,9 @@ class World(object):
         data = r.json()
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
-
         date = x[0].split("-")
-
-        year = int(date[0])
-        month = int(date[1]) - 1        
+        #year = int(date[0])
+        month = int(date[1]) - 1      
         day = int(date[2])
 
         clock = x[1].split(":")
@@ -133,7 +131,6 @@ class World(object):
         clock = float(".".join(clock))
 
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
-
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
@@ -144,7 +141,7 @@ class World(object):
         humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
         humidity = 100 if humidity > 100 else humidity
         humidity = 0 if math.isnan(humidity) else humidity
-        
+
         precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
         precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
         precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
@@ -154,22 +151,14 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
 
-        weather.precipitation = precipitation
-        weather.precipitation_deposits = precipitation
-        weather.wind_intensity = wind / 100
-        weather.wind_direction = wind_direction
-        weather.fog_density = 0
-        weather.snow_amount = snow
-        weather.temperature = temp
-        weather.particle_size = 0.5
-        weather.humidity = humidity
-        weather.month = month
-        weather.day = day
-        weather.time = float(clock)
-        
-        self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather)
+        weather_values = [temp, humidity, precipitation, 
+            snow, wind, wind_direction, 
+            clock, day, month]
+
+        weather.set_weather_manually(weather_values)
+        self.hud.update_sliders(weather.weather)
         self.world.set_weather(weather)
+        self.hud.notification('Weather: Muonio Realtime')
 
     def export_json(self):
         '''Export current weather parameters to json file'''
