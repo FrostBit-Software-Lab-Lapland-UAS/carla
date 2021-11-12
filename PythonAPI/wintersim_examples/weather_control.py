@@ -51,7 +51,7 @@ except ImportError:
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-def find_weather_presets():
+def findweather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
@@ -66,11 +66,11 @@ class World(object):
         self.world = carla_world
         self.hud = hud
         self.preset = None
-        self._weather_presets = []
-        self._weather_presets_all = find_weather_presets()
-        for preset in self._weather_presets_all:
+        self.weather_presets = []
+        self.weather_presets_all = findweather_presets()
+        for preset in self.weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
-                self._weather_presets.append(preset)
+                self.weather_presets.append(preset)
         self.set_current_weather()
         self._weather_index = 0
         self._gamma = args.gamma
@@ -88,19 +88,19 @@ class World(object):
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
-        self._weather_index %= len(self._weather_presets)
-        self.preset = self._weather_presets[self._weather_index]
+        self._weather_index %= len(self.weather_presets)
+        self.preset = self.weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
     def set_weather(self, index):
-        if not index < len(self._weather_presets):
+        if not index < len(self.weather_presets):
             return
 
         self._weather_index = index
-        self.preset = self._weather_presets[self._weather_index]
+        self.preset = self.weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])

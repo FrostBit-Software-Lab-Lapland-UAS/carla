@@ -5,6 +5,9 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>
 
+# pylint: disable=unused-argument
+# pylint: disable=E1101
+
 import glob
 import os
 import sys
@@ -136,7 +139,7 @@ class InfoHud(object):
             'January','February','March','April','May','June',
             'July','August','September','October','November','December']
 
-        # create checkb
+        # create checkbox
         self.boxes = []
         self.button = Checkbox(self.screen, 20, 690, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
@@ -144,8 +147,8 @@ class InfoHud(object):
 
     def setup(self, preset, map_name):
         self.update_sliders(preset)
-        self.filtered_map_name = map_name
-        self.muonio = self.filtered_map_name == "Muonio"
+        if map_name == "Muonio":
+            self.muonio = True
 
     def get_slider_offset(self, offset=40):
         '''Return offset between each slider'''
@@ -281,7 +284,7 @@ class InfoHud(object):
         # render sliders to pygame window
         if self.force_tick:
             for slider in self.sliders:
-                weather.tick(self, world, world._weather_presets[0], slider)
+                weather.tick(self, world, world.weather_presets[0], slider)
                 self.force_tick = False
             world.world.set_weather(weather.weather)
 
@@ -289,7 +292,7 @@ class InfoHud(object):
         for slider in self.sliders:
             if slider.hit:
                 slider.move()
-                weather.tick(self, world, world._weather_presets[0], slider)
+                weather.tick(self, world, world.weather_presets[0], slider)
                 world.world.set_weather(weather.weather)
             slider.render(display)
 
@@ -323,7 +326,7 @@ class Checkbox:
     def _draw_button_text(self):
         self.font = pygame.font.SysFont(self.ft, self.fs)
         self.font_surf = self.font.render(self.caption, True, self.fc)
-        w, h = self.font.size(self.caption)
+        w, h = self.font.size(self.caption) 
         self.font_pos = (self.x + self.to[0], self.y + 12 / 2 - h / 2 +  self.to[1])
         self.surface.blit(self.font_surf, self.font_pos)
 
@@ -353,8 +356,8 @@ class Checkbox:
 
 class Slider():
 
-    def __init__(self, InfoHud, name, val, maxi, mini, pos):
-        self.hud = InfoHud
+    def __init__(self, infoHud, name, val, maxi, mini, pos):
+        self.hud = infoHud
         self.font = pygame.font.SysFont("ubuntumono", 20)
         self.name = name
         self.val = val      # start value

@@ -9,6 +9,9 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+# pylint: disable=E1101
+# pylint: disable=W0108
+
 import glob
 import os
 import sys
