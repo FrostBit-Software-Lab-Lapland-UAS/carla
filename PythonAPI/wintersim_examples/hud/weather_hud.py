@@ -5,8 +5,6 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>
 
-# pylint: disable=W0612, E1101
-
 import glob
 import os
 import sys

@@ -505,7 +505,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMinBright;
     ExposureMinBright.Id = TEXT("exposure_min_bright");
     ExposureMinBright.Type = EActorAttributeType::Float;
-    ExposureMinBright.RecommendedValues = { TEXT("10.0") };
+    ExposureMinBright.RecommendedValues = { TEXT("2.0") };
     ExposureMinBright.bRestrictToRecommended = false;
 
     // The maximum brightness for auto exposure that limits the upper
@@ -513,7 +513,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMaxBright;
     ExposureMaxBright.Id = TEXT("exposure_max_bright");
     ExposureMaxBright.Type = EActorAttributeType::Float;
-    ExposureMaxBright.RecommendedValues = { TEXT("2.5") };
+    ExposureMaxBright.RecommendedValues = { TEXT("14.5") };
     ExposureMaxBright.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a dark environment

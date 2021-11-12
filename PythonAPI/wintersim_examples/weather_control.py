@@ -5,8 +5,6 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-# pylint: disable=W0401
-
 from __future__ import print_function
 import glob
 import os

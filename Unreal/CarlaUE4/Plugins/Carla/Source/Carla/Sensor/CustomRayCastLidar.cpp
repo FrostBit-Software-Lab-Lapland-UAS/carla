@@ -19,6 +19,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+#include <math.h>
 
 FActorDefinition ACustomRayCastLidar::GetSensorDefinition()
 {
@@ -92,11 +93,29 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
 
   const float IntRec = AbsAtm;
 
+
+
+  // Lidar intensity test
+  //const float x = 40;
+
+  //const float a1 = 48;
+  //const float a2 = 17;
+  //const float a3 = 2;
+  //const float  a4 = 0.4;
+
+  //const float sigma = 0.118;    // constant - log(1 + ((a2 * *2) / (a1 * *2)));
+
+  //const float mu = 3.81211;     // constant - log((a1 * *2) / math.sqrt((a1 * *2) + (a2 * *2)));
+  //const float a = (a3 * a1 * a2) / (x * sigma);
+  //const float i = a * exp2(-((pow((log(x) - mu), 2.0) / (2 * sigma)))) * a4;
+  //UE_LOG(LogTemp, Warning, TEXT("Value is: %f"), i);
+
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
       Detection.intensity = 1;
   }
   else {
       int tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
+
       switch (tag)
       {
       case 0:
