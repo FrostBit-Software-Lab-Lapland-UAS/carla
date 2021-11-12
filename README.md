@@ -1,5 +1,3 @@
-[![tests](https://github.com/FrostBit-Software-Lab-Lapland-UAS/carla/actions/workflows/tests.yml/badge.svg?branch=wintersim%2Fupdate&event=push)](https://github.com/FrostBit-Software-Lab-Lapland-UAS/carla/actions/workflows/tests.yml)
-
 # WinterSim Project - CARLA Simulator
 
 -------
