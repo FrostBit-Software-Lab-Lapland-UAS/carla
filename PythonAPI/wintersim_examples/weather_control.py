@@ -5,6 +5,8 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+# pylint: disable=W0401
+
 from __future__ import print_function
 import glob
 import os
@@ -256,7 +258,7 @@ class World(object):
                 self.next_weather(reverse=False)
             elif key.char == "b":
                 self.realtime_weather()
-        except:
+        except KeyError:
             pass
 
 # ==============================================================================
