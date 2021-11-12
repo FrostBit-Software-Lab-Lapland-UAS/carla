@@ -29,8 +29,11 @@ except IndexError:
 import carla
 import requests
 
-from tkinter import *
-from tkinter.filedialog import askopenfilename 
+try:
+    from tkinter import *
+    from tkinter.filedialog import askopenfilename 
+except ImportError:
+    raise RuntimeError('cannot import tkinter')
 
 try:
     import pygame

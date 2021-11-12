@@ -5,7 +5,7 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>
 
-# pylint: disable=unused-argument
+# pylint: disable=W0612
 # pylint: disable=E1101
 
 import glob
@@ -319,16 +319,16 @@ class Checkbox:
         self.ft = default_font
         self.checkbox_size = checkbox_size
         self.idnum = idnum
+        self.font = pygame.font.SysFont(self.ft, self.fs)
         self.checkbox_obj = pygame.Rect(self.x, self.y, checkbox_size, checkbox_size)
         self.checkbox_outline = self.checkbox_obj.copy()
         self.checked = True 
 
     def _draw_button_text(self):
-        self.font = pygame.font.SysFont(self.ft, self.fs)
-        self.font_surf = self.font.render(self.caption, True, self.fc)
+        font_surf = self.font.render(self.caption, True, self.fc)
         w, h = self.font.size(self.caption) 
-        self.font_pos = (self.x + self.to[0], self.y + 12 / 2 - h / 2 +  self.to[1])
-        self.surface.blit(self.font_surf, self.font_pos)
+        font_pos = (self.x + self.to[0], self.y + 12 / 2 - h / 2 +  self.to[1])
+        self.surface.blit(font_surf, font_pos)
 
     def render_checkbox(self):
         if self.checked:

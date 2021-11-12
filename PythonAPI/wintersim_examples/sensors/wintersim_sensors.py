@@ -165,6 +165,7 @@ class RadarSensor(object):
         self.sensor = None
         self._parent = parent_actor
         self.velocity_range = 7.5 # m/s
+        self.debug = None
 
     def spawn_radar(self):
         world = self._parent.get_world()
@@ -202,7 +203,6 @@ class RadarSensor(object):
             g = int(clamp(0.0, 0.0, 0.0 - abs(norm_velocity)) * 255.0)
             b = int(abs(clamp(- 1.0, 0.0, - 1.0 - norm_velocity)) * 255.0)
             dot_color = carla.Color(r, g, b)
-            #dot_color = carla.Color(0, 0, 255)
 
             self.debug.draw_point(
                 radar_data.transform.location + fw_vec,
