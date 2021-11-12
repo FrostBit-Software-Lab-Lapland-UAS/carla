@@ -94,7 +94,7 @@ except ImportError:
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-def find_weather_presets():
+def findweather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
@@ -149,11 +149,11 @@ class World(object):
         self.sensors = []
         self.wintersim_vehicles = ['pickup', 'wagon', 'van', 'bus']
         self.current_vehicle_index = 0
-        self._weather_presets = []
-        self._weather_presets_all = find_weather_presets()
-        for preset in self._weather_presets_all:
+        self.weather_presets = []
+        self.weather_presets_all = findweather_presets()
+        for preset in self.weather_presets_all:
             if preset[0].temperature <= 0: # only get winter presets
-                self._weather_presets.append(preset)
+                self.weather_presets.append(preset)
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
@@ -253,8 +253,8 @@ class World(object):
             return
 
         self._weather_index += -1 if reverse else 1
-        self._weather_index %= len(self._weather_presets)
-        self.preset = self._weather_presets[self._weather_index]
+        self._weather_index %= len(self.weather_presets)
+        self.preset = self.weather_presets[self._weather_index]
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
         self.player.get_world().set_weather(self.preset[0])
 
@@ -529,7 +529,7 @@ def game_loop(args):
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
         world.client = client
-        world.preset = world._weather_presets[0]
+        world.preset = world.weather_presets[0]
         world.original_settings = world.world.get_settings()
         hud_wintersim.setup(world)
         controller = KeyboardControl(world, args.autopilot)
@@ -547,7 +547,7 @@ def game_loop(args):
         # open another terminal window and launch wintersim weather_hud.py script
         try:
             world.w_control = subprocess.Popen('python weather_control.py')
-        except:
+        except subprocess.SubprocessError:
             print("Couldn't launch weather_control.py")
 
         while True:
@@ -559,6 +559,9 @@ def game_loop(args):
             world.tick(clock)
             world.render(display)
             pygame.display.flip()
+
+    except Exception as e:
+        print(e)
 
     finally:
         if world is not None:
