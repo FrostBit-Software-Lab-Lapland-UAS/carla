@@ -199,7 +199,7 @@ class MultiSensorView():
 
         # WinterSim Camera attributes
         right_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.2'}
-        front_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'up',   'camera_sleet_effect_strength' : '1.2'}
+        front_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'up',   'camera_sleet_effect_strength' : '1.2', 'camera_ice_effect' : 'True',}
         left_camera_attributes =  {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.0'}
         back_camera_attributes =  {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'down', 'camera_sleet_effect_strength' : '1.5'}
 
