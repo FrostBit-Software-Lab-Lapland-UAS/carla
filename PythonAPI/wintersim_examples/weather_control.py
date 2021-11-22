@@ -259,7 +259,7 @@ class World(object):
                 self.next_weather(reverse=False)
             elif key.char == "b":
                 self.realtime_weather()
-        except KeyError:
+        except:
             pass
 
 # ==============================================================================

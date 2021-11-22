@@ -55,6 +55,24 @@ public:
   }
 
   UFUNCTION(BlueprintCallable)
+      bool GetIceEffect() const
+  {
+      return cameraIceEffect;
+  }
+
+  UFUNCTION(BlueprintCallable)
+      FString GetIceEffectRotation() const
+  {
+      return cameraIceEffectRotation;
+  }
+
+  UFUNCTION(BlueprintCallable)
+      float GetIceEffectStrength() const
+  {
+      return cameraIceEffectStrength;
+  }
+
+  UFUNCTION(BlueprintCallable)
   bool GetSleetEffect() const
   {
       return cameraSleetEffect;
@@ -107,6 +125,15 @@ public:
 
   UFUNCTION(BlueprintCallable)
   void SetCameraSleetEffectStrength(float value);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraIceEffect(bool enabled);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraIceEffectRotation(FString value);
+
+  UFUNCTION(BlueprintCallable)
+  void SetCameraIceEffectStrength(float value);
 
   UFUNCTION(BlueprintCallable)
   float GetFOVAngle() const;
@@ -375,6 +402,15 @@ protected:
 
   UPROPERTY(EditAnywhere)
   float cameraSleetEffectStrength = 1.2f;
+
+  UPROPERTY(EditAnywhere)
+  bool cameraIceEffect = false;
+
+  UPROPERTY(EditAnywhere)
+  FString cameraIceEffectRotation = "top";
+
+  UPROPERTY(EditAnywhere)
+  float cameraIceEffectStrength = 1.2f;
 
   FRenderCommandFence RenderFence;
 

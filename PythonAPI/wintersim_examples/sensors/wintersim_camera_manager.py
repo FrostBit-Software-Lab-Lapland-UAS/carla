@@ -66,7 +66,8 @@ class CameraManager(object):
             if item[0].startswith('sensor.camera'):
                 bp.set_attribute('image_size_x', str(hud.dim[0]))
                 bp.set_attribute('image_size_y', str(hud.dim[1]))
-
+                #bp.set_attribute('camera_sleet_effect', str(True))
+                #bp.set_attribute('camera_ice_effect', str(True))
                 if bp.has_attribute('gamma'):
                     bp.set_attribute('gamma', str(gamma_correction))
             elif item[0].startswith('sensor.lidar'):
