@@ -94,7 +94,11 @@ class WinterSimHud(object):
         self.is_hud = True
         self._info_text = []
         self._server_clock = pygame.time.Clock()
-        self.logo = pygame.image.load('images/WinterSim_White_Color.png')
+        #this_path = os.path.dirname(os.path.realpath(__file__))
+        #print(this_path)
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        parent_dir = os.path.abspath(os.path.join(this_path, os.pardir))
+        self.logo = pygame.image.load(parent_dir + '/images/WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
         self.frames = 0
