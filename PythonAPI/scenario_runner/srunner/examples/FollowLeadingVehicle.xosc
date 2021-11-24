@@ -42,7 +42,6 @@
         </Axles>
         <Properties>
           <Property name="type" value="simulation"/>
-          <Property name="color" value="255,0,0"/>
         </Properties>
       </Vehicle>
     </ScenarioObject>
