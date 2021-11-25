@@ -2,7 +2,8 @@
 <OpenSCENARIO>
   <FileHeader revMajor="1" revMinor="0" date="2020-03-20T12:00:00" description="WinterSim:FollowLeadingVehicle" author=""/>
   <ParameterDeclarations>
-    <ParameterDeclaration name="leadingSpeed" parameterType="double" value="8.2"/>
+    <ParameterDeclaration name="leadingSpeed" parameterType="double" value="8.3"/>
+    <ParameterDeclaration name="followSpeed" parameterType="double" value="8.5"/>
   </ParameterDeclarations>
   <CatalogLocations/>
   <RoadNetwork>
@@ -24,12 +25,11 @@
         </Axles>
         <Properties>
           <Property name="type" value="ego_vehicle"/>
-          <Property name="color" value="0,0,255"/>
         </Properties>
       </Vehicle>
     </ScenarioObject>
     <ScenarioObject name="adversary">
-      <Vehicle name="vehicle.pickup.pickup" vehicleCategory="car">
+      <Vehicle name="vehicle.van.van" vehicleCategory="car">
         <ParameterDeclarations/>
         <Performance maxSpeed="69.444" maxAcceleration="200" maxDeceleration="10.0"/>
         <BoundingBox>
@@ -47,7 +47,7 @@
     </ScenarioObject>
 
         <ScenarioObject name="adversary2">
-      <Vehicle name="vehicle.van.van" vehicleCategory="car">
+      <Vehicle name="vehicle.bus.bus" vehicleCategory="car">
         <ParameterDeclarations/>
         <Performance maxSpeed="69.444" maxAcceleration="200" maxDeceleration="10.0"/>
         <BoundingBox>
@@ -63,25 +63,9 @@
         </Properties>
       </Vehicle>
     </ScenarioObject>
-    <ScenarioObject name="adversary3">
-      <Vehicle name="vehicle.Wagon.Wagon" vehicleCategory="car">
-        <ParameterDeclarations/>
-        <Performance maxSpeed="69.444" maxAcceleration="200" maxDeceleration="10.0"/>
-        <BoundingBox>
-          <Center x="1.5" y="0.0" z="0.9"/>
-          <Dimensions width="2.1" length="4.5" height="1.8"/>
-        </BoundingBox>
-        <Axles>
-          <FrontAxle maxSteering="0.5" wheelDiameter="0.6" trackWidth="1.8" positionX="3.1" positionZ="0.3"/>
-          <RearAxle maxSteering="0.0" wheelDiameter="0.6" trackWidth="1.8" positionX="0.0" positionZ="0.3"/>
-        </Axles>
-        <Properties>
-          <Property name="type" value="simulation"/>
-        </Properties>
-      </Vehicle>
-    </ScenarioObject>
+  
 
-     <ScenarioObject name="adversary4">
+     <ScenarioObject name="adversary3">
       <Vehicle name="vehicle.Wagon.Wagon" vehicleCategory="car">
         <ParameterDeclarations/>
         <Performance maxSpeed="69.444" maxAcceleration="200" maxDeceleration="10.0"/>
@@ -172,35 +156,8 @@
             </ControllerAction>
           </PrivateAction>
         </Private>
-        <Private entityRef="adversary3">
-          <PrivateAction>
-            <TeleportAction>
-              <Position>
-                <WorldPosition x="-335.0" y="-965.5" z="255" h="29.4"/>
-              </Position>
-            </TeleportAction>
-          </PrivateAction>
-          <PrivateAction>
-            <ControllerAction>
-              <AssignControllerAction>
-                <Controller name="Adversary3Agent">
-                  <Properties>
-                    <Property name="module" value="npc_vehicle_control"/>
-                  </Properties>
-                </Controller>
-              </AssignControllerAction>
-              <OverrideControllerValueAction>
-                <Throttle value="0" active="false"/>
-                <Brake value="0" active="false"/>
-                <Clutch value="0" active="false"/>
-                <ParkingBrake value="0" active="false"/>
-                <SteeringWheel value="0" active="false"/>
-                <Gear number="0" active="false"/>
-              </OverrideControllerValueAction>
-            </ControllerAction>
-          </PrivateAction>
-        </Private>
-          <Private entityRef="adversary4">
+        
+          <Private entityRef="adversary3">
           <PrivateAction>
             <TeleportAction>
               <Position>
@@ -216,6 +173,7 @@
         <ManeuverGroup name="ManeuverSequence" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="adversary"/>
+            <EntityRef entityRef="adversary3"/>
           </Actors>
           <Maneuver name="FollowLeadingVehicleManeuver">
             <Event name="LeadingVehicleKeepsVelocity" priority="overwrite">
@@ -271,7 +229,65 @@
               </StartTrigger>
             </Event>
           </Maneuver>
+
+
+          <Maneuver name="FollowLeadingVehicleManeuver2">
+            <Event name="LeadingVehicleKeepsVelocity2" priority="overwrite">
+              <Action name="LeadingVehicleKeepsVelocity2">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="step" value="20" dynamicsDimension="distance"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="$followSpeed"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="StartConditionLeadingVehicleKeepsVelocity" delay="0" conditionEdge="rising">
+                    <ByEntityCondition>
+                      <TriggeringEntities triggeringEntitiesRule="any">
+                        <EntityRef entityRef="hero"/>
+                      </TriggeringEntities>
+                      <EntityCondition>
+<!--                        <RelativeDistanceCondition entityRef="adversary" relativeDistanceType="cartesianDistance" value="40.0" freespace="false" rule="lessThan"/>-->
+                        <RelativeDistanceCondition entityRef="adversary3" relativeDistanceType="cartesianDistance" value="22.0" freespace="true" rule="lessThan"/>
+                      </EntityCondition>
+                    </ByEntityCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="LeadingVehicleWaits2" priority="overwrite">
+              <Action name="LeadingVehicleWaits2">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="step" value="5" dynamicsDimension="time"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="0.0"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="AfterLeadingVehicleKeepsVelocity" delay="25" conditionEdge="rising">
+                    <ByValueCondition>
+                      <StoryboardElementStateCondition storyboardElementType="action" storyboardElementRef="LeadingVehicleKeepsVelocity2" state="endTransition"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+          </Maneuver>
+
         </ManeuverGroup>
+
         <StartTrigger>
           <ConditionGroup>
             <Condition name="OverallStartCondition" delay="0.1" conditionEdge="rising">

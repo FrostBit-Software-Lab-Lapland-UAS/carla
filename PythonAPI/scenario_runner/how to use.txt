@@ -17,7 +17,8 @@ Make new enviroment variablle called PYTHONPATH and add paths:
 python wintersim_scenario_runner.py --openscenario /srunner/examples/Slalom.xosc --output
 
 Note. 
-While scenario runner loads correct map by itself, it's recommended to open correct scene yourself.
+While scenario runner loads correct map by itself, it's recommended to open correct map yourself first. 
+Meaning if scenario is inteded for example. town01, load town01 before lauching this script.
 Remember to close scenario runner before stopping play mode!
 
 
@@ -32,6 +33,7 @@ python scenario_runner.py --openscenario /srunner/wintersim/break_test.xosc --ou
 2) Open secod CMD, locate to ..PythonAPI/wintersim_examples folder and run wintersim_control.py with following argument
 
 python manual_control.py --scenario
+
 
 ---- How to use (Carla manual control) ---- 
 

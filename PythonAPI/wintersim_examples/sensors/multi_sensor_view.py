@@ -195,7 +195,8 @@ class MultiSensorView():
         # Display Manager organize all the sensors an its display in a window
         # If can easily configure the grid and the total window size
         # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed and assign each of them to a grid position
-        self.display_manager = DisplayManager(display, grid_size=[2, 3], window_size=[width, height])
+        #self.display_manager = DisplayManager(display, grid_size=[2, 3], window_size=[width, height])
+        self.display_manager = DisplayManager(display, grid_size=[2, 2], window_size=[width, height])
 
         # WinterSim Camera attributes
         right_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.2'}
@@ -241,16 +242,23 @@ class MultiSensorView():
             left_cam_loc = carla.Location(0.0, 0.0, 2.4)
             back_cam_loc = carla.Location(0.0, 0.0, 2.4)
         
+        # # spawn camera sensors
+        # SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
+        # SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
+        # SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[0, 2])
+        # SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 1])
+            
+        # # spawn lidar sensors
+        # SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
+        # SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
+
+
         # spawn camera sensors
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
         SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[0, 2])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 1])
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[1, 1])
+        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 0])
             
-        # spawn lidar sensors
-        SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
-        SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
-
     def destroy(self):
         '''Destroy multi sensor view'''
         self.display_manager.destroy()
