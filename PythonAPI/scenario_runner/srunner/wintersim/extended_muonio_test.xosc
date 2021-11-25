@@ -2,7 +2,7 @@
 <OpenSCENARIO>
   <FileHeader revMajor="1" revMinor="0" date="2020-03-20T12:00:00" description="WinterSim:FollowLeadingVehicle" author=""/>
   <ParameterDeclarations>
-    <ParameterDeclaration name="leadingSpeed" parameterType="double" value="8.3"/>
+    <ParameterDeclaration name="leadingSpeed" parameterType="double" value="8.5"/>
     <ParameterDeclaration name="followSpeed" parameterType="double" value="8.5"/>
   </ParameterDeclarations>
   <CatalogLocations/>
@@ -90,8 +90,9 @@
             <PrivateAction>
               <TeleportAction>
                 <Position>
-                  <WorldPosition x="-414.7" y="-1071.7" z="255" h="32.4"/>
-                    <!-- <WorldPosition x="-416.1" y="-1072.4" z="255" h="30.4"/> -->
+                  <!-- <WorldPosition x="-416.1" y="-1072.4" z="255" h="30.4"/> -->
+                  <!-- <WorldPosition x="-414.7" y="-1071.7" z="255" h="32.4"/> -->  
+                  <WorldPosition x="-432.7" y="-1108.7" z="247" h="32.5"/>
                 </Position>
               </TeleportAction>
             </PrivateAction>
@@ -119,8 +120,9 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <WorldPosition x="-399.7" y="-1046.1" z="255" h="32.4"/>
-               <!-- <WorldPosition x="-399.7" y="-1046.1" z="255" h="30.4"/> -->
+              <!-- <WorldPosition x="-399.7" y="-1046.1" z="255" h="30.4"/> -->
+                <!-- <WorldPosition x="-399.7" y="-1046.1" z="255" h="32.4"/> -->
+                <WorldPosition x="-418.1" y="-1078.7" z="247" h="32.4"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -254,7 +256,7 @@
                       </TriggeringEntities>
                       <EntityCondition>
 <!--                        <RelativeDistanceCondition entityRef="adversary" relativeDistanceType="cartesianDistance" value="40.0" freespace="false" rule="lessThan"/>-->
-                        <RelativeDistanceCondition entityRef="adversary3" relativeDistanceType="cartesianDistance" value="22.0" freespace="true" rule="lessThan"/>
+                        <RelativeDistanceCondition entityRef="adversary3" relativeDistanceType="cartesianDistance" value="30.0" freespace="true" rule="lessThan"/>
                       </EntityCondition>
                     </ByEntityCondition>
                   </Condition>
@@ -276,7 +278,7 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="AfterLeadingVehicleKeepsVelocity" delay="25" conditionEdge="rising">
+                  <Condition name="AfterLeadingVehicleKeepsVelocity" delay="45" conditionEdge="rising">
                     <ByValueCondition>
                       <StoryboardElementStateCondition storyboardElementType="action" storyboardElementRef="LeadingVehicleKeepsVelocity2" state="endTransition"/>
                     </ByValueCondition>
