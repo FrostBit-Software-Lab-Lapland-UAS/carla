@@ -180,7 +180,8 @@ class World(object):
     def import_json(self):
         '''Import weather json file'''
         root = Tk() # pylint:disable=E0602
-        file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        file = askopenfilename(initialdir=this_path, title="Select file", filetypes=[("Json Files", "*.json")])
         root.destroy()
         
         if not os.path.exists(file):

@@ -48,5 +48,9 @@ python manual_control.py
 
 
 ---- Scenarios ----
+
 python wintersim_scenario_runner.py --openscenario /srunner/wintersim/extended_muonio_gas_station.xosc --output
 python scenario_runner.py --openscenario /srunner/wintersim/small_muonio_test.xosc --output
+python wintersim_scenario_runner.py --openscenario /srunner/wintersim/video.xosc --output
+
+small_muonio_test crashes
