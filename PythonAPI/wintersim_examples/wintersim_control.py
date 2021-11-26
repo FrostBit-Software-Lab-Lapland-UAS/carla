@@ -203,20 +203,32 @@ class World(object):
             self.player = self.world.spawn_actor(blueprint, spawn_point)
         
         while self.player is None:
-            if not self.map.get_spawn_points():
-                print('There are no spawn points available in your map/town.')
-                print('Please add some Vehicle Spawn Point to your UE4 scene.')
-                sys.exit(1)
 
-            # if --spawnpoint [number] argument given then try to spawn there
-            # else spawn in random spawn location
-            spawn_points = self.map.get_spawn_points()
-            if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
-                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            # if scenario
+            if self.args.scenario:
+                print("Waiting for the ego vehicle...")
+                time.sleep(1)
+                possible_vehicles = self.world.get_actors().filter('vehicle.*')
+                for vehicle in possible_vehicles:
+                    if vehicle.attributes['role_name'] == "hero":
+                        print("Ego vehicle found")
+                        self.player = vehicle
+                        break
             else:
-                spawn_point = spawn_points[self.args.spawnpoint]
+                if not self.map.get_spawn_points():
+                    print('There are no spawn points available in your map/town.')
+                    print('Please add some Vehicle Spawn Point to your UE4 scene.')
+                    sys.exit(1)
 
-            self.player = self.world.spawn_actor(blueprint, spawn_point)
+                # if --spawnpoint [number] argument given then try to spawn there
+                # else spawn in random spawn location
+                spawn_points = self.map.get_spawn_points()
+                if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
+                    spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+                else:
+                    spawn_point = spawn_points[self.args.spawnpoint]
+
+                self.player = self.world.spawn_actor(blueprint, spawn_point)
 
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
         self.setup_basic_sensors()
@@ -544,9 +556,11 @@ def game_loop(args):
         if world.args.multisensorview:
             world.toggle_multi_sensor_view()
 
-        # open another terminal window and launch wintersim weather_hud.py script
         try:
-            world.w_control = subprocess.Popen('python weather_control.py')
+            # launch weather_control.py which is located in the same folder as this python script
+            this_path = os.path.dirname(os.path.realpath(__file__))
+            full_command = "python " + this_path + "/weather_control.py"
+            world.w_control = subprocess.Popen(full_command)
         except subprocess.SubprocessError:
             print("Couldn't launch weather_control.py")
 
@@ -658,6 +672,11 @@ def main():
         default=2000,
         type=int,
         help='Specify tile streaming distance in large maps')
+    argparser.add_argument(
+        '--scenario',
+        default=-False,
+        action='store_true',
+        help='is scenario')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
