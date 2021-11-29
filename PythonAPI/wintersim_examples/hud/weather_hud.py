@@ -111,6 +111,8 @@ class InfoHud(object):
         self.sliders = []
         self._font_mono = pygame.font.Font(mono, 18 if os.name == 'nt' else 18)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
+        #this_path = os.path.dirname(os.path.realpath(__file__))
+        #print(this_path)
         this_path = os.path.dirname(os.path.realpath(__file__))
         parent_dir = os.path.abspath(os.path.join(this_path, os.pardir))
         self.logo = pygame.image.load(parent_dir + '/images/WinterSim_White_Color.png')
@@ -158,7 +160,7 @@ class InfoHud(object):
         '''Make sliders and add them in to list'''
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, self.gap)
         self.temp_slider = Slider(self, "Temperature", 0, 40, -40, self.get_slider_offset())
-        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
+        #self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
         self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
         self.cloudiness_slider = Slider(self, "Cloudiness", 0, 100, 0, self.get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
@@ -220,10 +222,10 @@ class InfoHud(object):
             'Preset: {}'.format(preset),
             '',
             'Temperature: {}°C'.format(round(hud.temp_slider.val,1)),
-            '',
-            'Humidity: {}%'.format(round((hud.humidity), 1)),
-            '',
-            'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
+            #'',
+            #'Humidity: {}%'.format(round((hud.humidity), 1)),
+            #'',
+            #'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
             'Friction level: {}'.format(int(hud.ice_slider.val)),
             '',
