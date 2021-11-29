@@ -160,9 +160,10 @@ class World(object):
 
         weather.set_weather_manually(weather_values)
         self.hud.update_sliders(weather.weather)
-        self.world.set_weather(weather)
+        self.hud.force_tick_next_frame()
+        #self.world.set_weather(weather)
         self.hud.notification('Weather: Muonio Realtime')
-
+       
     def export_json(self):
         '''Export current weather parameters to json file'''
         data = dict()
