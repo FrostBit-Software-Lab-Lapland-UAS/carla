@@ -78,7 +78,7 @@ class KeyboardControl(object):
                 elif event.key == K_F1:
                     world.hud_wintersim.toggle_info()
                 elif event.key == K_F4:
-                    world.toggle_multi_sensor_view()
+                    world.toggle_multi_sensor_view(sensor_option_index=0)
                 elif event.key == K_F5:
                     world.toggle_static_tiretracks()
                 elif event.key == K_F6:
@@ -118,6 +118,7 @@ class KeyboardControl(object):
                 elif event.key > K_0 and event.key <= K_9:
                     if not world.multi_sensor_view_enabled:
                         world.camera_manager.set_sensor(event.key - 1 - K_0)
+
                 if isinstance(self._control, carla.VehicleControl):
                     if event.key == K_p and not pygame.key.get_mods() & KMOD_CTRL:
                         self._autopilot_enabled = not self._autopilot_enabled

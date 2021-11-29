@@ -111,8 +111,6 @@ class InfoHud(object):
         self.sliders = []
         self._font_mono = pygame.font.Font(mono, 18 if os.name == 'nt' else 18)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        #this_path = os.path.dirname(os.path.realpath(__file__))
-        #print(this_path)
         this_path = os.path.dirname(os.path.realpath(__file__))
         parent_dir = os.path.abspath(os.path.join(this_path, os.pardir))
         self.logo = pygame.image.load(parent_dir + '/images/WinterSim_White_Color.png')
