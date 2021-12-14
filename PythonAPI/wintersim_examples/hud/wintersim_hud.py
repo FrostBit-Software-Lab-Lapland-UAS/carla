@@ -207,6 +207,9 @@ class WinterSimHud(object):
             self.help_text.toggle()
 
     def notification(self, text, seconds=2.0):
+        if not self.is_hud:
+            return
+
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):
