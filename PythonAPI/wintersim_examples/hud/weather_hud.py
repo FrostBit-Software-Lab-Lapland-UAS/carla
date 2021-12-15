@@ -85,9 +85,7 @@ class InfoHud(object):
         self.dim = (width, height)
         self.screen = display
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
-        print(os.name)
-        #font_name = 'courier' if os.name == 'nt' else 'mono'
-        font_name = 'courier'
+        font_name = 'courier' if os.name == 'nt' else 'mono'
         fonts = [x for x in pygame.font.get_fonts() if font_name in x]
         default_font = 'ubuntumono'
         mono = default_font if default_font in fonts else fonts[0]
