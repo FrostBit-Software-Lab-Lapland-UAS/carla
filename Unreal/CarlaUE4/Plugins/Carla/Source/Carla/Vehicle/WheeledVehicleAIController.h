@@ -13,6 +13,9 @@
 #include "Traffic/TrafficLightState.h"
 #include "Vehicle/VehicleControl.h"
 
+//ADDED TO FIX ERROR 6
+#include <Vehicle/CarlaWheeledVehicle.h>
+
 #include "WheeledVehicleAIController.generated.h"
 
 class ACarlaWheeledVehicle;
