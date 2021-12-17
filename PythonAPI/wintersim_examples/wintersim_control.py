@@ -375,22 +375,28 @@ class World(object):
         text = "Open3D Lidar disabled" if not self.open3d_lidar_enabled else "Open3D Lidar enabled"
         self.hud_wintersim.notification(text, 6)
         
-    def toggle_multi_sensor_view(self, sensor_option_index = 0):
-        if not self.multi_sensor_view_enabled:
-            if self.camera_manager.sensor is None:
+    def toggle_multi_sensor_view(self, sensor_option_index = 0, reload = False):
+        '''Togle multisensorview on/off'''
+        if not self.multi_sensor_view_enabled or reload:
+            if self.camera_manager.sensor is None and not reload:
                 return
+
+            if reload:
+                self.multi_sensor_view.destroy()
+                self.multi_sensor_view = None
 
             self.camera_manager.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
             self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height, self._actor_filter, sensor_option_index)
             self.hud_wintersim.set_hud(False)
+            self.multi_sensor_view_enabled = True
         else:
             self.multi_sensor_view.destroy()
             self.multi_sensor_view = None
             self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
             self.hud_wintersim.set_hud(True)
+            self.multi_sensor_view_enabled = False
 
-        self.multi_sensor_view_enabled ^= True
         self.fps = 30 if self.multi_sensor_view_enabled else 60
         text = "Multi sensor view enabled" if self.multi_sensor_view_enabled else "Multi sensor view disabled"
         self.hud_wintersim.notification(text)
