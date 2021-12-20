@@ -35,6 +35,7 @@ Use ARROW or WASD keys for control.
 
     F1           : toggle HUD
     F4           : toggle multi sensor view
+    [1-3]        : change multi sensor view sensors [1-3]
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks
     F8           : toggle RGB camera windows
