@@ -119,7 +119,6 @@ class KeyboardControl(object):
                     if not world.multi_sensor_view_enabled:
                         world.camera_manager.set_sensor(event.key - 1 - K_0)
                     else:
-                        #world.toggle_multi_sensor_view(sensor_option_index=0)
                         world.toggle_multi_sensor_view(sensor_option_index=event.key - 1 - K_0, reload = True)
 
                 if isinstance(self._control, carla.VehicleControl):
