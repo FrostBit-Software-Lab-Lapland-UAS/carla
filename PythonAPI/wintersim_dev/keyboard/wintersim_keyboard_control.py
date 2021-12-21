@@ -40,6 +40,7 @@ try:
     from pygame.locals import K_d
     from pygame.locals import K_g
     from pygame.locals import K_h
+    from pygame.locals import K_i
     from pygame.locals import K_l
     from pygame.locals import K_n
     from pygame.locals import K_p
@@ -66,19 +67,20 @@ class KeyboardControl(object):
         self._steer_cache = 0.0
         world.hud_wintersim.notification("Press 'H' for help.", seconds=4.0)
 
-    def parse_events(self, world, clock):
+    def parse_events(self, world, clock, events):
         if isinstance(self._control, carla.VehicleControl):
             current_lights = self._lights
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.QUIT:
                 return True
             elif event.type == pygame.KEYUP:
                 if self._is_quit_shortcut(event.key):
                     return True
                 elif event.key == K_F1:
-                    world.hud_wintersim.toggle_info()
+                    #world.hud_wintersim.toggle_info()
+                    world.change_map("Muonio_Extended")
                 elif event.key == K_F4:
-                    world.toggle_multi_sensor_view()
+                    world.toggle_multi_sensor_view(sensor_option_index=0)
                 elif event.key == K_F5:
                     world.toggle_static_tiretracks()
                 elif event.key == K_F6:
@@ -93,6 +95,8 @@ class KeyboardControl(object):
                     world.toggle_server_rendering()
                 elif event.key == K_h or (event.key == K_SLASH and pygame.key.get_mods() & KMOD_SHIFT):
                     world.hud_wintersim.help_text.toggle()
+                elif event.key == K_i:
+                    world.hud_wintersim.toggle_info_text()
                 elif event.key == K_TAB:
                     if not world.multi_sensor_view_enabled:
                         world.camera_manager.toggle_camera()
@@ -118,6 +122,11 @@ class KeyboardControl(object):
                 elif event.key > K_0 and event.key <= K_9:
                     if not world.multi_sensor_view_enabled:
                         world.camera_manager.set_sensor(event.key - 1 - K_0)
+                    else:
+                        index = event.key - 1 - K_0
+                        if index <= 2:
+                            world.toggle_multi_sensor_view(sensor_option_index=event.key - 1 - K_0, reload = True)
+
                 if isinstance(self._control, carla.VehicleControl):
                     if event.key == K_p and not pygame.key.get_mods() & KMOD_CTRL:
                         self._autopilot_enabled = not self._autopilot_enabled

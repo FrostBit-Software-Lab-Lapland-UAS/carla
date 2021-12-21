@@ -80,7 +80,7 @@ class CameraWindows(threading.Thread):
     def setup_back_rgb_camera(self):
         """Spawn Camera-actor (back RGB camera) to given position and
         setup camera image callback and cv2 window."""
-        camera_transform = carla.Transform(carla.Location(x=2.0, z=2.0), carla.Rotation(pitch=0))
+        camera_transform = carla.Transform(carla.Location(x=-3.5, z=2.0), carla.Rotation(pitch=-10, yaw=180))
         if self.actor_name == "bus":
             camera_transform = carla.Transform(carla.Location(x=-6.7, y=0.4, z=3.0), carla.Rotation(pitch=-10, yaw=180))
 
@@ -90,15 +90,6 @@ class CameraWindows(threading.Thread):
         self.back_rgb_camera_display = cv2.namedWindow('back RGB camera')
         cv2.moveWindow('back RGB camera', 610, 740)
 
-    def setup_front_depth_camera(self):
-        """Spawn Camera-actor (front depth camera) to given position and
-        setup camera image callback and cv2 window."""
-        depth_camera_transform = carla.Transform(carla.Location(x=0, z=2.8), carla.Rotation(pitch=0))
-        self.depth_camera = self.world.spawn_actor(self.depth_camera_blueprint(), depth_camera_transform, attach_to=self.car)
-        weak_depth_self = weakref.ref(self)
-        self.depth_camera.listen(lambda front_depth_image: weak_depth_self().set_front_depth_image(weak_depth_self, front_depth_image))
-        self.front_depth_display = cv2.namedWindow('front_depth_image')
-       
     @staticmethod
     def set_front_rgb_image(weak_self, img):
         """Sets image coming from front RGB camera sensor."""
@@ -110,21 +101,6 @@ class CameraWindows(threading.Thread):
         """Sets image coming from back RGB camera sensor."""
         self = weak_self()
         self.back_rgb_image = img
-
-    @staticmethod
-    def set_front_depth_image(weak_depth_self, depth_img):
-        """Sets image coming from depth camera sensor."""
-        self = weak_depth_self()
-        self.front_depth_image = depth_img
-
-    def render_front_depth(self):
-        """Render front depth camera."""
-        if self.front_depth_image is not None:
-            image = np.asarray(self.front_depth_image.raw_data)
-            image = image.reshape((self.view_height, self.view_width, 4))
-            image = image[:, :, :3]
-            cv2.imshow("front_depth_image", image)
-            self.front_depth_image = None
 
     def render_front_rgb_camera(self):
         """Render front RGB camera."""
@@ -162,10 +138,6 @@ class CameraWindows(threading.Thread):
             self.back_rgb_camera.stop()
             self.back_rgb_camera.destroy()
 
-        if self.front_depth_camera is not None:
-            self.front_depth_camera.stop()
-            self.front_depth_camera.destroy()
-
         cv2.destroyAllWindows()
 
     def __init__(self, ego_vehicle, camera, world, actor_name):
@@ -193,13 +165,8 @@ class CameraWindows(threading.Thread):
         self.back_rgb_camera = None
         self.back_rgb_image = None
 
-        self.front_depth_display = None
-        self.front_depth_camera = None
-        self.front_depth_image = None
-
         self.setup_back_rgb_camera()
         self.setup_front_rgb_camera()
-        #self.setup_front_depth_camera()
 
     def run(self):
         while self.__running.isSet():

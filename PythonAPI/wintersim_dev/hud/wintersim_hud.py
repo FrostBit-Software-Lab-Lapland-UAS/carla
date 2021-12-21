@@ -9,6 +9,8 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+# pylint: disable=E1101
+
 """
 Use ARROW or WASD keys for control.
 
@@ -33,6 +35,7 @@ Use ARROW or WASD keys for control.
 
     F1           : toggle HUD
     F4           : toggle multi sensor view
+    [1-3]        : change multi sensor view sensors [1-3]
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks
     F8           : toggle RGB camera windows
@@ -69,12 +72,20 @@ def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
+def pointInRectanlge(px, py, rw, rh, rx, ry):
+    '''Takes rectangle's size, position and a point. Returns true if that 
+    point is inside the rectangle and false if it isnt'''
+    if px > rx and px < rx  + rw:
+        if py > ry and py < ry + rh:
+            return True
+    return False
+
 # ==============================================================================
 # -- WinterSimHud -------------------------------------------------------------
 # ==============================================================================
 
 class WinterSimHud(object):
-    def __init__(self, width, height, display):
+    def __init__(self, width, height, display, client):
         self.dim = (width, height)
         self.screen = display
         font = pygame.font.Font(pygame.font.get_default_font(), 20)
@@ -85,14 +96,18 @@ class WinterSimHud(object):
         mono = pygame.font.match_font(mono)
         self._font_mono = pygame.font.Font(mono, 12 if os.name == 'nt' else 14)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
-        self.help_text = HelpText(pygame.font.Font(mono, 16), width, height, self)
+        self.help_text = HelpText(__doc__, pygame.font.Font(mono, 16), width, height, True)
+        self.info_text = HelpText("\n WinterSim Maps", pygame.font.Font(mono, 16), width, height, True)
         self.server_fps = 0
         self.frame = 0
         self.simulation_time = 0
         self.is_hud = True
+        self.show_info = False
         self._info_text = []
         self._server_clock = pygame.time.Clock()
-        self.logo = pygame.image.load('images/WinterSim_White_Color.png')
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        parent_dir = os.path.abspath(os.path.join(this_path, os.pardir))
+        self.logo = pygame.image.load(parent_dir + '/images/WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
         self.frames = 0
@@ -100,10 +115,23 @@ class WinterSimHud(object):
         self.walkers = []
         self.world = None
         self.actor_name = None
+        self.client = client
+        self.buttons = []
 
     def setup(self, world):
         self.world = world
         self.on_actor_change()
+
+        # setup load map buttons
+        all_maps = [m.replace('/Game/Carla/Maps/', '') for m in self.client.get_available_maps()]
+        maps = []
+        for mappen in all_maps:
+            if mappen == "Muonio" or  mappen == "Muonio_Extended" or mappen == "Rovaniemi":
+                maps.append(mappen)
+        
+        for idx, map in enumerate(maps):
+            button = Button(self.world.change_map, map, str("Load " + map), ((len(maps)) + 290, ((55 * (idx % len(maps)) + 100))))
+            self.buttons.append(button)
 
     def on_actor_change(self):
         '''Store actor name'''
@@ -115,10 +143,15 @@ class WinterSimHud(object):
         self.frame = timestamp.frame
         self.simulation_time = timestamp.elapsed_seconds
 
-    def tick(self, world, clock):
+    def tick(self, world, clock, events):
         '''Tick WinterSim hud'''
         
         self._notifications.tick(world, clock)
+
+        if self.show_info:
+            for button in self.buttons:
+                if button.clicked(events):
+                    print(f"button at position: {button.position} was clicked")
 
         if not self.is_hud:
             return
@@ -196,6 +229,12 @@ class WinterSimHud(object):
             self.help_text.toggle()
         self.is_hud ^= True
 
+    def toggle_info_text(self):
+        if self.is_hud:
+            self.info_text.toggle()
+        
+        self.show_info ^= True
+
     def set_hud(self, enabled):
         '''Set HUD on/off'''
         self.is_hud = enabled
@@ -203,6 +242,9 @@ class WinterSimHud(object):
             self.help_text.toggle()
 
     def notification(self, text, seconds=2.0):
+        if not self.is_hud:
+            return
+
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):
@@ -210,6 +252,12 @@ class WinterSimHud(object):
 
     def render(self, display):
         '''Render hud to pygame window'''
+
+        if self.show_info:
+            self.info_text.render(display)
+            for button in self.buttons:
+                button.render(display)
+
         if self.is_hud:
             display_rect = display.get_rect()
             self.logo_rect.topright = tuple(map(lambda i, j: i - j, display_rect.topright, (5,-5))) 
@@ -283,18 +331,20 @@ class FadingText(object):
 
 class HelpText(object):
     """Helper class to handle text output using pygame"""
-    def __init__(self, font, width, height, hud):
-        lines = __doc__.split('\n')
+    def __init__(self, text, font, width, height, show_text = True):
+        lines = text.split('\n')
         self.font = font
         self.line_space = 18
-        self.dim = (780, len(lines) * self.line_space + 12)
+        self.dim = (780, 35 * self.line_space + 12)
         self.pos = (0.5 * width - 0.5 * self.dim[0], 0.5 * height - 0.5 * self.dim[1])
         self.seconds_left = 0
         self.surface = pygame.Surface(self.dim)
         self.surface.fill((0, 0, 0, 0))
         for n, line in enumerate(lines):
-            text_texture = self.font.render(line, True, (255, 255, 255))
-            self.surface.blit(text_texture, (22, n * self.line_space))
+            if show_text:
+                text_texture = self.font.render(line, True, (255, 255, 255))
+                self.surface.blit(text_texture, (22, n * self.line_space))
+
             self.visible = False
         self.surface.set_alpha(220)
 
@@ -304,3 +354,61 @@ class HelpText(object):
     def render(self, display):
         if self.visible:
             display.blit(self.surface, self.pos)
+
+# ==============================================================================
+# -- Button ------------------------------------------------------------------
+# ==============================================================================
+
+class Button:
+    def __init__(self, callback, arg, text:str, position:tuple, size:tuple=(150, 45), outline:bool=True)->None:
+        self.position = position
+        print(self.position)
+        self.size = size
+        self.button = pygame.Surface(size).convert()
+        self.button.fill((0, 0, 0))
+        self.outline = outline
+        self.callback = callback
+        self.arg = arg
+
+        #Text is about 70% the height of the button
+        font = pygame.font.Font(pygame.font.get_default_font(), int((25/100)*self.size[1]))
+
+        #First argument always requires a str, so f-string is used.
+        self.textSurf = font.render(f"{text}", True, (255, 255, 255))
+
+    def clicked(self, events)->None:
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mousePos = pygame.mouse.get_pos()
+                if pointInRectanlge(mousePos[0], mousePos[1], self.size[0], self.size[1], self.position[0], self.position[1]):
+                    if self.callback is not None:
+                        if self.arg is not None:
+                            print("111")
+                            self.callback(self.arg)
+                        else:
+                            print("1")
+                            self.callback()
+                    return True
+
+        return False
+
+    # Renders the button and text. Text position is calculated depending on position of button.
+    # Also draws outline if self.outline is true
+    def render(self, display:pygame.display)->None:
+        # calculation to centre the text in button
+        textx = self.position[0] + (self.button.get_rect().width/2) - (self.textSurf.get_rect().width/2)
+        texty = self.position[1] + (self.button.get_rect().height/2) - (self.textSurf.get_rect().height/2)
+
+        # display button first then text
+        display.blit(self.button, (self.position[0], self.position[1]))
+        display.blit(self.textSurf, (textx, texty))
+        
+        # draw outline
+        if self.outline:
+            thickness = 2
+            posx = self.position[0] - thickness
+            posy = self.position[1] - thickness
+            sizex = self.size[0] + thickness * 1
+            sizey = self.size[1] + thickness * 1
+
+            pygame.draw.rect(display, (255, 0, 0), (posx, posy, sizex, sizey), thickness)

@@ -9,6 +9,8 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+# pylint: disable=W0108
+
 import glob
 import os
 import sys
@@ -160,7 +162,10 @@ class Open3DLidarWindow():
         '''load default open3d position and rotation from json file and set zoom'''
         ctrl = self.vis.get_view_control()
         ctrl.set_zoom(0.3)
-        parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        full_path = this_path + "/open3d_start_pos.json"
+        #parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
+        parameters = o3d.io.read_pinhole_camera_parameters(full_path)
         ctrl.convert_from_pinhole_camera_parameters(parameters)
 
     def render(self):

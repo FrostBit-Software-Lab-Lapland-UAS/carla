@@ -27,8 +27,11 @@ except IndexError:
 import carla
 import requests
 
-from tkinter import *
-from tkinter.filedialog import askopenfilename 
+try:
+    from tkinter import *
+    from tkinter.filedialog import askopenfilename 
+except ImportError:
+    raise RuntimeError('cannot import tkinter')
 
 try:
     import pygame
@@ -43,7 +46,7 @@ except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
 try:
-   from pynput import keyboard
+    from pynput import keyboard
 except ImportError:
     raise RuntimeError('cannot import pynput, make sure pynput package is installed')
 
@@ -51,7 +54,7 @@ except ImportError:
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-def find_weather_presets():
+def findweather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
@@ -66,11 +69,11 @@ class World(object):
         self.world = carla_world
         self.hud = hud
         self.preset = None
-        self._weather_presets = []
-        self._weather_presets_all = find_weather_presets()
-        for preset in self._weather_presets_all:
+        self.weather_presets = []
+        self.weather_presets_all = findweather_presets()
+        for preset in self.weather_presets_all:
             if preset[0].temperature <= 0: # get only presets what are for wintersim
-                self._weather_presets.append(preset)
+                self.weather_presets.append(preset)
         self.set_current_weather()
         self._weather_index = 0
         self._gamma = args.gamma
@@ -88,19 +91,19 @@ class World(object):
 
     def next_weather(self, reverse=False):
         self._weather_index += -1 if reverse else 1
-        self._weather_index %= len(self._weather_presets)
-        self.preset = self._weather_presets[self._weather_index]
+        self._weather_index %= len(self.weather_presets)
+        self.preset = self.weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
 
     def set_weather(self, index):
-        if not index < len(self._weather_presets):
+        if not index < len(self.weather_presets):
             return
 
         self._weather_index = index
-        self.preset = self._weather_presets[self._weather_index]
+        self.preset = self.weather_presets[self._weather_index]
         self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
@@ -119,11 +122,9 @@ class World(object):
         data = r.json()
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
-
         date = x[0].split("-")
-
-        year = int(date[0])
-        month = int(date[1]) - 1        
+        #year = int(date[0])
+        month = int(date[1]) - 1      
         day = int(date[2])
 
         clock = x[1].split(":")
@@ -133,7 +134,6 @@ class World(object):
         clock = float(".".join(clock))
 
         temp = data['weatherStations'][0]['sensorValues'][0]['sensorValue']
-
         wind = data['weatherStations'][0]['sensorValues'][11]['sensorValue']
         wind = 0 if math.isnan(wind) else wind
         wind = 10 if wind > 10 else wind # Lets make 10m/s max wind value.
@@ -144,7 +144,7 @@ class World(object):
         humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
         humidity = 100 if humidity > 100 else humidity
         humidity = 0 if math.isnan(humidity) else humidity
-        
+
         precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
         precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
         precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
@@ -154,23 +154,16 @@ class World(object):
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
 
-        weather.precipitation = precipitation
-        weather.precipitation_deposits = precipitation
-        weather.wind_intensity = wind / 100
-        weather.wind_direction = wind_direction
-        weather.fog_density = 0
-        weather.snow_amount = snow
-        weather.temperature = temp
-        weather.particle_size = 0.5
-        weather.humidity = humidity
-        weather.month = month
-        weather.day = day
-        weather.time = float(clock)
-        
-        self.hud.notification('Weather: Muonio Realtime')
-        self.hud.update_sliders(weather)
-        self.world.set_weather(weather)
+        weather_values = [temp, humidity, precipitation, 
+            snow, wind, wind_direction, 
+            clock, day, month]
 
+        weather.set_weather_manually(weather_values)
+        self.hud.update_sliders(weather.weather)
+        self.hud.force_tick_next_frame()
+        #self.world.set_weather(weather)
+        self.hud.notification('Weather: Muonio Realtime')
+       
     def export_json(self):
         '''Export current weather parameters to json file'''
         data = dict()
@@ -187,8 +180,9 @@ class World(object):
 
     def import_json(self):
         '''Import weather json file'''
-        root = Tk()
-        file = askopenfilename(initialdir=os.getcwd(), title="Select file", filetypes=[("Json Files", "*.json")])
+        root = Tk() # pylint:disable=E0602
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        file = askopenfilename(initialdir=this_path, title="Select file", filetypes=[("Json Files", "*.json")])
         root.destroy()
         
         if not os.path.exists(file):
@@ -220,15 +214,17 @@ class World(object):
         for actor in actors:
             if 'vehicle' in actor.type_id:
                 vehicle = actor
-                front_left_wheel  = carla.WheelPhysicsControl(tire_friction=friction)
-                front_right_wheel = carla.WheelPhysicsControl(tire_friction=friction)
-                rear_left_wheel   = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
-                rear_right_wheel  = carla.WheelPhysicsControl(tire_friction=friction, max_steer_angle=0.0,)
-
-                wheels = [front_left_wheel, front_right_wheel, rear_left_wheel, rear_right_wheel]
                 physics_control = vehicle.get_physics_control()
-                physics_control.wheels = wheels
 
+                # loop through all vehicle wheels and set new tire_friction value
+                wheel_count = len(physics_control.wheels)
+                wheels = []
+                for i in range(wheel_count):
+                    wheel = physics_control.wheels[i]
+                    wheel.tire_friction = friction
+                    wheels.append(wheel)
+
+                physics_control.wheels = wheels
                 vehicle.apply_physics_control(physics_control)
 
     def tick(self, clock, hud):
