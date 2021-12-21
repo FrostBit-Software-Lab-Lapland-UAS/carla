@@ -105,6 +105,13 @@ def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
 
+def map_is_available(client, map_to_load):
+    maps = [m.replace('/Game/Carla/Maps/', '') for m in client.get_available_maps()]
+    for map in maps:
+        if map == map_to_load:
+            return True
+    return False
+
 # ==============================================================================
 # -- World ---------------------------------------------------------------------
 # ==============================================================================
@@ -541,6 +548,14 @@ def game_loop(args):
         client = carla.Client(args.host, args.port)
         client.set_timeout(2.0)
 
+        # if launch parameter -m {map_name} or --map {map_name} given
+        if args.map is not None:
+            client.set_timeout(30.0)
+            if map_is_available(client, args.map):
+                print("Loading map: " + str(args.map))
+                world = client.load_world(args.map)
+                print("Loaded map: " + str(args.map))
+
         display = pygame.display.set_mode((args.width, args.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0,0,0))
         pygame.display.flip()
@@ -566,7 +581,8 @@ def game_loop(args):
         try:
             # launch weather_control.py which is located in the same folder as this python script
             this_path = os.path.dirname(os.path.realpath(__file__))
-            full_command = "python " + this_path + "/weather_control.py"
+            python = 'python ' if os.name == 'nt' else 'python3 '
+            full_command = python + this_path + "/weather_control.py"
             world.w_control = subprocess.Popen(full_command)
         except subprocess.SubprocessError:
             print("Couldn't launch weather_control.py")
@@ -684,6 +700,9 @@ def main():
         default=-False,
         action='store_true',
         help='is scenario')
+    argparser.add_argument(
+        '-m', '--map',
+        help='load map by name')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO
