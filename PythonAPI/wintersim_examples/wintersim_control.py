@@ -701,7 +701,7 @@ def main():
         action='store_true',
         help='is scenario')
     argparser.add_argument(
-        '-m', '--map',
+        '-m', '--map', '--m', '-map',
         help='load map by name')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
