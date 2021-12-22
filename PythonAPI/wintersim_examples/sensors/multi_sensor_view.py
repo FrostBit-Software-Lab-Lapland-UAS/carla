@@ -192,7 +192,9 @@ class MultiSensorView():
     def setup(self, world, vehicle, display, width, height, vehicle_name = "none", sensor_opt_index = 0):
         '''Setup multi sensor view'''
 
-        # WinterSim Camera attributes
+        # WinterSim added Camera attributes
+        # camera_sleet_effect True to enable camera lens sleet effect (default false)
+        # camera_ice_effect True to enable camera lens ice effect (default false)
         right_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.2'}
         front_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'up',   'camera_sleet_effect_strength' : '1.2', 'camera_ice_effect' : 'True',}
         left_camera_attributes =  {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.0'}
