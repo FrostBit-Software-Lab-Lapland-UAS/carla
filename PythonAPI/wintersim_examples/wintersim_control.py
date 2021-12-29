@@ -61,6 +61,7 @@ import os
 import re
 import sys
 import subprocess
+import time
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -84,7 +85,6 @@ from sensors.wintersim_camera_manager import CameraManager
 from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
-import time
 
 try:
     import pygame
