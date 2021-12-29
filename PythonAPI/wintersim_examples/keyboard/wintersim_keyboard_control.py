@@ -120,7 +120,7 @@ class KeyboardControl(object):
                         world.camera_manager.set_sensor(event.key - 1 - K_0)
                     else:
                         index = event.key - 1 - K_0
-                        if index <= 2:
+                        if index <= 3:
                             world.toggle_multi_sensor_view(sensor_option_index=event.key - 1 - K_0, reload = True)
 
                 if isinstance(self._control, carla.VehicleControl):
