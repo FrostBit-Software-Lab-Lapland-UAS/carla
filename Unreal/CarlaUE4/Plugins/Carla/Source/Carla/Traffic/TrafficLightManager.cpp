@@ -17,6 +17,8 @@
 #include <compiler/enable-ue4-macros.h>
 
 #include <string>
+#include "UObject/ConstructorHelpers.h"
+#include "carla/opendrive/OpenDriveParser.h"
 
 ATrafficLightManager::ATrafficLightManager()
 {
