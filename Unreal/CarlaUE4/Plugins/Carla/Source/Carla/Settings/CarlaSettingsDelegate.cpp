@@ -113,11 +113,12 @@ void UCarlaSettingsDelegate::ApplyQualityLevelPostRestart()
     case EQualityLevel::Epic:
     {
       LaunchEpicQualityCommands(InWorld);
-      SetAllLights(InWorld, 0.0f, true, false);
       SetAllRoads(InWorld, 0, CarlaSettings->EpicRoadMaterials);
 
-	  // disabled so we can set max draw distances in editor
-      //SetAllActorsDrawDistance(InWorld, 0); 
+	  // disabled so we can set distances in editor
+      //SetAllActorsDrawDistance(InWorld, 0);
+      //SetAllLights(InWorld, 0.0f, true, false);
+
       SetPostProcessEffectsEnabled(InWorld, true);
       break;
     }
@@ -229,6 +230,7 @@ void UCarlaSettingsDelegate::LaunchLowQualityCommands(UWorld *world) const
   // GEngine->Exec(world,TEXT("r.BasePassOutputsVelocity 0")); //--> readonly
   // GEngine->Exec(world,TEXT("r.DetailMode 0")); //-->will change to lods 0
   GEngine->Exec(world, TEXT("r.DefaultFeature.AutoExposure 1"));
+  GEngine->Exec(world, TEXT("r.SSGI.Quality 1"));
 
 }
 
@@ -419,6 +421,7 @@ void UCarlaSettingsDelegate::LaunchEpicQualityCommands(UWorld *world) const
   // GEngine->Exec(world,TEXT("r.OcclusionQueryLocation 0"));
   // GEngine->Exec(world,TEXT("r.BasePassOutputsVelocity 0")); //readonly
   GEngine->Exec(world, TEXT("r.DetailMode 2"));
+  GEngine->Exec(world, TEXT("r.SSGI.Quality 2"));
 }
 
 void UCarlaSettingsDelegate::SetAllLights(
