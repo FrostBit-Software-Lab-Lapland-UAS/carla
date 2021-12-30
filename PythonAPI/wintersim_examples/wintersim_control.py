@@ -38,7 +38,7 @@ Use ARROWS or WASD keys for control.
 
     F1           : toggle HUD
     F4           : toggle multi sensor view
-    [1-3]        : change multi sensor view sensors [1-3]
+    [1-4]        : change multi sensor view sensors [1-4]
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks on snowy roads
     F8           : toggle separate front and back camera windows
@@ -61,6 +61,7 @@ import os
 import re
 import sys
 import subprocess
+import time
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -84,7 +85,6 @@ from sensors.wintersim_camera_manager import CameraManager
 from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
-import time
 
 try:
     import pygame
@@ -701,7 +701,7 @@ def main():
         action='store_true',
         help='is scenario')
     argparser.add_argument(
-        '-m', '--map',
+        '-m', '--map', '--m', '-map',
         help='load map by name')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
