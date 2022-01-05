@@ -40,3 +40,12 @@ If the `id` attribute is modifiable, changes its value to `value`.
         -
         - `id` ("camera_sleet_effect_strength") – Camera sleet effect strength (Default: 1.2)
         - `value` (float as string) – Float value as string. Range 0.0 - 20.0
+
+	- `id` ("camera_ice_effect") – whether this camera should show camera ice effect when weather conditions are optimal (Default: False)
+        - `value` (boolean as string) – False/True as string
+        -
+        - `id` ("camera_ice_effect_rotation") – Camera ice effect rotation (Default: up)
+        - `value` (str) – Rotations: "up", "left", "right", "down"
+        -
+        - `id` ("camera_ice_effect_strength") – Camera ice effect strength (Default: 1.2)
+        - `value` (float as string) – Float value as string. Range 0.0 - 20.0
