@@ -9,7 +9,6 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "Carla/Sensor/SceneCaptureSensor.h"
 #include "SensorEventHandler.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLevelEventDelegate_CameraAdded, ASceneCaptureSensor*, camera);

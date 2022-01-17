@@ -22,7 +22,6 @@
 #include "HighResScreenshot.h"
 #include "Misc/CoreDelegates.h"
 #include "RHICommandList.h"
-#include "Carla/Sensor/SensorEventHandler.h"
 
 static auto SCENE_CAPTURE_COUNTER = 0u;
 
