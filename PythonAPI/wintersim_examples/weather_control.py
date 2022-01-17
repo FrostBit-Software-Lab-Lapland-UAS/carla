@@ -317,6 +317,7 @@ def game_loop(args):
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
+    pygame.display.set_caption('WinterSim Weather Control')
     world = None
     listener = None
 
