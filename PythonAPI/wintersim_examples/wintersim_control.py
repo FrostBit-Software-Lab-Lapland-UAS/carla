@@ -477,7 +477,7 @@ class World(object):
         self.player = self.world.spawn_actor(blueprint, current_location)
 
         copy = self.sensors.copy()
-
+        
         self.setup_basic_sensors()
         self.camera_manager.reset_camera(self.player)
 
@@ -487,6 +487,7 @@ class World(object):
                 sensor.destroy()
                 sensor = None
 
+        self.hud_wintersim.on_actor_change()
         self.hud_wintersim.notification('Changed vehicle to: ' + str(self.wintersim_vehicles[self.current_vehicle_index]))
 
     def destroy(self):
