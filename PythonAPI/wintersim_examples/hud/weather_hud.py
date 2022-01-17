@@ -140,7 +140,7 @@ class InfoHud(object):
 
         # create checkbox
         self.boxes = []
-        self.button = Checkbox(self.screen, 20, 690, 0, caption='Static Tiretracks (F5)')
+        self.button = Checkbox(self.screen, 20, 630, 0, caption='Static Tiretracks (F5)')
         self.boxes.append(self.button)
         self.make_sliders()
 
