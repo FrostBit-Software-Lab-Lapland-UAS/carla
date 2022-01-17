@@ -27,7 +27,7 @@ Use ARROW or WASD keys for control.
     N            : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
-    T            : toggle telemetry info
+    T            : toggle server window telemetry info
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
