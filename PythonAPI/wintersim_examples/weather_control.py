@@ -161,7 +161,7 @@ class World(object):
         weather.set_weather_manually(weather_values)
         self.hud.update_sliders(weather.weather)
         self.hud.force_tick_next_frame()
-        #self.world.set_weather(weather)
+        self.world.set_weather(weather)
         self.hud.notification('Weather: Muonio Realtime')
        
     def export_json(self):
@@ -317,6 +317,7 @@ def game_loop(args):
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
+    pygame.display.set_caption('WinterSim Weather Control')
     world = None
     listener = None
 
