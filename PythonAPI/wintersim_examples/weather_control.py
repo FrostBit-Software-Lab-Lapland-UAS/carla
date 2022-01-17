@@ -93,7 +93,7 @@ class World(object):
         self._weather_index += -1 if reverse else 1
         self._weather_index %= len(self.weather_presets)
         self.preset = self.weather_presets[self._weather_index]
-        #self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
@@ -104,7 +104,7 @@ class World(object):
 
         self._weather_index = index
         self.preset = self.weather_presets[self._weather_index]
-        #self.hud.notification('Weather: %s' % self.preset[1])
+        self.hud.notification('Weather: %s' % self.preset[1])
         self.hud.preset_slider.val = self._weather_index
         self.hud.update_sliders(self.preset[0])
         self.world.set_weather(self.preset[0])
@@ -161,7 +161,7 @@ class World(object):
         weather.set_weather_manually(weather_values)
         self.hud.update_sliders(weather.weather)
         self.hud.force_tick_next_frame()
-        #self.world.set_weather(weather)
+        self.world.set_weather(weather)
         self.hud.notification('Weather: Muonio Realtime')
        
     def export_json(self):
@@ -243,7 +243,7 @@ class World(object):
         try:
             self.world.set_static_tiretracks(self.static_tiretracks_enabled)
             text = "Static tiretracks enabled" if self.static_tiretracks_enabled else "Static tiretracks disabled"
-            #self.hud.notification(text)
+            self.hud.notification(text)
         except AttributeError:
             print("'set_static_tiretracks()' has not been implemented. This is WinterSim specific Python API command.")
 
