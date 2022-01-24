@@ -34,6 +34,9 @@ ACustomRayCastSemanticLidar::ACustomRayCastSemanticLidar(const FObjectInitialize
   : Super(ObjectInitializer)
 {
   PrimaryActorTick.bCanEverTick = true;
+  static ConstructorHelpers::FClassFinder<ASceneCapture2D> ClassFinder(TEXT("/Game/RekosTestingBox/Intensity/BP_Int.BP_Int_C"));
+  if (ClassFinder.Class)
+      SubClass = ClassFinder.Class;
 }
 
 void ACustomRayCastSemanticLidar::Set(const FActorDescription &ActorDescription)
@@ -54,6 +57,7 @@ void ACustomRayCastSemanticLidar::Set(const FLidarDescription &LidarDescription)
 
 void ACustomRayCastSemanticLidar::CreateLasers()
 {
+  GetIntCamera();
   const auto NumberOfLasers = Description.Channels;
   check(NumberOfLasers > 0u);
   const float DeltaAngle = NumberOfLasers == 1u ? 0.f :
@@ -66,6 +70,17 @@ void ACustomRayCastSemanticLidar::CreateLasers()
         Description.UpperFovLimit - static_cast<float>(i) * DeltaAngle;
     LaserAngles.Emplace(VerticalAngle);
   }
+}
+
+void ACustomRayCastSemanticLidar::GetIntCamera()
+{
+    FActorSpawnParameters SpawnParams;
+    FTransform ActorTransf = GetTransform();
+    FVector Loc = ActorTransf.GetLocation();
+    FRotator Rot = ActorTransf.Rotator();
+
+    IntensityCamera = GetWorld()->SpawnActor<AIntensityCamera>(SubClass, Loc, Rot, SpawnParams);
+    IntensityCamera->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
 void ACustomRayCastSemanticLidar::PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaTime)
@@ -289,6 +304,10 @@ bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const fl
   const auto Range = Description.Range;
   FVector EndTrace = Range * UKismetMathLibrary::GetForwardVector(ResultRot) + LidarBodyLoc;
 
+  //ROTATE INTENSITY CAMERA
+  IntensityCamera->SetActorRotation(ResultRot);
+  /////////////////////////////////////////
+
   GetWorld()->ParallelLineTraceSingleByChannel(
     HitInfo,
     LidarBodyLoc,
@@ -298,26 +317,32 @@ bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const fl
     FCollisionResponseParams::DefaultResponseParam
   );
 
+  //ADD intensity from camera to Time slot of HitResult
+  float f = 0.0f;
+  IntensityCamera->GetIntensity(f);
+  HitInfo.Time = f;
+  /////////////////////////////////////////////////////
+
   float temp = w.Temperature;
-	float rain_amount = w.Precipitation;
+  float rain_amount = w.Precipitation;
   bool keepPoint = true;
   if (HitInfo.bBlockingHit) { 
 	  if (temp < 0 && rain_amount > 0) //If it is snowing
 	  {
 		  CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc);
-      keepPoint = CustomDropOff(rain_amount);
+          keepPoint = CustomDropOff(rain_amount);
 	  }
     HitResult = HitInfo; //equal to new hitpoint or the old one
     return keepPoint;
   } else { //If no hit is acquired
     if (temp < 0 && rain_amount > 0) //If it is snowing
-	  {
-		  if(CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc)) //if new hitpoint is made
-      {
-        HitResult = HitInfo;
-        return CustomDropOff(rain_amount);
-      }
-	  }
+	{
+	    if(CalculateNewHitPoint(HitInfo, rain_amount, EndTrace, LidarBodyLoc)) //if new hitpoint is made
+        {
+            HitResult = HitInfo;
+            return CustomDropOff(rain_amount);
+        }
+	}
     return false;
   }
 }

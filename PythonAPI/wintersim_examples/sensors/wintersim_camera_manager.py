@@ -72,7 +72,8 @@ class CameraManager(object):
                     bp.set_attribute('gamma', str(gamma_correction))
             elif item[0].startswith('sensor.lidar'):
                 self.lidar_range = 50
-
+                self.rotation_frequency = 1
+                self.points_per_second = 10
                 for attr_name, attr_value in item[3].items():
                     bp.set_attribute(attr_name, attr_value)
                     if attr_name == 'range':

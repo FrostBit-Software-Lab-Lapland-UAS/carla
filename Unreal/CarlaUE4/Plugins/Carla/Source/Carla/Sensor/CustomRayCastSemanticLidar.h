@@ -21,6 +21,11 @@
 #include <iostream>
 #include <fstream>
 
+#include "Engine/SceneCapture2D.h"
+#include "Carla/Sensor/IntensityCamera.h"
+//#include "C:/carla/Unreal/CarlaUE4/Source/CarlaUE4/Public/IntensityCamera.h"
+
+
 #include "CustomRayCastSemanticLidar.generated.h"
 
 
@@ -42,6 +47,12 @@ public:
 
   virtual void Set(const FActorDescription &Description) override;
   virtual void Set(const FLidarDescription &LidarDescription);
+
+  //Intensity Camera
+  UPROPERTY(EditAnywhere);
+  AIntensityCamera* IntensityCamera;
+  TSubclassOf<class AIntensityCamera> SubClass;
+  void GetIntCamera();
 
 protected:
   virtual void PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaTime) override;

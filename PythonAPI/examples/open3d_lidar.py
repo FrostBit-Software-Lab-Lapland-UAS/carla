@@ -117,9 +117,9 @@ def semantic_lidar_callback(point_cloud, point_list):
 def generate_lidar_bp(arg, world, blueprint_library, delta):
     """Generates a CARLA blueprint based on the script parameters"""
     if arg.semantic:
-        lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+        lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
     else:
-        lidar_bp = blueprint_library.find('sensor.lidar.ray_cast')
+        lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
         if arg.no_noise:
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
             lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
@@ -167,12 +167,12 @@ def main(arg):
         traffic_manager = client.get_trafficmanager(8000)
         traffic_manager.set_synchronous_mode(True)
 
-        delta = 0.05
+        delta = 0.1
 
-        settings.fixed_delta_seconds = delta
+        """settings.fixed_delta_seconds = delta
         settings.synchronous_mode = True
         settings.no_rendering_mode = arg.no_rendering
-        world.apply_settings(settings)
+        world.apply_settings(settings)"""
 
         blueprint_library = world.get_blueprint_library()
         vehicle_bp = blueprint_library.filter(arg.filter)[0]
@@ -279,17 +279,17 @@ if __name__ == "__main__":
         help='actor filter (default: "vehicle.*")')
     argparser.add_argument(
         '--upper-fov',
-        default=2.0,
+        default=1.0,
         type=float,
         help='lidar\'s upper field of view in degrees (default: 2.0)')
     argparser.add_argument(
         '--lower-fov',
-        default=-24.9,
+        default=-30.0,
         type=float,
         help='lidar\'s lower field of view in degrees (default: -24.9)')
     argparser.add_argument(
         '--channels',
-        default=64.0,
+        default=32.0,
         type=float,
         help='lidar\'s channel count (default: 64)')
     argparser.add_argument(
@@ -299,7 +299,7 @@ if __name__ == "__main__":
         help='lidar\'s maximum range in meters (default: 120.0)')
     argparser.add_argument(
         '--points-per-second',
-        default=1300000,
+        default=100000,
         type=int,
         help='lidar\'s points per second (default: 500000)')
     argparser.add_argument(
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         help='offset in the sensor position in the Y-axis in meters (default: 0.0)')
     argparser.add_argument(
         '-z',
-        default=0.0,
+        default=2.0,
         type=float,
         help='offset in the sensor position in the Z-axis in meters (default: 0.0)')
     args = argparser.parse_args()

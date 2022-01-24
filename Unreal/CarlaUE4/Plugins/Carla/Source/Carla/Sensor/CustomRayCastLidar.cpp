@@ -68,15 +68,14 @@ void ACustomRayCastLidar::PostPhysTick(UWorld *World, ELevelTick TickType, float
 
 float ACustomRayCastLidar::ComputeIntensity(const FCustomSemanticDetection& RawDetection) const
 {
-  const carla::geom::Location HitPoint = RawDetection.point;
-  const float Distance = HitPoint.Length();
+    const carla::geom::Location HitPoint = RawDetection.point;
+    const float Distance = HitPoint.Length();
 
-  const float AttenAtm = Description.AtmospAttenRate;
-  const float AbsAtm = exp(-AttenAtm * Distance);
+    const float AttenAtm = Description.AtmospAttenRate;
+    const float AbsAtm = exp(-AttenAtm * Distance);
 
-  const float IntRec = AbsAtm;
-
-  return IntRec;
+    const float IntRec = AbsAtm;
+    return IntRec;
 }
 
 ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
@@ -91,7 +90,7 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
   const float AbsAtm = exp(-AttenAtm * Distance);
 
   const float IntRec = AbsAtm;
-
+  /*
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
       Detection.intensity = 1;
   }
@@ -178,6 +177,27 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
           Detection.intensity = 0.5;
       }
   }
+  */
+
+  /*float f = 0.0f;
+  FString variableName = "Intensity";
+  FName nameOfProperty = FName(*variableName);
+  UClass* objectclass = SpawnedCamera->GetClass();
+  UProperty* Property = objectclass->FindPropertyByName(nameOfProperty);
+  if (Property) {
+      UNumericProperty* NumericProperty = Cast<UNumericProperty>(Property);
+      if (NumericProperty) {
+          UFloatProperty* FloatProperty = Cast<UFloatProperty>(NumericProperty);
+          if (FloatProperty) {
+              void* ValuePtr = FloatProperty->ContainerPtrToValuePtr<void>(SpawnedCamera);
+              double d = NumericProperty->GetFloatingPointPropertyValue(ValuePtr);
+              f = (float)d;
+          }
+      }
+  }*/
+
+  //Intensity value is saved into Time slot of hitresult
+  Detection.intensity = HitInfo.Time;
 
   //Detection.intensity = IntRec;
 

@@ -258,9 +258,6 @@ private:
   ECarlaWheeledVehicleState State = ECarlaWheeledVehicleState::UNKNOWN;
 
   UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere)
-  UBoxComponent *VehicleBounds;
-
-  UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere)
   UVehicleVelocityControl* VelocityControl;
 
   struct
@@ -281,6 +278,9 @@ public:
   /// NOTE : This is purely aesthetic. It will not modify the physics of the car in any way
   UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
   void SetWheelSteerDirection(EVehicleWheelLocation WheelLocation, float AngleInDeg);
+
+  UPROPERTY(Category = "CARLA Wheeled Vehicle", EditAnywhere, BlueprintReadOnly)
+  UBoxComponent* VehicleBounds;
 
   UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
   float GetWheelSteerAngle(EVehicleWheelLocation WheelLocation);
