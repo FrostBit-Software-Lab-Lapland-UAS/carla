@@ -56,7 +56,7 @@ protected:
   bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
 
   /// Calculate new hitpoint for linetrace if it is snowing
-  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, float fog, FVector end_trace, FVector LidarBodyLoc) const;
 
   bool CustomDropOff(float rain_amount) const;
 
