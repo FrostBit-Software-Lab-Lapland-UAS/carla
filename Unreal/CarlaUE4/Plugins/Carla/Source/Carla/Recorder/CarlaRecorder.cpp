@@ -8,7 +8,12 @@
 #include "Carla/Actor/ActorDescription.h"
 #include "Carla/Walker/WalkerControl.h"
 #include "Carla/Walker/WalkerController.h"
-
+#include "Carla/Actor/ActorRegistry.h"
+#include "Carla/Game/CarlaEpisode.h"
+#include "Carla/Traffic/TrafficLightGroup.h"
+#include "Carla/Traffic/TrafficLightBase.h"
+#include "Carla/Lights/CarlaLight.h"
+#include "Carla/Lights/CarlaLightSubsystem.h"
 #include <compiler/disable-ue4-macros.h>
 #include "carla/rpc/VehicleLightState.h"
 #include <compiler/enable-ue4-macros.h>

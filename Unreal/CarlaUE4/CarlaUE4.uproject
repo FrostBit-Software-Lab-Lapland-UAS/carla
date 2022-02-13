@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.26",
+	"EngineAssociation": "{0382C037-419F-5BA6-232E-38850D5E6482}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -119,6 +119,14 @@
 		},
 		{
 			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "RoadRunnerCarlaIntegration",
+			"Enabled": true
+		},
+		{
+			"Name": "RoadRunnerImporter",
 			"Enabled": true
 		}
 	]
