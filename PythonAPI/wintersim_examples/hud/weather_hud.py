@@ -79,6 +79,7 @@ def degrees_to_compass_names_simple(angle):
 # -- INFO_HUD -------------------------------------------------------------
 # ==============================================================================
 
+
 class InfoHud(object):
     
     def __init__(self, width, height, display):
@@ -164,7 +165,7 @@ class InfoHud(object):
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
         self.road_snowiness_slider = Slider(self, "Road snowiness", 0, 100, 0, self.get_slider_offset())
-        self.particle_slider = Slider(self, "Snow p. size", 0.5, 7, 0.5, self.get_slider_offset())
+        self.particle_slider = Slider(self, "Snow p. size", 5.00, 20.00, 1.00, self.get_slider_offset())
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, self.get_slider_offset())
         self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, self.get_slider_offset())
         self.wind_slider = Slider(self, "Wind intensity", 0, 70, 0, self.get_slider_offset())
@@ -232,7 +233,7 @@ class InfoHud(object):
             '',
             'Amount of Snow: {} cm'.format(round(hud.snow_amount_slider.val)),
             'Road snowiness: {}%'.format(int(hud.road_snowiness_slider.val)),
-            'Snow particle size: {} mm'.format(round((hud.particle_slider.val), 1)),
+            'Snow particle size: {} mm'.format(round((hud.particle_slider.val), 2)),
             '',
             'Fog: {}%'.format(int(hud.fog_slider.val)),
             'Fog Falloff: {}'.format(round((hud.fog_falloff.val), 1)),
