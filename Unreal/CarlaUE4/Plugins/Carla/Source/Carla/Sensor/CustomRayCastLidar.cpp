@@ -93,7 +93,7 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
   const float IntRec = AbsAtm;
 
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
-      Detection.intensity = 1;
+      Detection.intensity = 0.1;
   }
   else {
       int tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
