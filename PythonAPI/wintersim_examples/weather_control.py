@@ -26,6 +26,9 @@ except IndexError:
 
 import carla
 import requests
+import datetime as dt
+
+from fmiopendata.wfs import download_stored_query
 
 try:
     from tkinter import *
@@ -81,7 +84,7 @@ class World(object):
         self.muonio = False
         self.map_name = self.world.get_map().name
         self.filtered_map_name = self.map_name.rsplit('/', 1)[1]
-        self.muonio = self.filtered_map_name == "Muonio"
+        self.muonio = self.filtered_map_name == "Muonio" or "MuonioExtended"
 
     def set_current_weather(self):
         default_weather = self.world.get_weather()
@@ -123,8 +126,9 @@ class World(object):
 
         x = str(data['dataUpdatedTime']).split('T') # split date and time
         date = x[0].split("-")
+
         #year = int(date[0])
-        month = int(date[1]) - 1      
+        month = int(date[1])      
         day = int(date[2])
 
         clock = x[1].split(":")
@@ -149,7 +153,7 @@ class World(object):
         precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
         precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
         precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
-           
+
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
