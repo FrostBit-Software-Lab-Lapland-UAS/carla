@@ -46,17 +46,17 @@ namespace rpc {
     static WeatherParameters MidRainyNight;
     static WeatherParameters HardRainNight;
 
-    static WeatherParameters WinterMorning;
-    static WeatherParameters WinterNoon;
+    static WeatherParameters WinterClearMorning;
+    static WeatherParameters WinterClearNoon;
     static WeatherParameters WinterWetNoon;
     static WeatherParameters WinterCloudyNoon;
-    static WeatherParameters WinterNight;
-    static WeatherParameters SoftSnowNoon;    
-    static WeatherParameters MidSnowNoon;
-    static WeatherParameters HardSnowNoon;
-    static WeatherParameters SoftSnowMorning;
-    static WeatherParameters MidSnowMorning;
-    static WeatherParameters HardSnowMorning;
+    static WeatherParameters WinterClearNight;
+    static WeatherParameters WinterSoftSnowNoon;    
+    static WeatherParameters WinterMidSnowNoon;
+    static WeatherParameters WinterHardSnowNoon;
+    static WeatherParameters WinterSoftSnowMorning;
+    static WeatherParameters WinterMidSnowMorning;
+    static WeatherParameters WinterHardSnowMorning;
 
     /// @}
 
@@ -80,8 +80,8 @@ namespace rpc {
         float in_temperature,
         float in_ice_amount,
         float in_particle_size,
-		float in_relative_humidity,
-		float in_dewpoint,
+		    float in_relative_humidity,
+		    float in_dewpoint,
         float in_wind_direction,
         float in_latitude,
         float in_longitude,
@@ -107,8 +107,8 @@ namespace rpc {
         temperature(in_temperature),
         ice_amount(in_ice_amount),
         particle_size(in_particle_size),
-		relative_humidity(in_relative_humidity),
-		dewpoint(in_dewpoint),
+		    relative_humidity(in_relative_humidity),
+		    dewpoint(in_dewpoint),
         wind_direction(in_wind_direction),
         latitude(in_latitude),
         longitude(in_longitude),
@@ -135,8 +135,8 @@ namespace rpc {
     float temperature = 0.0f;
     float ice_amount = 0.0f;
     float particle_size = 0.0f;
-	float relative_humidity = 0.0f;
-	float dewpoint = 0.0f;
+	  float relative_humidity = 0.0f;
+	  float dewpoint = 0.0f;
     float wind_direction = 0.0f;
     float latitude = 0.0f;
     float longitude = 0.0f;
@@ -166,8 +166,8 @@ namespace rpc {
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
         particle_size(Weather.ParticleSize),
-		relative_humidity(Weather.RelativeHumidity),
-		dewpoint(Weather.Dewpoint),
+	    	relative_humidity(Weather.RelativeHumidity),
+		    dewpoint(Weather.Dewpoint),
         wind_direction(Weather.WindDirection),
         latitude(Weather.Latitude),
         longitude(Weather.Longitude),
@@ -196,8 +196,8 @@ namespace rpc {
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
       Weather.ParticleSize = particle_size;
-	  Weather.RelativeHumidity = relative_humidity;
-	  Weather.Dewpoint = dewpoint;
+	    Weather.RelativeHumidity = relative_humidity;
+  	  Weather.Dewpoint = dewpoint;
       Weather.WindDirection = wind_direction;
       Weather.Latitude = latitude;
       Weather.Longitude = longitude;
@@ -264,8 +264,8 @@ namespace rpc {
         temperature,
         ice_amount,
         particle_size,
-		relative_humidity,
-		dewpoint,
+	    	relative_humidity,
+    		dewpoint,
         wind_direction,
         latitude,
         longitude,

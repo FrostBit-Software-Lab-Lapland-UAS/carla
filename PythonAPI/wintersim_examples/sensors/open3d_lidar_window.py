@@ -89,7 +89,7 @@ class Open3DLidarWindow():
         lidar_bp.set_attribute('range', str(self.range))
         lidar_bp.set_attribute('rotation_frequency', str(1.0 / delta))
         lidar_bp.set_attribute('points_per_second', str(self.points_per_second))
-        lidar_bp.set_attribute('noise_stddev', str(-0.00024*weather.temperature+0.011))
+        #lidar_bp.set_attribute('noise_stddev', str(-0.00024*weather.temperature+0.011))
 
         return lidar_bp
 
@@ -217,7 +217,7 @@ class Open3DLidarWindow():
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(
             window_name='Carla Lidar',
-            width=1920, height=1080,
+            width=1280, height=720,
             left=600, top=600)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
         self.vis.get_render_option().point_size = 2
@@ -246,8 +246,8 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 600000
-        self.upper_fov = 15.0
-        self.lower_fov = -24.9
+        self.points_per_second = 655360
+        self.upper_fov = 22.5
+        self.lower_fov = -22.5
         self.channels = 32.0
-        self.range = 100.0
+        self.range = 120.0
