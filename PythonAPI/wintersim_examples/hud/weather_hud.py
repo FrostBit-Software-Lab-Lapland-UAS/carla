@@ -109,6 +109,7 @@ class InfoHud(object):
         self.time_slider = Slider
         self.day_slider = Slider
         self.month_slider = Slider
+        self.snow_dirtyness_slider = Slider
         self.sliders = []
         self._font_mono = pygame.font.Font(mono, 18 if os.name == 'nt' else 18)
         self._notifications = FadingText(font, (width, 40), (0, height - 40))
@@ -133,7 +134,7 @@ class InfoHud(object):
             if preset[0].temperature <= 0: # only get winter presets
                 self._weather_presets.append(preset)
                 self.preset_names.append(str(preset[1]))
-        self.preset_names.append("Custom") # add 'Custom' prest for the last list index, 
+        self.preset_names.append("Custom") # add 'Custom' preset for the last list index, 
                                            # this is shown if sliders are changed manually
 
         self.preset_count = len(self._weather_presets)
@@ -170,6 +171,7 @@ class InfoHud(object):
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
         self.road_snowiness_slider = Slider(self, "Road snowiness", 0, 100, 0, self.get_slider_offset())
+        self.snow_dirtyness_slider = Slider(self, "Snow dirtyness", 0, 100, 0, self.get_slider_offset())
         self.particle_slider = Slider(self, "Particle size", 1, 3, 1, self.get_slider_offset())
         self.fog_slider = Slider(self, "Fog", 0, 100, 0, self.get_slider_offset())
         self.fog_falloff = Slider(self, "Fog falloff", 0.0, 2.0, 0.0, self.get_slider_offset())
@@ -194,7 +196,7 @@ class InfoHud(object):
             self.precipitation_slider.val = preset.precipitation
             self.fog_slider.val = preset.fog_density
             self.fog_falloff.val = preset.fog_falloff
-
+            self.snow_dirtyness_slider.val = preset.snow_dirtyness
             self.wind_slider.val = preset.wind_intensity * 100.0
             if self.wind_slider.val >= 70.0:
                 self.wind_slider.val = 70.0
@@ -252,8 +254,9 @@ class InfoHud(object):
             'Cloudiness: {}%'.format(round((hud.cloudiness_slider.val), 1)),
             'Precipitation: {}'.format(self.percipitation_level),
             '',
-            'Amount of Snow: {} %'.format(round(hud.snow_amount_slider.val)),
+            'Amount of Snow: {}%'.format(round(hud.snow_amount_slider.val)),
             'Road snowiness: {}%'.format(int(hud.road_snowiness_slider.val)),
+            'Snow dirtyness: {}%'.format(int(hud.snow_dirtyness_slider.val)),
             'Snow particle size: {}'.format(self.particle_class),
             '',
             'Fog: {}%'.format(int(hud.fog_slider.val)),
@@ -401,7 +404,7 @@ class Slider():
         #borders
         line_width = 1
         width = 250
-        height = 27
+        height = 29
 
         # top line #first = starting point on width, second = starting point on height,
         # third = width, fourth = height
@@ -480,6 +483,7 @@ class Weather(object):
         self.weather.sun_azimuth_angle = preset.sun_azimuth_angle
         self.weather.sun_altitude_angle = preset.sun_altitude_angle
         self.weather.snow_amount = hud.snow_amount_slider.val
+        self.weather.snow_dirtyness = hud.snow_dirtyness_slider.val
         self.weather.temperature = hud.temp_slider.val
         self.weather.ice_amount = hud.ice_slider.val
         self.weather.particle_size = hud.particle_slider.val

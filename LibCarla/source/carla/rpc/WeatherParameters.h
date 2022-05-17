@@ -77,6 +77,7 @@ namespace rpc {
         float in_mie_scattering_scale,
         float in_rayleigh_scattering_scale,
         float in_snow_amount,
+        float in_snow_dirtyness,
         float in_temperature,
         float in_ice_amount,
         float in_particle_size,
@@ -104,6 +105,7 @@ namespace rpc {
         mie_scattering_scale(in_mie_scattering_scale),
         rayleigh_scattering_scale(in_rayleigh_scattering_scale), 
         snow_amount(in_snow_amount),
+        snow_dirtyness(in_snow_dirtyness),
         temperature(in_temperature),
         ice_amount(in_ice_amount),
         particle_size(in_particle_size),
@@ -132,6 +134,7 @@ namespace rpc {
     float mie_scattering_scale = 0.0f;
     float rayleigh_scattering_scale = 0.0331f;
     float snow_amount = 0.0f;
+    float snow_dirtyness = 0.0f;
     float temperature = 0.0f;
     float ice_amount = 0.0f;
     float particle_size = 0.0f;
@@ -163,6 +166,7 @@ namespace rpc {
         mie_scattering_scale(Weather.MieScatteringScale),
         rayleigh_scattering_scale(Weather.RayleighScatteringScale),
         snow_amount(Weather.SnowAmount),
+        snow_dirtyness(Weather.SnowDirtyness),
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
         particle_size(Weather.ParticleSize),
@@ -193,6 +197,7 @@ namespace rpc {
       Weather.MieScatteringScale = mie_scattering_scale;
       Weather.RayleighScatteringScale = rayleigh_scattering_scale;
       Weather.SnowAmount = snow_amount;
+      Weather.SnowDirtyness = snow_dirtyness;
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
       Weather.ParticleSize = particle_size;
@@ -227,6 +232,7 @@ namespace rpc {
             mie_scattering_scale != rhs.mie_scattering_scale ||
             rayleigh_scattering_scale != rhs.rayleigh_scattering_scale ||
 			snow_amount != rhs.snow_amount ||
+      snow_dirtyness != rhs.snow_dirtyness ||
 			temperature != rhs.temperature ||
 			ice_amount != rhs.ice_amount ||
 			particle_size != rhs.particle_size ||
@@ -261,6 +267,7 @@ namespace rpc {
         mie_scattering_scale,
         rayleigh_scattering_scale,
         snow_amount,
+        snow_dirtyness,
         temperature,
         ice_amount,
         particle_size,

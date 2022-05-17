@@ -83,6 +83,7 @@ float ACustomRayCastLidar::ComputeIntensity(const FCustomSemanticDetection& RawD
 ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
 {
   FHitResult Hit = HitInfo;
+  FString snowflake = "SnowFlake";
   FCustomDetection Detection;
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
@@ -98,6 +99,11 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
 
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
       Detection.intensity = 0.1;
+  }
+  FString name = HitInfo.GetActor()->GetName();
+  if(name.Find(snowflake) != std::string::npos)
+  {
+    Detection.intensity = 0.1;
   }
   else {
   Detection.intensity = IntRec;
