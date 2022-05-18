@@ -3,7 +3,6 @@
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
-
 #include <PxScene.h>
 #include <cmath>
 #include "Carla.h"
@@ -83,7 +82,7 @@ float ACustomRayCastLidar::ComputeIntensity(const FCustomSemanticDetection& RawD
 ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
 {
   FHitResult Hit = HitInfo;
-  FString snowflake = "SnowFlake";
+
   FCustomDetection Detection;
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
@@ -93,18 +92,23 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
   auto *Weather = Episode->GetWeather();
   FWeatherParameters w = Weather->GetCurrentWeather(); //current weather
   const float Distance = Detection.point.Length();
-  float AttenAtm = 0.019+0.017*w.RelativeHumidity;
-  float AbsAtm = exp(-AttenAtm * Distance);
+  float rain_amount = w.Precipitation;
+  float percipitation_amount = 0;
+  if(rain_amount > 0 && rain_amount <= 33.33f)
+     percipitation_amount = 1;
+  else if(rain_amount > 33.33 && rain_amount <= 66.66f)
+     percipitation_amount = 2;
+  else if(rain_amount > 66.66 && rain_amount <= 100.00f)
+     percipitation_amount = 3;
+
+  float AttenAtm = -0.056+0.0001*w.Temperature-0.0001*w.RelativeHumidity-0.002*percipitation_amount;
+  float AbsAtm = exp(AttenAtm * Distance);
   float IntRec = AbsAtm;
 
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
       Detection.intensity = 0.1;
   }
-  FString name = HitInfo.GetActor()->GetName();
-  if(name.Find(snowflake) != std::string::npos)
-  {
-    Detection.intensity = 0.1;
-  }
+
   else {
   Detection.intensity = IntRec;
   }

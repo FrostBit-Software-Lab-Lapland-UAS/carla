@@ -126,7 +126,7 @@ class InfoHud(object):
         self.gap = 70
         self.force_tick = False
         self.month = None
-        self.percipitation_level = None
+        self.precipitation_level = None
         self.particle_class = None
         
         self._weather_presets_all = find_weather_presets()
@@ -141,7 +141,7 @@ class InfoHud(object):
         self.months = [
             'January','February','March','April','May','June',
             'July','August','September','October','November','December']
-        self.percipitation_levels = [
+        self.precipitation_levels = [
             'None', 'Light', 'Moderate', 'Heavy']
         self.particle_classes = ['Small', 'Medium', 'Large']
 
@@ -180,7 +180,7 @@ class InfoHud(object):
         self.time_slider = Slider(self, "Time", 10, 24, 0, self.get_slider_offset())
         self.day_slider = Slider(self, "Day", 4, 31, 1, self.get_slider_offset())
         self.month_slider = Slider(self, "Month", 1, 12, 1, self.get_slider_offset())
-        self.percipitation_level = self.get_percipitation_level(int(self.precipitation_slider.val))
+        self.precipitation_level = self.get_precipitation_level(int(self.precipitation_slider.val))
         self.particle_class = self.get_particle_class(int(self.particle_slider.val))
         self.month = self.get_month(int(self.month_slider.val))
         
@@ -212,7 +212,7 @@ class InfoHud(object):
             self.day_slider.val = preset.day
 
             self.month = self.get_month(int(self.month_slider.val))
-            self.percipitation_level = self.get_percipitation_level(int(self.precipitation_slider.val))
+            self.precipitation_level = self.get_precipitation_level(int(self.precipitation_slider.val))
             self.particle_class = self.get_particle_class(int(self.particle_slider.val))
         except AttributeError as e:
             print(e)
@@ -220,15 +220,15 @@ class InfoHud(object):
     def get_month(self, val):
         return self.months[val-1]
 
-    def get_percipitation_level(self, val):
+    def get_precipitation_level(self, val):
         if val == 0:
-            return self.percipitation_levels[0]
+            return self.precipitation_levels[0]
         elif val > 0 and val <= 33:
-            return self.percipitation_levels[1]
+            return self.precipitation_levels[1]
         elif val > 33 and val <= 66:
-            return self.percipitation_levels[2]
+            return self.precipitation_levels[2]
         elif val > 66 and val <= 100:
-            return self.percipitation_levels[3]
+            return self.precipitation_levels[3]
 
     def get_particle_class(self, val):
         return self.particle_classes[val-1]
@@ -252,7 +252,7 @@ class InfoHud(object):
             'Friction level: {}'.format(int(hud.ice_slider.val)),
             '',
             'Cloudiness: {}%'.format(round((hud.cloudiness_slider.val), 1)),
-            'Precipitation: {}'.format(self.percipitation_level),
+            'Precipitation: {}'.format(self.precipitation_level),
             '',
             'Amount of Snow: {}%'.format(round(hud.snow_amount_slider.val)),
             'Road snowiness: {}%'.format(int(hud.road_snowiness_slider.val)),
@@ -475,7 +475,7 @@ class Weather(object):
         preset = preset[0]
         self.weather.cloudiness = hud.cloudiness_slider.val
         self.weather.precipitation = hud.precipitation_slider.val
-        self.weather.precipitation_deposits = hud.precipitation_slider.val
+        self.weather.precipitation_deposits = 0
         self.weather.wind_intensity = hud.wind_slider.val / 100.0
         self.weather.fog_density = hud.fog_slider.val
         self.weather.fog_falloff= hud.fog_falloff.val
@@ -494,7 +494,7 @@ class Weather(object):
         self.weather.day = hud.day_slider.val
         self.weather.time = hud.time_slider.val
 
-        hud.precipitation_level = hud.get_percipitation_level(int(hud.precipitation_slider.val))
+        hud.precipitation_level = hud.get_precipitation_level(int(hud.precipitation_slider.val))
         hud.particle_class = hud.get_particle_class(int(hud.particle_slider.val))
         hud.month = hud.get_month(int(hud.month_slider.val))
         hud.current_direction = degrees_to_compass_names_simple(hud.wind_dir_slider.val)

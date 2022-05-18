@@ -243,6 +243,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
       percipitation_amount = 2;
   else if(rain_amount > 66.66 && rain_amount <= 100.00f)
       percipitation_amount = 3;
+      
   float snow = percipitation_amount + particle_size;
   //-------------------------------------------------------------
   
