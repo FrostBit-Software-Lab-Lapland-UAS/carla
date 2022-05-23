@@ -275,7 +275,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
 
 bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custom drop off rate for lidar hits according to rainamount(snow)
 {
-  float random = (float) rand()/ double(RAND_MAX);
+ /* float random = (float) rand()/ double(RAND_MAX);
   float dropoff = rain_amount * 0.003;
 
   if (random < dropoff) //dropoff max value is 0.3 at rain_amount value 100
@@ -283,7 +283,8 @@ bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const /
     return false;
   } else {
     return true;
-  }
+  }*/
+  return true;
   
 }
 
