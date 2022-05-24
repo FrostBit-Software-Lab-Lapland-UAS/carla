@@ -95,11 +95,11 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
   float rain_amount = w.Precipitation;
   float percipitation_amount = 0;
   if(rain_amount > 0 && rain_amount <= 33.33f)
-     percipitation_amount = 1;
+     percipitation_amount = 1 + w.ParticleSize;
   else if(rain_amount > 33.33 && rain_amount <= 66.66f)
-     percipitation_amount = 2;
+     percipitation_amount = 2 + w.ParticleSize;
   else if(rain_amount > 66.66 && rain_amount <= 100.00f)
-     percipitation_amount = 3;
+     percipitation_amount = 3 + w.ParticleSize;
 
   float AttenAtm = -0.056+0.0001*w.Temperature-0.0001*w.RelativeHumidity-0.002*percipitation_amount;
   float AbsAtm = exp(AttenAtm * Distance);
