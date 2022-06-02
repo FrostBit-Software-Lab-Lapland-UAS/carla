@@ -292,8 +292,8 @@ class KeyboardControl(object):
                         world.toggle_static_tiretracks()
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if hud.ice_slider.hit:                                  # if road iciness slider is moved
-                    world.update_friction(hud.ice_slider.val)
+            #    if hud.ice_slider.hit:                                  # if road iciness slider is moved
+            #        world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
                     slider.hit = False                                  # slider moving stopped
             elif event.type == pygame.KEYUP:

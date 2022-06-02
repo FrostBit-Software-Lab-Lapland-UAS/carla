@@ -82,33 +82,36 @@ float ACustomRayCastLidar::ComputeIntensity(const FCustomSemanticDetection& RawD
 ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
 {
   FHitResult Hit = HitInfo;
-
   FCustomDetection Detection;
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
+
   auto *World = GetWorld();
   UCarlaGameInstance *GameInstance = UCarlaStatics::GetGameInstance(World);
   auto *Episode = GameInstance->GetCarlaEpisode();
+
   auto *Weather = Episode->GetWeather();
   FWeatherParameters w = Weather->GetCurrentWeather(); //current weather
-  const float Distance = Detection.point.Length();
+  float precipitation_class = 0;
   float rain_amount = w.Precipitation;
-  float percipitation_amount = 0;
-  if(rain_amount > 0 && rain_amount <= 33.33f)
-     percipitation_amount = 1 + w.ParticleSize;
-  else if(rain_amount > 33.33 && rain_amount <= 66.66f)
-     percipitation_amount = 2 + w.ParticleSize;
-  else if(rain_amount > 66.66 && rain_amount <= 100.00f)
-     percipitation_amount = 3 + w.ParticleSize;
+  const float Distance = Detection.point.Length();
 
-  float AttenAtm = -0.056+0.0001*w.Temperature-0.0001*w.RelativeHumidity-0.002*percipitation_amount;
+  // Calculate precipitation class
+  if(rain_amount > 0 && rain_amount <= 33.33f)
+     precipitation_class = 1 + w.ParticleSize;
+  else if(rain_amount > 33.33 && rain_amount <= 66.66f)
+     precipitation_class = 2 + w.ParticleSize;
+  else if(rain_amount > 66.66 && rain_amount <= 100.00f)
+     precipitation_class = 3 + w.ParticleSize;
+
+  //Intensity formula
+  float AttenAtm = -0.056+0.0001*w.Temperature-0.0001*w.RelativeHumidity-0.002*precipitation_class;
   float AbsAtm = exp(AttenAtm * Distance);
   float IntRec = AbsAtm;
 
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
-      Detection.intensity = 0.1;
+      Detection.intensity = 0.1; //set snowflake intesity
   }
-
   else {
   Detection.intensity = IntRec;
   }

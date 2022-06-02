@@ -50,6 +50,7 @@ try:
     from pygame.locals import K_z
     from pygame.locals import K_t
     from pygame.locals import K_r
+
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 

@@ -97,7 +97,7 @@ class InfoHud(object):
         self.humidity = Slider
         self.snow_amount_slider = Slider
         self.road_snowiness_slider = Slider
-        self.ice_slider = Slider
+        #self.ice_slider = Slider
         self.cloudiness_slider = Slider
         self.precipitation_slider = Slider
         self.cloudiness_slider = Slider
@@ -164,9 +164,9 @@ class InfoHud(object):
     def make_sliders(self):
         '''Make sliders and add them in to list'''
         self.preset_slider = Slider(self, "Preset", 0, self.preset_count, 0, self.gap)
-        self.temp_slider = Slider(self, "Temperature", 0, 40, -40, self.get_slider_offset())
-        self.dewpoint_slider = Slider(self, "Dewpoint", 0, 40, -40, self.get_slider_offset())
-        self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
+        self.temp_slider = Slider(self, "Temperature", -0.8, 40, -40, self.get_slider_offset())
+        self.dewpoint_slider = Slider(self, "Dewpoint", -0.8, 40, -40, self.get_slider_offset())
+        #self.ice_slider = Slider(self, "Friction", 0, 4, 0, self.get_slider_offset())
         self.cloudiness_slider = Slider(self, "Cloudiness", 0, 100, 0, self.get_slider_offset())
         self.precipitation_slider = Slider(self, "Precipitation", 0, 100, 0, self.get_slider_offset())
         self.snow_amount_slider = Slider(self, "Snow amount", 0, 100, 0, self.get_slider_offset())
@@ -190,7 +190,7 @@ class InfoHud(object):
         try:
             self.snow_amount_slider.val = preset.snow_amount
             self.road_snowiness_slider.val = preset.road_snowiness
-            self.ice_slider.val = preset.ice_amount
+            #self.ice_slider.val = preset.ice_amount
             self.temp_slider.val = preset.temperature
             self.cloudiness_slider.val = preset.cloudiness
             self.precipitation_slider.val = preset.precipitation
@@ -249,8 +249,8 @@ class InfoHud(object):
             '',
             'Dewpoint: {}°'.format(round((hud.dewpoint_slider.val), 1)),
             '',
-            'Friction level: {}'.format(int(hud.ice_slider.val)),
-            '',
+            #'Friction level: {}'.format(int(hud.ice_slider.val)),
+            #'',
             'Cloudiness: {}%'.format(round((hud.cloudiness_slider.val), 1)),
             'Precipitation: {}'.format(self.precipitation_level),
             '',
@@ -273,6 +273,8 @@ class InfoHud(object):
             '',
             'Press C to change',
             'weather preset',
+            '',
+            '',
             '',
             'Press B to get real time',
             'weather']
@@ -485,7 +487,7 @@ class Weather(object):
         self.weather.snow_amount = hud.snow_amount_slider.val
         self.weather.snow_dirtyness = hud.snow_dirtyness_slider.val
         self.weather.temperature = hud.temp_slider.val
-        self.weather.ice_amount = hud.ice_slider.val
+        #self.weather.ice_amount = hud.ice_slider.val
         self.weather.particle_size = hud.particle_slider.val
         self.weather.relative_humidity = hud.humidity
         self.weather.dewpoint = hud.dewpoint_slider.val

@@ -73,15 +73,15 @@ class Open3DLidarWindow():
     this spawns lidar to ego vehicle and separate window from the simulation view 
     '''
 
-    def generate_lidar_bp(self, semantic, world, blueprint_library, delta, weather):
+    def generate_lidar_bp(self, semantic, world, blueprint_library, delta):
         """Generates a CARLA blueprint based on the script parameters"""
         if semantic:
-            lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+            lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
         else:
             lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
-            lidar_bp.set_attribute('dropoff_general_rate', '0.0')
-            lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
-            lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
+            #lidar_bp.set_attribute('dropoff_general_rate', '0.0')
+            #lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
+            #lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
 
         lidar_bp.set_attribute('upper_fov', str(self.upper_fov))
         lidar_bp.set_attribute('lower_fov', str(self.lower_fov))
@@ -193,12 +193,11 @@ class Open3DLidarWindow():
             self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = False):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
 
-        weather = world.get_weather()
-        lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta, weather)
+        lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
         lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
 

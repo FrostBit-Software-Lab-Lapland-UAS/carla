@@ -124,9 +124,6 @@ void ACustomRayCastSemanticLidar::SimulateLidar(const float DeltaTime)
 
       FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("Laser_Trace")), true, this);
       TraceParams.bTraceComplex = true;
-      ///Added to expose face index needed for intesity calculations
-      TraceParams.bReturnFaceIndex = true;
-      //-----------------------------------------------------------
       TraceParams.bReturnPhysicalMaterial = false;
       
       for (auto idxPtsOneLaser = 0u; idxPtsOneLaser < PointsToScanWithOneLaser; idxPtsOneLaser++) {
@@ -233,18 +230,16 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
 {
   FVector max_distance = end_trace; //lidar max range
   FVector start_point = LidarBodyLoc; //start point is lidar position
-  int percipitation_amount = 0;
+  float precipitation_class = 0;
 
-  // Variables for the snowflake probability formula
+  // Calculate precipitation class
   //-------------------------------------------------------------
   if(rain_amount > 0 && rain_amount <= 33.33f)
-      percipitation_amount = 1;
+      precipitation_class = 1 + particle_size;
   else if(rain_amount > 33.33 && rain_amount <= 66.66f)
-      percipitation_amount = 2;
+      precipitation_class = 2 + particle_size;
   else if(rain_amount > 66.66 && rain_amount <= 100.00f)
-      percipitation_amount = 3;
-      
-  float snow = percipitation_amount + particle_size;
+      precipitation_class = 3 + particle_size;
   //-------------------------------------------------------------
   
 	if (HitInfo.bBlockingHit) //If linetrace hits something
@@ -259,7 +254,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
   FVector new_hitpoint = new_start_point + random * new_vector; //Generate new point from new start point to end point
 	float distance = FVector::Dist(start_point, new_hitpoint)/100; //distance beteen new_hitpoint and start point (divide by 100 to get meters)
 
-  float probability = snow / 10 * exp(-pow(distance-(4+0.2*snow), 2.0) / pow(2, 2.0)) + 0.2 * snow / 10 * exp(-pow(distance-(7+0.2*snow), 2.0) / pow(1, 2.0)); //value between 0-1 this is the probability of trace to hit snowflake at certain distances
+  float probability = precipitation_class / 10 * exp(-pow(distance-(4+0.2*precipitation_class), 2.0) / pow(2, 2.0)) + 0.2 * precipitation_class / 10 * exp(-pow(distance-(7+0.2*precipitation_class), 2.0) / pow(1, 2.0)); //value between 0-1 this is the probability of trace to hit snowflake at certain distances
 
   float r = (float)rand() / double(RAND_MAX); //random between 0-1
 	if (r < probability) //if random is smaller than probability from formula we hit the trace to snowflake
@@ -275,7 +270,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
 
 bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custom drop off rate for lidar hits according to rainamount(snow)
 {
- /* float random = (float) rand()/ double(RAND_MAX);
+  /* float random = (float) rand()/ double(RAND_MAX);
   float dropoff = rain_amount * 0.003;
 
   if (random < dropoff) //dropoff max value is 0.3 at rain_amount value 100
@@ -285,7 +280,6 @@ bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const /
     return true;
   }*/
   return true;
-  
 }
 
 bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const
