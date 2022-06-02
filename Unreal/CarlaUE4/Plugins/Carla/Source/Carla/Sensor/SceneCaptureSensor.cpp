@@ -112,6 +112,21 @@ void ASceneCaptureSensor::SetCameraSleetEffectStrength(float value)
     cameraSleetEffectStrength = value;
 }
 
+void ASceneCaptureSensor::SetCameraIceEffect(const bool enabled)
+{
+    cameraIceEffect = enabled;
+}
+
+void ASceneCaptureSensor::SetCameraIceEffectRotation(FString value)
+{
+    cameraIceEffectRotation = value;
+}
+
+void ASceneCaptureSensor::SetCameraIceEffectStrength(float value)
+{
+    cameraIceEffectStrength = value;
+}
+
 float ASceneCaptureSensor::GetFOVAngle() const
 {
   check(CaptureComponent2D != nullptr);
@@ -514,12 +529,15 @@ void ASceneCaptureSensor::BeginPlay()
   SceneCaptureSensor_local_ns::ConfigureShowFlags(CaptureComponent2D->ShowFlags,
       bEnablePostProcessingEffects);
 
+  // notify all event subscribers that new camera has been added
+  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this);
+
   // This ensures the camera is always spawning the raindrops in case the
   // weather was previously set to have rain.
   GetEpisode().GetWeather()->NotifyWeather();
 
   // notify all event subscribers that new camera has been added
-  GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
+  // GetEpisode().GetSensorEventHandler()->CameraAdded.Broadcast(this, cameraSleetEffectRotation, cameraSleetEffectStrength);
 
   Super::BeginPlay();
 }

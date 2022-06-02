@@ -3,19 +3,19 @@
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
-
 #include <PxScene.h>
 #include <cmath>
 #include "Carla.h"
 #include "Carla/Sensor/CustomRayCastLidar.h"
 #include "Carla/Actor/ActorBlueprintFunctionLibrary.h"
 #include "carla/geom/Math.h"
-
+#include "Materials/MaterialInstanceDynamic.h"
+#include "MaterialExpressionIO.h"
 #include <compiler/disable-ue4-macros.h>
 #include "carla/geom/Math.h"
 #include "carla/geom/Location.h"
 #include <compiler/enable-ue4-macros.h>
-
+#include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
@@ -81,106 +81,40 @@ float ACustomRayCastLidar::ComputeIntensity(const FCustomSemanticDetection& RawD
 
 ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(const FHitResult& HitInfo, const FTransform& SensorTransf) const
 {
+  FHitResult Hit = HitInfo;
   FCustomDetection Detection;
   const FVector HitPoint = HitInfo.ImpactPoint;
   Detection.point = SensorTransf.Inverse().TransformPosition(HitPoint);
 
+  auto *World = GetWorld();
+  UCarlaGameInstance *GameInstance = UCarlaStatics::GetGameInstance(World);
+  auto *Episode = GameInstance->GetCarlaEpisode();
+
+  auto *Weather = Episode->GetWeather();
+  FWeatherParameters w = Weather->GetCurrentWeather(); //current weather
+  float precipitation_class = 0;
+  float rain_amount = w.Precipitation;
   const float Distance = Detection.point.Length();
 
-  const float AttenAtm = Description.AtmospAttenRate;
-  const float AbsAtm = exp(-AttenAtm * Distance);
+  // Calculate precipitation class
+  if(rain_amount > 0 && rain_amount <= 33.33f)
+     precipitation_class = 1 + w.ParticleSize;
+  else if(rain_amount > 33.33 && rain_amount <= 66.66f)
+     precipitation_class = 2 + w.ParticleSize;
+  else if(rain_amount > 66.66 && rain_amount <= 100.00f)
+     precipitation_class = 3 + w.ParticleSize;
 
-  const float IntRec = AbsAtm;
+  //Intensity formula
+  float AttenAtm = -0.056+0.0001*w.Temperature-0.0001*w.RelativeHumidity-0.002*precipitation_class;
+  float AbsAtm = exp(AttenAtm * Distance);
+  float IntRec = AbsAtm;
 
   if (HitInfo.Component == nullptr) { //snowflakes dont have component
-      Detection.intensity = 1;
+      Detection.intensity = 0.1; //set snowflake intesity
   }
   else {
-      int tag = static_cast<uint32_t>(HitInfo.Component->CustomDepthStencilValue);
-      switch (tag)
-      {
-      case 0:
-          Detection.intensity = 0.1;
-          break;
-      case 1:
-          Detection.intensity = 0.8;
-          break;
-      case 2:
-          Detection.intensity = 0.4;
-          break;
-      case 3:
-          Detection.intensity = 0.99;
-          break;
-      case 4:
-          Detection.intensity = 0.97;
-          break;
-      case 5:
-          Detection.intensity = 0.95;
-          break;
-      case 6:
-          Detection.intensity = 0.94;
-          break;
-      case 7:
-          Detection.intensity = 0.93;
-          break;
-      case 8:
-          Detection.intensity = 0.92;
-          break;
-      case 9:
-          Detection.intensity = 0.91;
-          break;
-      case 10:
-          Detection.intensity = 0.90;
-          break;
-      case 11:
-          Detection.intensity = 0.89;
-          break;
-      case 12:
-          Detection.intensity = 0.88;
-          break;
-      case 13:
-          Detection.intensity = 0.87;
-          break;
-      case 14:
-          Detection.intensity = 0.86;
-          break;
-      case 15:
-          Detection.intensity = 0.85;
-          break;
-      case 16:
-          Detection.intensity = 0.84;
-          break;
-      case 17:
-          Detection.intensity = 0.83;
-          break;
-      case 18:
-          Detection.intensity = 0.82;
-          break;
-      case 19:
-          Detection.intensity = 0.81;
-          break;
-      case 20:
-          Detection.intensity = 0.80;
-          break;
-      case 21:
-          Detection.intensity = 0.79;
-          break;
-      case 22:
-          Detection.intensity = 0.77;
-          break;
-      case 23:
-          Detection.intensity = 0.99;
-          break;
-      case 24:
-          Detection.intensity = 0.1;
-          break;
-      default:
-          Detection.intensity = 0.5;
-      }
+  Detection.intensity = IntRec;
   }
-
-  //Detection.intensity = IntRec;
-
   return Detection;
 }
 
@@ -196,9 +130,15 @@ ACustomRayCastLidar::FCustomDetection ACustomRayCastLidar::ComputeDetection(cons
 
   bool ACustomRayCastLidar::PostprocessDetection(FCustomDetection& Detection) const
   {
-    if (Description.NoiseStdDev > std::numeric_limits<float>::epsilon()) {
+    auto *World = GetWorld();
+    UCarlaGameInstance *GameInstance = UCarlaStatics::GetGameInstance(World);
+    auto *Episode = GameInstance->GetCarlaEpisode();
+    auto *Weather = Episode->GetWeather();
+    FWeatherParameters w = Weather->GetCurrentWeather(); //current weather
+
+    if (-0.00024*w.Temperature+0.011 > std::numeric_limits<float>::epsilon()) {
       const auto ForwardVector = Detection.point.MakeUnitVector();
-      const auto Noise = ForwardVector * RandomEngine->GetNormalDistribution(0.0f, Description.NoiseStdDev);
+      const auto Noise = ForwardVector * RandomEngine->GetNormalDistribution(0.0f, -0.00024*w.Temperature+0.011);
       Detection.point += Noise;
     }
 

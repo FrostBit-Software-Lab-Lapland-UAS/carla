@@ -87,14 +87,51 @@ class SensorManager:
             disp_size = self.display_manager.get_display_size()
             camera_bp.set_attribute('image_size_x', str(disp_size[0]))
             camera_bp.set_attribute('image_size_y', str(disp_size[1]))
+            camera_bp.set_attribute('fov', '70')
             for key in sensor_options:
                 camera_bp.set_attribute(key, sensor_options[key])
             camera = self.world.spawn_actor(camera_bp, transform, attach_to=attached)
-            camera.listen(self.save_rgb_image)
+            camera.listen(self.save_image)
+            return camera
+
+        elif sensor_type == 'depth':
+            camera_bp = self.world.get_blueprint_library().find('sensor.camera.depth')
+            disp_size = self.display_manager.get_display_size()
+            camera_bp.set_attribute('image_size_x', str(disp_size[0]))
+            camera_bp.set_attribute('image_size_y', str(disp_size[1]))
+            camera_bp.set_attribute('fov', '70')
+            for key in sensor_options:
+                camera_bp.set_attribute(key, sensor_options[key])
+            camera = self.world.spawn_actor(camera_bp, transform, attach_to=attached)
+            camera.listen(self.save_image)
+            return camera
+
+        elif sensor_type == 'semantic':
+            camera_bp = self.world.get_blueprint_library().find('sensor.camera.semantic_segmentation')
+            disp_size = self.display_manager.get_display_size()
+            camera_bp.set_attribute('image_size_x', str(disp_size[0]))
+            camera_bp.set_attribute('image_size_y', str(disp_size[1]))
+            camera_bp.set_attribute('fov', '70')
+            for key in sensor_options:
+                camera_bp.set_attribute(key, sensor_options[key])
+            camera = self.world.spawn_actor(camera_bp, transform, attach_to=attached)
+            camera.listen(self.save_image)
+            return camera
+
+        elif sensor_type == 'semantic_city':
+            camera_bp = self.world.get_blueprint_library().find('sensor.camera.semantic_segmentation')
+            disp_size = self.display_manager.get_display_size()
+            camera_bp.set_attribute('image_size_x', str(disp_size[0]))
+            camera_bp.set_attribute('image_size_y', str(disp_size[1]))
+            camera_bp.set_attribute('fov', '70')
+            for key in sensor_options:
+                camera_bp.set_attribute(key, sensor_options[key])
+            camera = self.world.spawn_actor(camera_bp, transform, attach_to=attached)
+            camera.listen(self.save_image_CityPalette)
             return camera
 
         elif sensor_type == 'LiDAR':
-            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast')
+            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.custom_ray_cast')
             lidar_bp.set_attribute('range', '100')
             lidar_bp.set_attribute('dropoff_general_rate', lidar_bp.get_attribute('dropoff_general_rate').recommended_values[0])
             lidar_bp.set_attribute('dropoff_intensity_limit', lidar_bp.get_attribute('dropoff_intensity_limit').recommended_values[0])
@@ -106,7 +143,7 @@ class SensorManager:
             return lidar
         
         elif sensor_type == 'SemanticLiDAR':
-            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+            lidar_bp = self.world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
             lidar_bp.set_attribute('range', '100')
             for key in sensor_options:
                 lidar_bp.set_attribute(key, sensor_options[key])
@@ -128,7 +165,16 @@ class SensorManager:
     def get_sensor(self):
         return self.sensor
 
-    def save_rgb_image(self, image):
+    def save_image_CityPalette(self, image):
+        image.convert(carla.ColorConverter.CityScapesPalette)
+        array = np.frombuffer(image.raw_data, dtype=np.dtype(np.uint8))
+        array = np.reshape(array, (image.height, image.width, 4))
+        array = array[:, :, :3]
+        array = array[:, :, ::-1]
+        if self.display_manager.render_enabled():
+            self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+
+    def save_image(self, image):
         image.convert(carla.ColorConverter.Raw)
         array = np.frombuffer(image.raw_data, dtype=np.dtype(np.uint8))
         array = np.reshape(array, (image.height, image.width, 4))
@@ -136,6 +182,7 @@ class SensorManager:
         array = array[:, :, ::-1]
         if self.display_manager.render_enabled():
             self.surface = pygame.surfarray.make_surface(array.swapaxes(0, 1))
+
 
     def save_lidar_image(self, image):
         disp_size = self.display_manager.get_display_size()
@@ -188,17 +235,14 @@ class MultiSensorView():
     def __init__(self):
         self.display_manager = None
 
-    def setup(self, world, vehicle, display, width, height, vehicle_name = "none"):
+    def setup(self, world, vehicle, display, width, height, vehicle_name = "none", sensor_opt_index = 0):
         '''Setup multi sensor view'''
 
-        # Display Manager organize all the sensors an its display in a window
-        # If can easily configure the grid and the total window size
-        # Then, SensorManager can be used to spawn RGBCamera, LiDARs and SemanticLiDARs as needed and assign each of them to a grid position
-        self.display_manager = DisplayManager(display, grid_size=[2, 3], window_size=[width, height])
-
-        # WinterSim Camera attributes
+        # WinterSim added Camera attributes
+        # camera_sleet_effect True to enable camera lens sleet effect (default false)
+        # camera_ice_effect True to enable camera lens ice effect (default false)
         right_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.2'}
-        front_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'up',   'camera_sleet_effect_strength' : '1.2'}
+        front_camera_attributes = {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'up',   'camera_sleet_effect_strength' : '1.2', 'camera_ice_effect' : 'True',}
         left_camera_attributes =  {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'left', 'camera_sleet_effect_strength' : '1.0'}
         back_camera_attributes =  {'camera_sleet_effect' : 'True', 'camera_sleet_effect_rotation' : 'down', 'camera_sleet_effect_strength' : '1.5'}
 
@@ -239,17 +283,42 @@ class MultiSensorView():
             front_cam_loc = carla.Location(0.0, 0.0, 2.4)
             left_cam_loc = carla.Location(0.0, 0.0, 2.4)
             back_cam_loc = carla.Location(0.0, 0.0, 2.4)
-        
-        # spawn camera sensors
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[0, 2])
-        SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 1])
-            
-        # spawn lidar sensors
-        SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
-        SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
 
+
+        if sensor_opt_index == 0:
+            # spawn 4 cameras and 2 lidars
+            self.display_manager = DisplayManager(display, grid_size=[2, 3], window_size=[width, height])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[0, 2])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 1])
+            SensorManager(world, self.display_manager, 'LiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100',  'points_per_second': '250000', 'rotation_frequency': '20'}, display_pos=[1, 0])
+            SensorManager(world, self.display_manager, 'SemanticLiDAR', carla.Transform(lidar_location), vehicle, {'channels' : '64', 'range' : '100', 'points_per_second': '100000', 'rotation_frequency': '20'}, display_pos=[1, 2])
+        elif sensor_opt_index == 1:
+            # spawn 4 cameras
+            self.display_manager = DisplayManager(display, grid_size=[2, 2], window_size=[width, height])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(right_cam_loc,  carla.Rotation(yaw=-90)), vehicle, right_camera_attributes, display_pos=[0, 0])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(left_cam_loc,  carla.Rotation(yaw=+90)), vehicle, left_camera_attributes, display_pos=[1, 1])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 0])
+        elif sensor_opt_index == 2:
+            # spawn 2 cameras
+            self.display_manager = DisplayManager(display, grid_size=[2, 1], window_size=[width, height])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=0)), vehicle, front_camera_attributes, display_pos=[0, 0])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 0])
+        elif sensor_opt_index == 3:
+            # spawn 4 front cameras
+            self.display_manager = DisplayManager(display, grid_size=[2, 2], window_size=[width, height])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, right_camera_attributes, display_pos=[0, 0])
+            SensorManager(world, self.display_manager, 'depth', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, front_camera_attributes, display_pos=[0, 1])
+            SensorManager(world, self.display_manager, 'semantic', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, left_camera_attributes, display_pos=[1, 1])
+            SensorManager(world, self.display_manager, 'semantic_city', carla.Transform(front_cam_loc,  carla.Rotation(yaw=+00)), vehicle, back_camera_attributes, display_pos=[1, 0])
+        else:
+            # spawn 2 cameras
+            self.display_manager = DisplayManager(display, grid_size=[2, 1], window_size=[width, height])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(front_cam_loc,  carla.Rotation(yaw=0)), vehicle, front_camera_attributes, display_pos=[0, 0])
+            SensorManager(world, self.display_manager, 'RGBCamera', carla.Transform(back_cam_loc,  carla.Rotation(yaw=180)), vehicle, back_camera_attributes, display_pos=[1, 0])
+        
     def destroy(self):
         '''Destroy multi sensor view'''
         self.display_manager.destroy()

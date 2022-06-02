@@ -29,12 +29,20 @@ namespace rpc {
         << ", mie_scattering_scale=" << std::to_string(weather.mie_scattering_scale)
         << ", rayleigh_scattering_scale=" << std::to_string(weather.rayleigh_scattering_scale)
         << ", snow_amount=" << std::to_string(weather.snow_amount)
+        << ", snow_dirtyness=" << std::to_string(weather.snow_dirtyness)
         << ", temperature=" << std::to_string(weather.temperature)
         << ", ice_amount=" << std::to_string(weather.ice_amount)
 		<< ", particle_size=" << std::to_string(weather.particle_size)
 		<< ", relative_humidity=" << std::to_string(weather.relative_humidity)
 		<< ", dewpoint=" << std::to_string(weather.dewpoint)
-        << ", wind_direction=" << std::to_string(weather.wind_direction) << ')';
+        << ", wind_direction=" << std::to_string(weather.wind_direction)
+        << ", latitude=" << std::to_string(weather.latitude)
+        << ", longitude=" << std::to_string(weather.longitude)
+        << ", timezone=" << std::to_string(weather.timezone)
+        << ", road_snowiness=" << std::to_string(weather.road_snowiness)
+        << ", month=" << std::to_string(weather.month)
+        << ", day=" << std::to_string(weather.day)
+        << ", time=" << std::to_string(weather.time) << ')';
     return out;
   }
 
@@ -80,12 +88,20 @@ void export_weather() {
     .def_readwrite("mie_scattering_scale", &cr::WeatherParameters::mie_scattering_scale)
     .def_readwrite("rayleigh_scattering_scale", &cr::WeatherParameters::rayleigh_scattering_scale)
     .def_readwrite("snow_amount", &cr::WeatherParameters::snow_amount)
+    .def_readwrite("snow_dirtyness", &cr::WeatherParameters::snow_dirtyness)
     .def_readwrite("temperature", &cr::WeatherParameters::temperature)
     .def_readwrite("ice_amount", &cr::WeatherParameters::ice_amount)
     .def_readwrite("particle_size", &cr::WeatherParameters::particle_size)
 	.def_readwrite("relative_humidity", &cr::WeatherParameters::relative_humidity)
 	.def_readwrite("dewpoint", &cr::WeatherParameters::dewpoint)
     .def_readwrite("wind_direction", &cr::WeatherParameters::wind_direction)
+    .def_readwrite("latitude", &cr::WeatherParameters::latitude)
+    .def_readwrite("longitude", &cr::WeatherParameters::longitude)
+    .def_readwrite("timezone", &cr::WeatherParameters::timezone)
+    .def_readwrite("road_snowiness", &cr::WeatherParameters::road_snowiness)
+    .def_readwrite("month", &cr::WeatherParameters::month)
+    .def_readwrite("day", &cr::WeatherParameters::day)
+    .def_readwrite("time", &cr::WeatherParameters::time)
     .def("__eq__", &cr::WeatherParameters::operator==)
     .def("__ne__", &cr::WeatherParameters::operator!=)
     .def(self_ns::str(self_ns::self));
@@ -106,14 +122,15 @@ void export_weather() {
   cls.attr("HardRainSunset") = cr::WeatherParameters::HardRainSunset;
   cls.attr("SoftRainSunset") = cr::WeatherParameters::SoftRainSunset;
 
-  cls.attr("WinterMorning") = cr::WeatherParameters::WinterMorning;
-  cls.attr("WinterNoon") = cr::WeatherParameters::WinterNoon;
+  cls.attr("WinterClearMorning") = cr::WeatherParameters::WinterClearMorning;
+  cls.attr("WinterClearNoon") = cr::WeatherParameters::WinterClearNoon;
+  cls.attr("WinterWetNoon") = cr::WeatherParameters::WinterWetNoon;
   cls.attr("WinterCloudyNoon") = cr::WeatherParameters::WinterCloudyNoon;
-  cls.attr("WinterNight") = cr::WeatherParameters::WinterNight;
-  cls.attr("SoftSnowNoon") = cr::WeatherParameters::SoftSnowNoon;
-  cls.attr("MidSnowNoon") = cr::WeatherParameters::MidSnowNoon;
-  cls.attr("HardSnowNoon") = cr::WeatherParameters::HardSnowNoon;
-  cls.attr("SoftSnowMorning") = cr::WeatherParameters::SoftSnowMorning;
-  cls.attr("MidSnowMorning") = cr::WeatherParameters::MidSnowMorning;
-  cls.attr("HardSnowMorning") = cr::WeatherParameters::HardSnowMorning;
+  cls.attr("WinterClearNight") = cr::WeatherParameters::WinterClearNight;
+  cls.attr("WinterSoftSnowNoon") = cr::WeatherParameters::WinterSoftSnowNoon;
+  cls.attr("WinterMidSnowNoon") = cr::WeatherParameters::WinterMidSnowNoon;
+  cls.attr("WinterHardSnowNoon") = cr::WeatherParameters::WinterHardSnowNoon;
+  cls.attr("WinterSoftSnowMorning") = cr::WeatherParameters::WinterSoftSnowMorning;
+  cls.attr("WinterMidSnowMorning") = cr::WeatherParameters::WinterMidSnowMorning;
+  cls.attr("WinterHardSnowMorning") = cr::WeatherParameters::WinterHardSnowMorning;
 }

@@ -16,8 +16,6 @@
 import glob
 import os
 import sys
-from queue import Queue
-import numpy as np
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -27,17 +25,10 @@ try:
 except IndexError:
     pass
 
-import argparse
 import collections
-import datetime
-import logging
 import math
-import random
-import re
 import weakref
 import carla
-from carla import ColorConverter as cc
-import time
 
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
@@ -174,6 +165,7 @@ class RadarSensor(object):
         self.sensor = None
         self._parent = parent_actor
         self.velocity_range = 7.5 # m/s
+        self.debug = None
 
     def spawn_radar(self):
         world = self._parent.get_world()
@@ -211,7 +203,6 @@ class RadarSensor(object):
             g = int(clamp(0.0, 0.0, 0.0 - abs(norm_velocity)) * 255.0)
             b = int(abs(clamp(- 1.0, 0.0, - 1.0 - norm_velocity)) * 255.0)
             dot_color = carla.Color(r, g, b)
-            #dot_color = carla.Color(0, 0, 255)
 
             self.debug.draw_point(
                 radar_data.transform.location + fw_vec,

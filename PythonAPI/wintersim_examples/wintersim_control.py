@@ -10,39 +10,35 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
 """
-Welcome to CARLA WinterSim control.
-
-Use ARROWS or WASD keys for control.
+Use ARROW or WASD keys for control.
 
     W            : throttle
+    A/D          : steer left / right
     S            : brake
-    A/D          : steer left/right
-    Q            : toggle reverse
     Space        : hand-brake
+    R            : respawn vehicle
+    Backspace    : change vehicle
+    C            : change weather preset
+  
     P            : toggle autopilot
-    M            : toggle manual transmission
-    ,/.          : gear up/down
+    TAB          : change camera position
+    N            : next sensor
+    [1-9]        : change to sensor [1-9]
+    G            : toggle radar visualization
+    T            : toggle server window telemetry info
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
     Z/X          : toggle right/left blinker
-    I            : toggle interior light
-
-    TAB          : change sensor position
-    N            : next sensor
-    [1-9]        : change to sensor [1-9]
-    G            : toggle radar visualization
-    C            : change weather (Shift+C reverse)
-
-    R            : toggle recording images to disk
 
     F1           : toggle HUD
     F4           : toggle multi sensor view
+    [1-4]        : change multi sensor view sensors [1-4]
     F5           : toggle winter road static tiretracks
-    F6           : clear all dynamic tiretracks on snowy roads
-    F8           : toggle separate front and back camera windows
-    F9           : toggle separate Open3D lidar window
-    F11          : take fullscreen screenshot
+    F6           : clear all dynamic tiretracks
+    F8           : toggle RGB camera windows
+    F9           : toggle Open3D Lidar window
+    F11          : take screenshot
     F12          : toggle server window rendering
     
     H            : toggle help
@@ -60,7 +56,7 @@ import os
 import re
 import sys
 import subprocess
-from numpy.core.numeric import True_
+import time
 
 try:
     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
@@ -73,10 +69,8 @@ except IndexError:
 import argparse
 import logging
 import random
-import re
 
 import carla
-from carla import ColorConverter as cc
 
 # WinterSim imports
 from hud import wintersim_hud
@@ -86,34 +80,17 @@ from sensors.wintersim_camera_manager import CameraManager
 from sensors.wintersim_camera_windows import CameraWindows
 from keyboard.wintersim_keyboard_control import KeyboardControl
 from sensors import multi_sensor_view
-import time
 
 try:
     import pygame
 except ImportError:
     raise RuntimeError('cannot import pygame, make sure pygame package is installed')
 
-try:
-    import numpy as np
-except ImportError:
-    raise RuntimeError('cannot import numpy, make sure numpy package is installed')
-
-try:
-    import open3d as o3d
-except ImportError:
-    raise RuntimeError('cannot import open3d, make sure open3d package is installed')
-
-import glob
-import os
-import sys
-import argparse
-import random
-
 # ==============================================================================
 # -- Global functions ----------------------------------------------------------
 # ==============================================================================
 
-def find_weather_presets():
+def findweather_presets():
     rgx = re.compile('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)')
     name = lambda x: ' '.join(m.group(0) for m in rgx.finditer(x))
     presets = [x for x in dir(carla.WeatherParameters) if re.match('[A-Z].+', x)]
@@ -122,6 +99,13 @@ def find_weather_presets():
 def get_actor_display_name(actor, truncate=250):
     name = ' '.join(actor.type_id.replace('_', '.').title().split('.')[1:])
     return (name[:truncate - 1] + u'\u2026') if len(name) > truncate else name
+
+def map_is_available(client, map_to_load):
+    maps = [m.replace('/Game/Carla/Maps/', '') for m in client.get_available_maps()]
+    for map in maps:
+        if map == map_to_load:
+            return True
+    return False
 
 # ==============================================================================
 # -- World ---------------------------------------------------------------------
@@ -168,11 +152,11 @@ class World(object):
         self.sensors = []
         self.wintersim_vehicles = ['pickup', 'wagon', 'van', 'bus']
         self.current_vehicle_index = 0
-        self._weather_presets = []
-        self._weather_presets_all = find_weather_presets()
-        for preset in self._weather_presets_all:
+        self.weather_presets = []
+        self.weather_presets_all = findweather_presets()
+        for preset in self.weather_presets_all:
             if preset[0].temperature <= 0: # only get winter presets
-                self._weather_presets.append(preset)
+                self.weather_presets.append(preset)
         self._weather_index = 0
         self._actor_filter = args.filter
         self._gamma = args.gamma
@@ -182,7 +166,6 @@ class World(object):
         self.recording_start = 0
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
-       
         # disable server window rendering (UE4 window) if launch argument '--no_server_rendering' given
         # this improves performance as less things need to be rendered
         if not args.no_server_rendering:
@@ -221,20 +204,32 @@ class World(object):
             self.player = self.world.spawn_actor(blueprint, spawn_point)
         
         while self.player is None:
-            if not self.map.get_spawn_points():
-                print('There are no spawn points available in your map/town.')
-                print('Please add some Vehicle Spawn Point to your UE4 scene.')
-                sys.exit(1)
 
-            # if --spawnpoint [number] argument given then try to spawn there
-            # else spawn in random spawn location
-            spawn_points = self.map.get_spawn_points()
-            if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
-                spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            # if scenario
+            if self.args.scenario:
+                print("Waiting for the ego vehicle...")
+                time.sleep(1)
+                possible_vehicles = self.world.get_actors().filter('vehicle.*')
+                for vehicle in possible_vehicles:
+                    if vehicle.attributes['role_name'] == "hero":
+                        print("Ego vehicle found")
+                        self.player = vehicle
+                        break
             else:
-                spawn_point = spawn_points[self.args.spawnpoint]
+                if not self.map.get_spawn_points():
+                    print('There are no spawn points available in your map/town.')
+                    print('Please add some Vehicle Spawn Point to your UE4 scene.')
+                    sys.exit(1)
 
-            self.player = self.world.spawn_actor(blueprint, spawn_point)
+                # if --spawnpoint [number] argument given then try to spawn there
+                # else spawn in random spawn location
+                spawn_points = self.map.get_spawn_points()
+                if self.args.spawnpoint == -1 or self.args.spawnpoint > len(spawn_points):
+                    spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+                else:
+                    spawn_point = spawn_points[self.args.spawnpoint]
+
+                self.player = self.world.spawn_actor(blueprint, spawn_point)
 
         self.camera_manager = CameraManager(self.player, self.hud_wintersim, self._gamma)
         self.setup_basic_sensors()
@@ -265,18 +260,14 @@ class World(object):
             else:
                 return True
 
-        self.sensors.extend((self.camera_manager.sensor,
-            self.collision_sensor.sensor, self.lane_invasion_sensor.sensor,
-            self.gnss_sensor.sensor,self.imu_sensor.sensor))
-
     def next_weather(self, reverse=False):
         ''''Change weather preset'''
         if self.is_process_alive():
             return
 
         self._weather_index += -1 if reverse else 1
-        self._weather_index %= len(self._weather_presets)
-        self.preset = self._weather_presets[self._weather_index]
+        self._weather_index %= len(self.weather_presets)
+        self.preset = self.weather_presets[self._weather_index]
         self.hud_wintersim.notification('Weather: %s' % self.preset[1])
         self.player.get_world().set_weather(self.preset[0])
 
@@ -375,13 +366,9 @@ class World(object):
             self.open3d_lidar = open3d_lidar_window.Open3DLidarWindow()
             self.open3d_lidar.setup(self.world, self.player, True, self._actor_filter, semantic=False)
             self.world.apply_settings(carla.WorldSettings(synchronous_mode=True, fixed_delta_seconds=0.05))
-            traffic_manager = self.client.get_trafficmanager(8000)
-            traffic_manager.set_synchronous_mode(True)
         else:
             self.open3d_lidar.destroy()
             self.world.apply_settings(carla.WorldSettings(synchronous_mode=False, fixed_delta_seconds=0.00))
-            traffic_manager = self.client.get_trafficmanager(8000)
-            traffic_manager.set_synchronous_mode(False)
 
         self.open3d_lidar_enabled ^= True
         self.sync_mode ^= True
@@ -389,22 +376,28 @@ class World(object):
         text = "Open3D Lidar disabled" if not self.open3d_lidar_enabled else "Open3D Lidar enabled"
         self.hud_wintersim.notification(text, 6)
         
-    def toggle_multi_sensor_view(self):
-        if not self.multi_sensor_view_enabled:
-            if self.camera_manager.sensor is None:
+    def toggle_multi_sensor_view(self, sensor_option_index = 0, reload = False):
+        '''Togle multisensorview on/off'''
+        if not self.multi_sensor_view_enabled or reload:
+            if self.camera_manager.sensor is None and not reload:
                 return
+
+            if reload:
+                self.multi_sensor_view.destroy()
+                self.multi_sensor_view = None
 
             self.camera_manager.destroy()
             self.multi_sensor_view = multi_sensor_view.MultiSensorView()
-            self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height, self._actor_filter)
+            self.multi_sensor_view.setup(self.world, self.player, self.display, self.args.width, self.args.height, self._actor_filter, sensor_option_index)
             self.hud_wintersim.set_hud(False)
+            self.multi_sensor_view_enabled = True
         else:
             self.multi_sensor_view.destroy()
             self.multi_sensor_view = None
             self.camera_manager.set_sensor(0, notify=False, force_respawn=True)
             self.hud_wintersim.set_hud(True)
+            self.multi_sensor_view_enabled = False
 
-        self.multi_sensor_view_enabled ^= True
         self.fps = 30 if self.multi_sensor_view_enabled else 60
         text = "Multi sensor view enabled" if self.multi_sensor_view_enabled else "Multi sensor view disabled"
         self.hud_wintersim.notification(text)
@@ -483,7 +476,7 @@ class World(object):
         self.player = self.world.spawn_actor(blueprint, current_location)
 
         copy = self.sensors.copy()
-
+        
         self.setup_basic_sensors()
         self.camera_manager.reset_camera(self.player)
 
@@ -493,6 +486,7 @@ class World(object):
                 sensor.destroy()
                 sensor = None
 
+        self.hud_wintersim.on_actor_change()
         self.hud_wintersim.notification('Changed vehicle to: ' + str(self.wintersim_vehicles[self.current_vehicle_index]))
 
     def destroy(self):
@@ -542,11 +536,20 @@ def game_loop(args):
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
     pygame.init()
     pygame.font.init()
+    pygame.display.set_caption('WinterSim Control')
     world = None
 
     try:
         client = carla.Client(args.host, args.port)
         client.set_timeout(2.0)
+
+        # if launch parameter -m {map_name} or --map {map_name} given
+        if args.map is not None:
+            client.set_timeout(30.0)
+            if map_is_available(client, args.map):
+                print("Loading map: " + str(args.map))
+                world = client.load_world(args.map)
+                print("Loaded map: " + str(args.map))
 
         display = pygame.display.set_mode((args.width, args.height), pygame.HWSURFACE | pygame.DOUBLEBUF)
         display.fill((0,0,0))
@@ -555,7 +558,7 @@ def game_loop(args):
         hud_wintersim = wintersim_hud.WinterSimHud(args.width, args.height, display)
         world = World(client.get_world(), hud_wintersim, args)
         world.client = client
-        world.preset = world._weather_presets[0]
+        world.preset = world.weather_presets[0]
         world.original_settings = world.world.get_settings()
         hud_wintersim.setup(world)
         controller = KeyboardControl(world, args.autopilot)
@@ -570,10 +573,13 @@ def game_loop(args):
         if world.args.multisensorview:
             world.toggle_multi_sensor_view()
 
-        # open another terminal window and launch wintersim weather_hud.py script
         try:
-            world.w_control = subprocess.Popen('python weather_control.py')
-        except:
+            # launch weather_control.py which is located in the same folder as this python script
+            this_path = os.path.dirname(os.path.realpath(__file__))
+            python = 'python ' if os.name == 'nt' else 'python3 '
+            full_command = python + this_path + "/weather_control.py"
+            world.w_control = subprocess.Popen(full_command)
+        except subprocess.SubprocessError:
             print("Couldn't launch weather_control.py")
 
         while True:
@@ -585,6 +591,9 @@ def game_loop(args):
             world.tick(clock)
             world.render(display)
             pygame.display.flip()
+
+    except Exception as e:
+        print(e)
 
     finally:
         if world is not None:
@@ -681,6 +690,14 @@ def main():
         default=2000,
         type=int,
         help='Specify tile streaming distance in large maps')
+    argparser.add_argument(
+        '--scenario',
+        default=-False,
+        action='store_true',
+        help='is scenario')
+    argparser.add_argument(
+        '-m', '--map', '--m', '-map',
+        help='load map by name')
     args = argparser.parse_args()
     args.width, args.height = [int(x) for x in args.res.split('x')]
     log_level = logging.DEBUG if args.debug else logging.INFO

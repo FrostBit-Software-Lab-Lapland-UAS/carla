@@ -9,6 +9,8 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+# pylint: disable=E1101
+
 """
 Use ARROW or WASD keys for control.
 
@@ -25,7 +27,7 @@ Use ARROW or WASD keys for control.
     N            : next sensor
     [1-9]        : change to sensor [1-9]
     G            : toggle radar visualization
-    T            : toggle telemetry info
+    T            : toggle server window telemetry info
 
     L            : toggle next light type
     SHIFT + L    : toggle high beam
@@ -33,6 +35,7 @@ Use ARROW or WASD keys for control.
 
     F1           : toggle HUD
     F4           : toggle multi sensor view
+    [1-4]        : change multi sensor view sensors [1-4]
     F5           : toggle winter road static tiretracks
     F6           : clear all dynamic tiretracks
     F8           : toggle RGB camera windows
@@ -57,7 +60,6 @@ except IndexError:
     pass
 
 import pygame
-import os
 import math
 import datetime
 import carla
@@ -93,7 +95,9 @@ class WinterSimHud(object):
         self.is_hud = True
         self._info_text = []
         self._server_clock = pygame.time.Clock()
-        self.logo = pygame.image.load('images/WinterSim_White_Color.png')
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        parent_dir = os.path.abspath(os.path.join(this_path, os.pardir))
+        self.logo = pygame.image.load(parent_dir + '/images/WinterSim_White_Color.png')
         self.logo = pygame.transform.scale(self.logo, (262,61))
         self.logo_rect = self.logo.get_rect()
         self.frames = 0
@@ -204,6 +208,9 @@ class WinterSimHud(object):
             self.help_text.toggle()
 
     def notification(self, text, seconds=2.0):
+        if not self.is_hud:
+            return
+
         self._notifications.set_text(text, seconds=seconds)
 
     def error(self, text):

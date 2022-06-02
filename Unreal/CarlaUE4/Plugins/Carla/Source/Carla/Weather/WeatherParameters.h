@@ -57,14 +57,17 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float SnowAmount = 0.0f;
 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float SnowDirtyness = 0.0f;
+
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "-40.0", ClampMax = "40.0", UIMin = "-40.0", UIMax = "40.0"))
   float Temperature = 0.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float IceAmount = 0.0f;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.5", ClampMax = "7.0", UIMin = "0.0", UIMax = "7.0"))
-  float ParticleSize = 0.0f;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "1.0", ClampMax = "3.0", UIMin = "1.0", UIMax = "3.0"))
+  float ParticleSize = 1.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float RelativeHumidity = 0.0f;
@@ -72,7 +75,28 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float Dewpoint = 0.0f;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-360.0", ClampMax = "360.0", UIMin = "-360.0", UIMax = "360.0"))
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "360.0", UIMin = "0.0", UIMax = "360.0"))
   float WindDirection = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-100.0", ClampMax = "100.0", UIMin = "-100.0", UIMax = "100.0"))
+  float Latitude = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-100", ClampMax = "100.0", UIMin = "-100", UIMax = "100.0"))
+  float Longitude = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "-10", ClampMax = "10", UIMin = "-10", UIMax = "10"))
+  float Timezone = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float RoadSnowiness = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "12.0", UIMin = "0.0", UIMax = "12.0"))
+  float Month = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "31.0", UIMin = "0.0", UIMax = "31.0"))
+  float Day = 0.0f;
+
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "24", UIMin = "0.0", UIMax = "24.0"))
+  float Time = 0.0f;
 
 };

@@ -13,7 +13,6 @@
 #include "Carla/Actor/ActorDefinition.h"
 #include "Carla/Sensor/LidarDescription.h"
 #include "Carla/Actor/ActorBlueprintFunctionLibrary.h"
-
 #include <compiler/disable-ue4-macros.h>
 #include <carla/sensor/data/CustomSemanticLidarData.h>
 #include <compiler/enable-ue4-macros.h>
@@ -56,7 +55,7 @@ protected:
   bool ShootLaser(const float VerticalAngle, float HorizontalAngle, FHitResult &HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const;
 
   /// Calculate new hitpoint for linetrace if it is snowing
-  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, FVector end_trace, FVector LidarBodyLoc) const;
+  bool CalculateNewHitPoint(FHitResult& HitInfo, float rain_amount, float particle_size, FVector end_trace, FVector LidarBodyLoc) const;
 
   bool CustomDropOff(float rain_amount) const;
 
@@ -76,9 +75,10 @@ protected:
   /// RawDetections and then send it to the LidarData structure.
   virtual void ComputeAndSaveDetections(const FTransform &SensorTransform);
 
+
   UPROPERTY(EditAnywhere)
   FLidarDescription Description;
-
+  
   TArray<float> LaserAngles;
 
   std::vector<std::vector<FHitResult>> RecordedHits;

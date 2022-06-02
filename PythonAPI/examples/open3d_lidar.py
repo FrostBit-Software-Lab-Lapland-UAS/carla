@@ -55,6 +55,7 @@ LABEL_COLORS = np.array([
     (170, 120, 50),  # Dynamic
     (45, 60, 150),   # Water
     (145, 170, 100), # Terrain
+    (145, 170, 100), # Terrain
 ]) / 255.0 # normalize each channel [0-1] since is what Open3D uses
 
 
@@ -117,9 +118,9 @@ def semantic_lidar_callback(point_cloud, point_list):
 def generate_lidar_bp(arg, world, blueprint_library, delta):
     """Generates a CARLA blueprint based on the script parameters"""
     if arg.semantic:
-        lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+        lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
     else:
-        lidar_bp = blueprint_library.find('sensor.lidar.ray_cast')
+        lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
         if arg.no_noise:
             lidar_bp.set_attribute('dropoff_general_rate', '0.0')
             lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')

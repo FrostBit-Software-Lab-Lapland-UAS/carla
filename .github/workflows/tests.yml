@@ -1,0 +1,106 @@
+name: tests
+
+
+on: [push, pull_request]
+
+jobs:
+  
+  Carla_linux:
+      runs-on: [ubuntu-18.04]          
+      steps:
+        - uses: actions/checkout@v2
+        - name: Dependencies
+          run: |
+            sudo apt-get update &&
+            sudo apt-get install wget software-properties-common &&
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test &&
+            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
+            sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main" &&
+            sudo apt-get update
+            sudo apt-get install build-essential clang-8 lld-8 g++-7 cmake ninja-build libvulkan1 python python-pip python-dev python3-dev python3-pip libpng-dev libtiff5-dev libjpeg-dev tzdata sed curl unzip autoconf libtool rsync libxml2-dev git
+            sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-8/bin/clang++ 180 &&
+            sudo update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-8/bin/clang 180
+            
+        - name: Python dependencies
+          run: |
+            pip install --upgrade pip
+            pip3 install --upgrade pip
+            pip install --user setuptools &&
+            pip3 install --user -Iv setuptools==47.3.1 &&
+            pip install --user distro &&
+            pip3 install --user distro &&
+            pip install --user wheel &&
+            pip3 install --user wheel auditwheel
+            pip3 install -q --user setuptools
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt  
+            
+        - name: Make
+          run: |
+            while sleep 2m; do echo "still building..."; done &
+            make setup
+            make PythonAPI
+            make examples
+            
+        - name: Pylint2_Carla
+          run: |
+            pip2 install --upgrade pip
+            pip2 install --user setuptools
+            pip2 install --user distro
+            pip2 install --user wheel
+            pip2 install -q --user pylint
+            pip2 install -q --user -r PythonAPI/carla/requirements.txt
+            pip2 install -q --user -r PythonAPI/test/requirements.txt
+            pip2 install -q --user -r PythonAPI/util/requirements.txt
+            pip2 install -q --user -r PythonAPI/examples/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/**/*.py Util/BuildTools/*.py
+
+        - name: Pylint2_WinterSim
+          run: |
+            pip2 install --upgrade pip
+            pip2 install --user setuptools
+            pip2 install --user distro
+            pip2 install --user wheel
+            pip2 install -q --user pylint
+            pip2 install -q --user -r PythonAPI/carla/requirements.txt
+            pip2 install -q --user -r PythonAPI/test/requirements.txt
+            pip2 install -q --user -r PythonAPI/util/requirements.txt
+            pip2 install -q --user -r PythonAPI/examples/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/**/*.py        
+            
+        - name: Pylint3_Carla
+          run: |
+            pip3 install --upgrade pip
+            pip3 install --user -Iv setuptools==47.3.1
+            pip3 install --user distro &&
+            pip3 install --user wheel auditwheel
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q astroid==2.2.5 pylint==2.3.1
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q --user -r PythonAPI/examples/requirements.txt
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/util/requirements.txt
+            pip3 install -q --user -r Util/Docker/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/**/*.py Util/Docker/*.py Util/BuildTools/*.py
+
+        - name: Pylint3_WinterSim
+          run: |
+            pip3 install --upgrade pip
+            pip3 install --user -Iv setuptools==47.3.1
+            pip3 install --user distro &&
+            pip3 install --user wheel auditwheel
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q astroid==2.2.5 pylint==2.3.1
+            pip3 install -q --user -r PythonAPI/carla/requirements.txt
+            pip3 install -q --user -r PythonAPI/examples/requirements.txt
+            pip3 install -q --user -r PythonAPI/test/requirements.txt
+            pip3 install -q --user -r PythonAPI/util/requirements.txt
+            pip3 install -q --user -r Util/Docker/requirements.txt
+            shopt -s globstar
+            pylint --exit-zero --disable=R,C --rcfile=PythonAPI/.pylintrc PythonAPI/wintersim_examples/**/*.py         
+      

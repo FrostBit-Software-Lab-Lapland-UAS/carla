@@ -362,6 +362,27 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
   LensYSize.RecommendedValues = { TEXT("0.08") };
   LensYSize.bRestrictToRecommended = false;
 
+  // camera lens ice effect
+  FActorVariation CameraIceEffect;
+  CameraIceEffect.Id = TEXT("camera_ice_effect");
+  CameraIceEffect.Type = EActorAttributeType::Bool;
+  CameraIceEffect.RecommendedValues = { TEXT("False") };
+  CameraIceEffect.bRestrictToRecommended = false;
+
+  // camera lens ice effect angle
+  FActorVariation CameraIceEffectRotation;
+  CameraIceEffectRotation.Id = TEXT("camera_ice_effect_rotation");
+  CameraIceEffectRotation.Type = EActorAttributeType::String;
+  CameraIceEffectRotation.RecommendedValues = { TEXT("up") };
+  CameraIceEffectRotation.bRestrictToRecommended = false;
+
+  // camera lens ice effect strength
+  FActorVariation CameraIceEffectStrength;
+  CameraIceEffectStrength.Id = TEXT("camera_ice_effect_strength");
+  CameraIceEffectStrength.Type = EActorAttributeType::Float;
+  CameraIceEffectStrength.RecommendedValues = { TEXT("1.2") };
+  CameraIceEffectStrength.bRestrictToRecommended = false;
+
   // camera lens sleet effect
   FActorVariation CameraEffect;
   CameraEffect.Id = TEXT("camera_sleet_effect");
@@ -393,6 +414,9 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
       LensKcube,
       LensXSize,
       LensYSize,
+      CameraIceEffect,
+      CameraIceEffectRotation,
+      CameraIceEffectStrength,
       CameraEffect,
       CameraEffectRotation,
       CameraEffectStrength
@@ -505,7 +529,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMinBright;
     ExposureMinBright.Id = TEXT("exposure_min_bright");
     ExposureMinBright.Type = EActorAttributeType::Float;
-    ExposureMinBright.RecommendedValues = { TEXT("2.0") };
+    ExposureMinBright.RecommendedValues = { TEXT("3.0") };
     ExposureMinBright.bRestrictToRecommended = false;
 
     // The maximum brightness for auto exposure that limits the upper
@@ -513,7 +537,7 @@ void UActorBlueprintFunctionLibrary::MakeCameraDefinition(
     FActorVariation ExposureMaxBright;
     ExposureMaxBright.Id = TEXT("exposure_max_bright");
     ExposureMaxBright.Type = EActorAttributeType::Float;
-    ExposureMaxBright.RecommendedValues = { TEXT("14.5") };
+    ExposureMaxBright.RecommendedValues = { TEXT("5") };
     ExposureMaxBright.bRestrictToRecommended = false;
 
     // The speed at which the adaptation occurs from a dark environment
@@ -1444,6 +1468,15 @@ void UActorBlueprintFunctionLibrary::SetCamera(
       RetrieveActorAttributeToInt("image_size_y", Description.Variations, 600));
   Camera->SetFOVAngle(
       RetrieveActorAttributeToFloat("fov", Description.Variations, 90.0f));
+
+  Camera->SetCameraIceEffect(
+      RetrieveActorAttributeToBool("camera_ice_effect", Description.Variations, false));
+
+  Camera->SetCameraIceEffectRotation(
+      RetrieveActorAttributeToString("camera_ice_effect_rotation", Description.Variations, "top"));
+
+  Camera->SetCameraIceEffectStrength(
+      RetrieveActorAttributeToFloat("camera_ice_effect_strength", Description.Variations, 1.2f));
 
   Camera->SetCameraSleetEffect(
       RetrieveActorAttributeToBool("camera_sleet_effect", Description.Variations, false));

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Carla.h"
 #include "TrafficLightComponent.h"
 #include "TrafficLightGroup.h"
 #include "TrafficSignBase.h"

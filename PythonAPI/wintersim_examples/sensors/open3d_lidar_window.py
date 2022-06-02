@@ -9,15 +9,12 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
-import glob
-import os
-import sys
+# pylint: disable=W0108
+
 import glob
 import os
 import sys
 import time
-from datetime import datetime
-import numpy as np
 from matplotlib import cm
 
 try:
@@ -79,12 +76,12 @@ class Open3DLidarWindow():
     def generate_lidar_bp(self, semantic, world, blueprint_library, delta):
         """Generates a CARLA blueprint based on the script parameters"""
         if semantic:
-            lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+            lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
         else:
             lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
-            lidar_bp.set_attribute('dropoff_general_rate', '0.0')
-            lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
-            lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
+            #lidar_bp.set_attribute('dropoff_general_rate', '0.0')
+            #lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
+            #lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
 
         lidar_bp.set_attribute('upper_fov', str(self.upper_fov))
         lidar_bp.set_attribute('lower_fov', str(self.lower_fov))
@@ -92,6 +89,7 @@ class Open3DLidarWindow():
         lidar_bp.set_attribute('range', str(self.range))
         lidar_bp.set_attribute('rotation_frequency', str(1.0 / delta))
         lidar_bp.set_attribute('points_per_second', str(self.points_per_second))
+        #lidar_bp.set_attribute('noise_stddev', str(-0.00024*weather.temperature+0.011))
 
         return lidar_bp
 
@@ -107,6 +105,7 @@ class Open3DLidarWindow():
             np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 0]),
             np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 1]),
             np.interp(intensity_col, VID_RANGE, VIRIDIS[:, 2])]
+
 
         # Isolate the 3D data
         points = data[:, :-1]
@@ -165,7 +164,10 @@ class Open3DLidarWindow():
         '''load default open3d position and rotation from json file and set zoom'''
         ctrl = self.vis.get_view_control()
         ctrl.set_zoom(0.3)
-        parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
+        this_path = os.path.dirname(os.path.realpath(__file__))
+        full_path = this_path + "/open3d_start_pos.json"
+        #parameters = o3d.io.read_pinhole_camera_parameters("./sensors/open3d_start_pos.json")
+        parameters = o3d.io.read_pinhole_camera_parameters(full_path)
         ctrl.convert_from_pinhole_camera_parameters(parameters)
 
     def render(self):
@@ -191,9 +193,10 @@ class Open3DLidarWindow():
             self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = False):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
+
         lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
         lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
@@ -204,7 +207,6 @@ class Open3DLidarWindow():
 
         lidar_transform = carla.Transform(lidar_position)
         self.lidar = world.spawn_actor(lidar_bp, lidar_transform, attach_to=vehicle)
-
         self.point_list = o3d.geometry.PointCloud()
         if semantic:
             self.lidar.listen(lambda data: self.semantic_lidar_callback(data))
@@ -214,10 +216,10 @@ class Open3DLidarWindow():
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(
             window_name='Carla Lidar',
-            width=860, height=540,
+            width=1280, height=720,
             left=600, top=600)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
-        self.vis.get_render_option().point_size = 1
+        self.vis.get_render_option().point_size = 2
         self.vis.get_render_option().show_coordinate_frame = True
 
         if show_axis:
@@ -243,8 +245,8 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 300000
-        self.upper_fov = 15.0
-        self.lower_fov = -24.9
+        self.points_per_second = 655360
+        self.upper_fov = 22.5
+        self.lower_fov = -22.5
         self.channels = 32.0
-        self.range = 50.0
+        self.range = 120.0

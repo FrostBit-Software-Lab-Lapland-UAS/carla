@@ -46,16 +46,17 @@ namespace rpc {
     static WeatherParameters MidRainyNight;
     static WeatherParameters HardRainNight;
 
-    static WeatherParameters WinterMorning;
-    static WeatherParameters WinterNoon;
+    static WeatherParameters WinterClearMorning;
+    static WeatherParameters WinterClearNoon;
+    static WeatherParameters WinterWetNoon;
     static WeatherParameters WinterCloudyNoon;
-    static WeatherParameters WinterNight;
-    static WeatherParameters SoftSnowNoon;    
-    static WeatherParameters MidSnowNoon;
-    static WeatherParameters HardSnowNoon;
-    static WeatherParameters SoftSnowMorning;
-    static WeatherParameters MidSnowMorning;
-    static WeatherParameters HardSnowMorning;
+    static WeatherParameters WinterClearNight;
+    static WeatherParameters WinterSoftSnowNoon;    
+    static WeatherParameters WinterMidSnowNoon;
+    static WeatherParameters WinterHardSnowNoon;
+    static WeatherParameters WinterSoftSnowMorning;
+    static WeatherParameters WinterMidSnowMorning;
+    static WeatherParameters WinterHardSnowMorning;
 
     /// @}
 
@@ -76,12 +77,20 @@ namespace rpc {
         float in_mie_scattering_scale,
         float in_rayleigh_scattering_scale,
         float in_snow_amount,
+        float in_snow_dirtyness,
         float in_temperature,
         float in_ice_amount,
         float in_particle_size,
-		float in_relative_humidity,
-		float in_dewpoint,
-        float in_wind_direction)
+		    float in_relative_humidity,
+		    float in_dewpoint,
+        float in_wind_direction,
+        float in_latitude,
+        float in_longitude,
+        float in_timezone,
+        float in_road_snowiness,
+        float in_month,
+        float in_day,
+        float in_time)
       : cloudiness(in_cloudiness),
         precipitation(in_precipitation),
         precipitation_deposits(in_precipitation_deposits),
@@ -96,12 +105,20 @@ namespace rpc {
         mie_scattering_scale(in_mie_scattering_scale),
         rayleigh_scattering_scale(in_rayleigh_scattering_scale), 
         snow_amount(in_snow_amount),
+        snow_dirtyness(in_snow_dirtyness),
         temperature(in_temperature),
         ice_amount(in_ice_amount),
         particle_size(in_particle_size),
-		relative_humidity(in_relative_humidity),
-		dewpoint(in_dewpoint),
-        wind_direction(in_wind_direction) {}
+		    relative_humidity(in_relative_humidity),
+		    dewpoint(in_dewpoint),
+        wind_direction(in_wind_direction),
+        latitude(in_latitude),
+        longitude(in_longitude),
+        timezone(in_timezone),
+        road_snowiness(in_road_snowiness),
+        month(in_month),
+        day(in_day),
+        time(in_time) {}
 
     float cloudiness = 0.0f;
     float precipitation = 0.0f;
@@ -117,12 +134,20 @@ namespace rpc {
     float mie_scattering_scale = 0.0f;
     float rayleigh_scattering_scale = 0.0331f;
     float snow_amount = 0.0f;
+    float snow_dirtyness = 0.0f;
     float temperature = 0.0f;
     float ice_amount = 0.0f;
     float particle_size = 0.0f;
-	float relative_humidity = 0.0f;
-	float dewpoint = 0.0f;
+	  float relative_humidity = 0.0f;
+	  float dewpoint = 0.0f;
     float wind_direction = 0.0f;
+    float latitude = 0.0f;
+    float longitude = 0.0f;
+    float timezone = 0.0f;
+    float road_snowiness = 0.0f;
+    float month = 0.0f;
+    float day = 0.0f;
+    float time = 0.0f;
 
 #ifdef LIBCARLA_INCLUDED_FROM_UE4
 
@@ -141,12 +166,20 @@ namespace rpc {
         mie_scattering_scale(Weather.MieScatteringScale),
         rayleigh_scattering_scale(Weather.RayleighScatteringScale),
         snow_amount(Weather.SnowAmount),
+        snow_dirtyness(Weather.SnowDirtyness),
         temperature(Weather.Temperature),
         ice_amount(Weather.IceAmount),
         particle_size(Weather.ParticleSize),
-		relative_humidity(Weather.RelativeHumidity),
-		dewpoint(Weather.Dewpoint),
-        wind_direction(Weather.WindDirection) {}
+	    	relative_humidity(Weather.RelativeHumidity),
+		    dewpoint(Weather.Dewpoint),
+        wind_direction(Weather.WindDirection),
+        latitude(Weather.Latitude),
+        longitude(Weather.Longitude),
+        timezone(Weather.Timezone),
+        road_snowiness(Weather.RoadSnowiness),
+        month(Weather.Month),
+        day(Weather.Day),
+        time(Weather.Time) {}
 
     operator FWeatherParameters() const {
       FWeatherParameters Weather;
@@ -164,12 +197,20 @@ namespace rpc {
       Weather.MieScatteringScale = mie_scattering_scale;
       Weather.RayleighScatteringScale = rayleigh_scattering_scale;
       Weather.SnowAmount = snow_amount;
+      Weather.SnowDirtyness = snow_dirtyness;
       Weather.Temperature = temperature;
       Weather.IceAmount = ice_amount;
       Weather.ParticleSize = particle_size;
-	  Weather.RelativeHumidity = relative_humidity;
-	  Weather.Dewpoint = dewpoint;
+	    Weather.RelativeHumidity = relative_humidity;
+  	  Weather.Dewpoint = dewpoint;
       Weather.WindDirection = wind_direction;
+      Weather.Latitude = latitude;
+      Weather.Longitude = longitude;
+      Weather.Timezone = timezone;
+      Weather.RoadSnowiness = road_snowiness;
+      Weather.Month = month;
+      Weather.Day = day;
+      Weather.Time = time;
       return Weather;
     }
 
@@ -191,12 +232,20 @@ namespace rpc {
             mie_scattering_scale != rhs.mie_scattering_scale ||
             rayleigh_scattering_scale != rhs.rayleigh_scattering_scale ||
 			snow_amount != rhs.snow_amount ||
+      snow_dirtyness != rhs.snow_dirtyness ||
 			temperature != rhs.temperature ||
 			ice_amount != rhs.ice_amount ||
 			particle_size != rhs.particle_size ||
 			relative_humidity != rhs.relative_humidity ||
 			dewpoint != rhs.dewpoint ||
-            wind_direction != rhs.wind_direction;
+            wind_direction != rhs.wind_direction ||
+            latitude != rhs.latitude ||
+            longitude != rhs.longitude ||
+            timezone != rhs.timezone ||
+            road_snowiness != rhs.road_snowiness ||
+            month != rhs.month ||
+            day != rhs.day ||
+            time != rhs.time;
     }
 
     bool operator==(const WeatherParameters &rhs) const {
@@ -218,12 +267,20 @@ namespace rpc {
         mie_scattering_scale,
         rayleigh_scattering_scale,
         snow_amount,
+        snow_dirtyness,
         temperature,
         ice_amount,
         particle_size,
-		relative_humidity,
-		dewpoint,
-        wind_direction);
+	    	relative_humidity,
+    		dewpoint,
+        wind_direction,
+        latitude,
+        longitude,
+        timezone,
+        road_snowiness,
+        month,
+        day,
+        time);
   };
 
 } // namespace rpc
