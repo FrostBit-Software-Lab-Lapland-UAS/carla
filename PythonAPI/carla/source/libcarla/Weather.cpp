@@ -29,6 +29,7 @@ namespace rpc {
         << ", mie_scattering_scale=" << std::to_string(weather.mie_scattering_scale)
         << ", rayleigh_scattering_scale=" << std::to_string(weather.rayleigh_scattering_scale)
         << ", snow_amount=" << std::to_string(weather.snow_amount)
+        << ", snow_dirtyness=" << std::to_string(weather.snow_dirtyness)
         << ", temperature=" << std::to_string(weather.temperature)
         << ", ice_amount=" << std::to_string(weather.ice_amount)
 		<< ", particle_size=" << std::to_string(weather.particle_size)
@@ -87,6 +88,7 @@ void export_weather() {
     .def_readwrite("mie_scattering_scale", &cr::WeatherParameters::mie_scattering_scale)
     .def_readwrite("rayleigh_scattering_scale", &cr::WeatherParameters::rayleigh_scattering_scale)
     .def_readwrite("snow_amount", &cr::WeatherParameters::snow_amount)
+    .def_readwrite("snow_dirtyness", &cr::WeatherParameters::snow_dirtyness)
     .def_readwrite("temperature", &cr::WeatherParameters::temperature)
     .def_readwrite("ice_amount", &cr::WeatherParameters::ice_amount)
     .def_readwrite("particle_size", &cr::WeatherParameters::particle_size)
@@ -120,15 +122,15 @@ void export_weather() {
   cls.attr("HardRainSunset") = cr::WeatherParameters::HardRainSunset;
   cls.attr("SoftRainSunset") = cr::WeatherParameters::SoftRainSunset;
 
-  cls.attr("WinterMorning") = cr::WeatherParameters::WinterMorning;
-  cls.attr("WinterNoon") = cr::WeatherParameters::WinterNoon;
+  cls.attr("WinterClearMorning") = cr::WeatherParameters::WinterClearMorning;
+  cls.attr("WinterClearNoon") = cr::WeatherParameters::WinterClearNoon;
   cls.attr("WinterWetNoon") = cr::WeatherParameters::WinterWetNoon;
   cls.attr("WinterCloudyNoon") = cr::WeatherParameters::WinterCloudyNoon;
-  cls.attr("WinterNight") = cr::WeatherParameters::WinterNight;
-  cls.attr("SoftSnowNoon") = cr::WeatherParameters::SoftSnowNoon;
-  cls.attr("MidSnowNoon") = cr::WeatherParameters::MidSnowNoon;
-  cls.attr("HardSnowNoon") = cr::WeatherParameters::HardSnowNoon;
-  cls.attr("SoftSnowMorning") = cr::WeatherParameters::SoftSnowMorning;
-  cls.attr("MidSnowMorning") = cr::WeatherParameters::MidSnowMorning;
-  cls.attr("HardSnowMorning") = cr::WeatherParameters::HardSnowMorning;
+  cls.attr("WinterClearNight") = cr::WeatherParameters::WinterClearNight;
+  cls.attr("WinterSoftSnowNoon") = cr::WeatherParameters::WinterSoftSnowNoon;
+  cls.attr("WinterMidSnowNoon") = cr::WeatherParameters::WinterMidSnowNoon;
+  cls.attr("WinterHardSnowNoon") = cr::WeatherParameters::WinterHardSnowNoon;
+  cls.attr("WinterSoftSnowMorning") = cr::WeatherParameters::WinterSoftSnowMorning;
+  cls.attr("WinterMidSnowMorning") = cr::WeatherParameters::WinterMidSnowMorning;
+  cls.attr("WinterHardSnowMorning") = cr::WeatherParameters::WinterHardSnowMorning;
 }

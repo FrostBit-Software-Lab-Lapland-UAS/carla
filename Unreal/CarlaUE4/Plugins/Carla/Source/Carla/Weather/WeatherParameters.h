@@ -57,14 +57,17 @@ struct CARLA_API FWeatherParameters
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float SnowAmount = 0.0f;
 
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
+  float SnowDirtyness = 0.0f;
+
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "-40.0", ClampMax = "40.0", UIMin = "-40.0", UIMax = "40.0"))
   float Temperature = 0.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float IceAmount = 0.0f;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "0.5", ClampMax = "7.0", UIMin = "0.0", UIMax = "7.0"))
-  float ParticleSize = 0.0f;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = "1.0", ClampMax = "3.0", UIMin = "1.0", UIMax = "3.0"))
+  float ParticleSize = 1.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", ClampMax = "100.0", UIMin = "0.0", UIMax = "100.0"))
   float RelativeHumidity = 0.0f;

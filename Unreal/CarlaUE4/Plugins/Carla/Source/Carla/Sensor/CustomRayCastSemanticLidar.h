@@ -13,7 +13,6 @@
 #include "Carla/Actor/ActorDefinition.h"
 #include "Carla/Sensor/LidarDescription.h"
 #include "Carla/Actor/ActorBlueprintFunctionLibrary.h"
-
 #include <compiler/disable-ue4-macros.h>
 #include <carla/sensor/data/CustomSemanticLidarData.h>
 #include <compiler/enable-ue4-macros.h>
@@ -76,9 +75,10 @@ protected:
   /// RawDetections and then send it to the LidarData structure.
   virtual void ComputeAndSaveDetections(const FTransform &SensorTransform);
 
+
   UPROPERTY(EditAnywhere)
   FLidarDescription Description;
-
+  
   TArray<float> LaserAngles;
 
   std::vector<std::vector<FHitResult>> RecordedHits;

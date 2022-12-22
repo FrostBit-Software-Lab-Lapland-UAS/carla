@@ -13,7 +13,7 @@
 #include <compiler/disable-ue4-macros.h>
 #include "carla/geom/Math.h"
 #include <compiler/enable-ue4-macros.h>
-
+#include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
@@ -230,18 +230,16 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
 {
   FVector max_distance = end_trace; //lidar max range
   FVector start_point = LidarBodyLoc; //start point is lidar position
-  
-  // Variables for the snowflake probability formula
+  float precipitation_class = 0;
+
+  // Calculate precipitation class
   //-------------------------------------------------------------
-  float N = rain_amount / 10; //Setting scale to 0 - 10
-  float D = particle_size / 10; //MM to CM conversion
-  float visibility = 16.77 / (pow(D, 2.0) * N);
-  float a = 0.5 / visibility;
-  float b = 0.15 * a;
-  float x01 = 3.6 + (0.05 * visibility);
-  float c = 2 * D;
-  float x02 = 16.5 - (2 * x01);
-  float d = c;
+  if(rain_amount > 0 && rain_amount <= 33.33f)
+      precipitation_class = 1 + particle_size;
+  else if(rain_amount > 33.33 && rain_amount <= 66.66f)
+      precipitation_class = 2 + particle_size;
+  else if(rain_amount > 66.66 && rain_amount <= 100.00f)
+      precipitation_class = 3 + particle_size;
   //-------------------------------------------------------------
   
 	if (HitInfo.bBlockingHit) //If linetrace hits something
@@ -256,7 +254,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
   FVector new_hitpoint = new_start_point + random * new_vector; //Generate new point from new start point to end point
 	float distance = FVector::Dist(start_point, new_hitpoint)/100; //distance beteen new_hitpoint and start point (divide by 100 to get meters)
 
-  float probability = a * exp(-pow((distance-x01), 2.0) / pow(c, 2.0)) + b * exp(-pow((distance-x02), 2.0) / pow(d, 2.0)); //value between 0-1 this is the probability of trace to hit snowflake at certain distances
+  float probability = precipitation_class / 10 * exp(-pow(distance-(4+0.2*precipitation_class), 2.0) / pow(2, 2.0)) + 0.2 * precipitation_class / 10 * exp(-pow(distance-(7+0.2*precipitation_class), 2.0) / pow(1, 2.0)); //value between 0-1 this is the probability of trace to hit snowflake at certain distances
 
   float r = (float)rand() / double(RAND_MAX); //random between 0-1
 	if (r < probability) //if random is smaller than probability from formula we hit the trace to snowflake
@@ -272,7 +270,7 @@ bool ACustomRayCastSemanticLidar::CalculateNewHitPoint(FHitResult& HitInfo, floa
 
 bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const //custom drop off rate for lidar hits according to rainamount(snow)
 {
-  float random = (float) rand()/ double(RAND_MAX);
+  /* float random = (float) rand()/ double(RAND_MAX);
   float dropoff = rain_amount * 0.003;
 
   if (random < dropoff) //dropoff max value is 0.3 at rain_amount value 100
@@ -280,8 +278,8 @@ bool ACustomRayCastSemanticLidar::CustomDropOff(const float rain_amount) const /
     return false;
   } else {
     return true;
-  }
-  
+  }*/
+  return true;
 }
 
 bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const float HorizontalAngle, FHitResult& HitResult, FCollisionQueryParams& TraceParams, FWeatherParameters w) const
@@ -299,10 +297,10 @@ bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const fl
     LaserRot,
     LidarBodyRot
   );
-
+ 
   const auto Range = Description.Range;
   FVector EndTrace = Range * UKismetMathLibrary::GetForwardVector(ResultRot) + LidarBodyLoc;
-
+  
   GetWorld()->ParallelLineTraceSingleByChannel(
     HitInfo,
     LidarBodyLoc,
@@ -311,12 +309,14 @@ bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const fl
     TraceParams,
     FCollisionResponseParams::DefaultResponseParam
   );
+
   float particle_size = w.ParticleSize;
   float temp = w.Temperature;
 	float rain_amount = w.Precipitation;
   bool keepPoint = true;
   if (HitInfo.bBlockingHit) { 
-	  if (temp < 0 && rain_amount > 0) //If it is snowing
+    
+	  if (rain_amount > 0) //If it is snowing
 	  {
 		  CalculateNewHitPoint(HitInfo, rain_amount, particle_size, EndTrace, LidarBodyLoc);
       keepPoint = CustomDropOff(rain_amount);
@@ -324,7 +324,7 @@ bool ACustomRayCastSemanticLidar::ShootLaser(const float VerticalAngle, const fl
     HitResult = HitInfo; //equal to new hitpoint or the old one
     return keepPoint;
   } else { //If no hit is acquired
-    if (temp < 0 && rain_amount > 0) //If it is snowing
+    if (rain_amount > 0) //If it is snowing
 	  {
 		  if(CalculateNewHitPoint(HitInfo, rain_amount, particle_size, EndTrace, LidarBodyLoc)) //if new hitpoint is made
       {

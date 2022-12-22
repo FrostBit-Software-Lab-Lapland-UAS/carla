@@ -37,7 +37,6 @@ namespace rpc {
     Dynamic      =  20u,
     Water        =  21u,
     Terrain      =  22u,
-    SnowFlake    =  23u,
     Any          =  0xFF
   };
 

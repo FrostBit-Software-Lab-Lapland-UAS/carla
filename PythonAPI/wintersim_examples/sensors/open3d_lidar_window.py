@@ -73,15 +73,15 @@ class Open3DLidarWindow():
     this spawns lidar to ego vehicle and separate window from the simulation view 
     '''
 
-    def generate_lidar_bp(self, semantic, world, blueprint_library, delta, weather):
+    def generate_lidar_bp(self, semantic, world, blueprint_library, delta):
         """Generates a CARLA blueprint based on the script parameters"""
         if semantic:
-            lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast_semantic')
+            lidar_bp = world.get_blueprint_library().find('sensor.lidar.custom_ray_cast_semantic')
         else:
             lidar_bp = blueprint_library.find('sensor.lidar.custom_ray_cast')
-            lidar_bp.set_attribute('dropoff_general_rate', '0.0')
-            lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
-            lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
+            #lidar_bp.set_attribute('dropoff_general_rate', '0.0')
+            #lidar_bp.set_attribute('dropoff_intensity_limit', '1.0')
+            #lidar_bp.set_attribute('dropoff_zero_intensity', '0.0')
 
         lidar_bp.set_attribute('upper_fov', str(self.upper_fov))
         lidar_bp.set_attribute('lower_fov', str(self.lower_fov))
@@ -89,7 +89,7 @@ class Open3DLidarWindow():
         lidar_bp.set_attribute('range', str(self.range))
         lidar_bp.set_attribute('rotation_frequency', str(1.0 / delta))
         lidar_bp.set_attribute('points_per_second', str(self.points_per_second))
-        lidar_bp.set_attribute('noise_stddev', str(-0.00024*weather.temperature+0.011))
+        #lidar_bp.set_attribute('noise_stddev', str(-0.00024*weather.temperature+0.011))
 
         return lidar_bp
 
@@ -193,12 +193,11 @@ class Open3DLidarWindow():
             self.lidar = None
         self.vis.destroy_window()
 
-    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = True):
+    def setup(self, world, vehicle, show_axis, vehicle_name, semantic = False):
         delta = 0.05
         blueprint_library = world.get_blueprint_library()
 
-        weather = world.get_weather()
-        lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta, weather)
+        lidar_bp = self.generate_lidar_bp(semantic, world, blueprint_library, delta)
 
         lidar_position = carla.Location(x=-0.5, y=0.0, z=2)
 
@@ -217,7 +216,7 @@ class Open3DLidarWindow():
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(
             window_name='Carla Lidar',
-            width=1920, height=1080,
+            width=1280, height=720,
             left=600, top=600)
         self.vis.get_render_option().background_color = [0.05, 0.05, 0.05]
         self.vis.get_render_option().point_size = 2
@@ -246,8 +245,8 @@ class Open3DLidarWindow():
         self.frame = 0
 
         # lidar parameters
-        self.points_per_second = 600000
-        self.upper_fov = 15.0
-        self.lower_fov = -24.9
+        self.points_per_second = 655360
+        self.upper_fov = 22.5
+        self.lower_fov = -22.5
         self.channels = 32.0
-        self.range = 100.0
+        self.range = 120.0

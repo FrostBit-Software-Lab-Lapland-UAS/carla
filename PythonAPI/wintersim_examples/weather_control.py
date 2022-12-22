@@ -154,6 +154,17 @@ class World(object):
         precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
         precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
 
+        wind_direction = data['weatherStations'][0]['sensorValues'][13]['sensorValue'] / 2
+
+        humidity = data['weatherStations'][0]['sensorValues'][15]['sensorValue']
+        humidity = 100 if humidity > 100 else humidity
+        humidity = 0 if math.isnan(humidity) else humidity
+        
+        precipitation = data['weatherStations'][0]['sensorValues'][17]['sensorValue']
+        precipitation = 0 if math.isnan(precipitation) or precipitation is -1 else precipitation # this can be nan or -1 so that would give as error later so let make it 0 in this situation
+        precipitation = 10 if precipitation > 10 else precipitation # max precipitation value is 10
+        precipitation *= 10 # max precipitation is 10mm multiply by it 10 to get in range of 0-100
+           
         snow = data['weatherStations'][0]['sensorValues'][49]['sensorValue']
         snow = 100 if snow > 100 else snow # lets set max number of snow to 1meter
         snow = 0 if math.isnan(snow) else snow
@@ -292,8 +303,8 @@ class KeyboardControl(object):
                         world.toggle_static_tiretracks()
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                if hud.ice_slider.hit:                                  # if road iciness slider is moved
-                    world.update_friction(hud.ice_slider.val)
+            #    if hud.ice_slider.hit:                                  # if road iciness slider is moved
+            #        world.update_friction(hud.ice_slider.val)
                 for slider in hud.sliders:
                     slider.hit = False                                  # slider moving stopped
             elif event.type == pygame.KEYUP:

@@ -12,7 +12,7 @@
 #include "Carla/Sensor/Sensor.h"
 #include "Carla/Sensor/CustomRayCastSemanticLidar.h"
 #include "Carla/Actor/ActorBlueprintFunctionLibrary.h"
-
+#include "Components/StaticMeshComponent.h"
 #include <compiler/disable-ue4-macros.h>
 #include <carla/sensor/data/CustomLidarData.h>
 #include <compiler/enable-ue4-macros.h>
@@ -34,7 +34,8 @@ public:
   ACustomRayCastLidar(const FObjectInitializer &ObjectInitializer);
   virtual void Set(const FActorDescription &Description) override;
   virtual void Set(const FLidarDescription &LidarDescription) override;
-
+  int32 GetReflectivity(FHitResult HitInfo); 
+  int32 GetMaterialByFaceIndex(const UStaticMesh* mesh, const int32& faceIndex);
   virtual void PostPhysTick(UWorld *World, ELevelTick TickType, float DeltaTime);
 
 private:
@@ -44,6 +45,7 @@ private:
 
   void PreprocessRays(uint32_t Channels, uint32_t MaxPointsPerChannel) override;
   bool PostprocessDetection(FCustomDetection& Detection) const;
+
 
   void ComputeAndSaveDetections(const FTransform& SensorTransform) override;
 
@@ -59,4 +61,7 @@ private:
   /// beta = (1 - dropoff_zero_intensity)
   float DropOffAlpha;
   float DropOffBeta;
+protected:
+  UPROPERTY(EditAnywhere)
+  class UStaticMeshComponent* staticMeshComponent;
 };

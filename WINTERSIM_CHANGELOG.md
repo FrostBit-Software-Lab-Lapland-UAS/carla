@@ -1,6 +1,42 @@
+
+## WinterSim Release 1.20
+ * Upgraded to CARLA version 0.9.13
+ * Added new Rovaniemi map
+ * Added Muonio_Extended map (10 km long road!) 
+ * Added retroreflective materials on traffic signs, poles ect. 
+   Based on https://github.com/RDTG/UnrealEngineRetroreflections. Copyrights notice on in carla root folder.
+ * Added glittering snow effect
+ * Added dirty snow
+ * Added lidar noise formula for intensity
+ * Added lidar noise formula for distance measurement
+ * Updated lidar noise model formula for snowflake detection
+ * Moved from custom/manual sun position system to Unreal Engine Sun Position Calculate plugin which calculates geographically accurate       sun position by providing time, day, month and year 
+ * Fixed issue where Wind didn’t affect tree rotations properly 
+ * New ‘ice’ camera lens effect (not enabled by default)
+ * Performance and visual imporvements 
+ * WinterSim specific Python API extensions: 
+   New camera attributes: 
+   blueprintref.set_attribute(‘camera_ice_effect’), str(bool), default False 
+   blueprintref.set_attribute(‘camera_ice_effect_rotation’), string (right, left, top, down), default “up” 
+   blueprintref.set_attribute(‘camera_ice_effect_strength’), float (0.0 - 20.0), default 1.2 
+ * Expanded weather parameters to include: Time, Day, Month, Road snowiness, snow dirtyness, Timezone  
+ * Wintersim Control.py changes: 
+ * Adjusted multisensorview camera sensors fov’s 
+ * Added more multisensorview angles/views 
+ * Removed many unneeded imports 
+ * Fixed issue where wintersim_control separate Open3DLidar window (F9 key) fall/lagged behind. 
+ * Fixed issue where multisensorview lidars used wrong lidar class 
+ * Added new launch argument to switch map (-m, --m, -map, --map) 
+ * Added ability to change multi sensor view sensors when multi sensor view is enabled (keys: 1-3) 
+ * Weather_control.py changes: 
+ * Fixed issue where changing tire friction modified other vehicle physics values 
+ * Changed wind direction from angles to compass names 
+ * Added sliders for: 
+ * Day, Month, road snowiness, snow dirtyness and cloudiness 
+
 ## WinterSim Release 1.10
  * Upgraded to CARLA version 0.9.12 
- * Added new vehicles (van, pickup, wagon, bus) 
+ * Added new vehicles (van, pickup, wagon, bus)
  * Added winter clothes to NPC’s 
  * Added more snowbanks variations 
  * Added and improved weather controlling (weather_control.py) 

@@ -164,7 +164,6 @@ class World(object):
         self.filtered_map_name = ""
         self.restart()
         self.recording_start = 0
-        self.constant_velocity_enabled = False
         self.current_map_layer = 0
         self.world.on_tick(self.hud_wintersim.on_world_tick)
         # disable server window rendering (UE4 window) if launch argument '--no_server_rendering' given
